@@ -1,0 +1,88 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+:root {
+  --ui-text-dimmed: var(--color-stone-500);
+  --ui-text-muted: var(--color-stone-600);
+  --ui-text-toned: var(--color-stone-500);
+  --ui-text: var(--color-stone-700);
+  --ui-text-highlighted: var(--color-stone-800);
+  --ui-text-inverted: #ffffff;
+  --ui-bg: var(--color-stone-50);
+  --ui-bg-muted: var(--color-stone-100);
+  --ui-bg-elevated: var(--color-stone-200);
+  --ui-bg-accented: var(--color-stone-200);
+  --ui-bg-inverted: var(--color-stone-900);
+  --ui-border: var(--color-stone-300);
+  --ui-border-muted: var(--color-stone-400);
+  --ui-border-accented: var(--color-stone-300);
+  --ui-border-inverted: var(--color-stone-800);
+  --ui-radius: 0em;
+  --font-sans: 'Lexend', 'Apple Color Emoji', sans-serif;
+  --font-serif: 'Scotchlidaires', Cambria, 'Times New Roman', Times, serif;
+  --font-mono: 'SFMono-Regular', ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-weight-thin: 100;
+  --font-weight-extralight: 200;
+  --font-weight-light: 400;
+  --font-weight-normal: 500;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+
+  --spacing: 0.2rem;
+}
+
+/* Dark mode tokens (apply via .dark) */
+.dark {
+  --ui-text-dimmed: var(--color-stone-400);
+  --ui-text-muted: var(--color-stone-300);
+  --ui-text-toned: var(--color-stone-400);
+  --ui-text: var(--color-stone-100);
+  --ui-text-highlighted: #ffffff;
+  --ui-text-inverted: var(--color-stone-900);
+  --ui-bg: var(--color-stone-950);
+  --ui-bg-muted: var(--color-stone-900);
+  --ui-bg-elevated: var(--color-stone-800);
+  --ui-bg-accented: var(--color-stone-800);
+  --ui-bg-inverted: #ffffff;
+  --ui-border: var(--color-stone-700);
+  --ui-border-muted: var(--color-stone-600);
+  --ui-border-accented: var(--color-stone-700);
+  --ui-border-inverted: var(--color-stone-200);
+}
+
+/* Custom Colors */
+:root {
+  --color-solired-50: #fef2f2;
+  --color-solired-100: #fee2e2;
+  --color-solired-200: #fecaca;
+  --color-solired-300: #fca5a5;
+  --color-solired-400: #f87171;
+  --color-solired-500: #d20808;
+  --color-solired-600: #b90707;
+  --color-solired-700: #9a0606;
+  --color-solired-800: #7f0505;
+  --color-solired-900: #450303;
+  --color-solired-950: #2d0202;
+}
+
+html, body {
+  background-color: var(--ui-bg);
+  color: var(--ui-text);
+  font-family: var(--font-sans, ui-sans-serif);
+  scrollbar-color: var(--color-solired-500) var(--color-stone-100);
+}
+
+.dark {
+  scrollbar-color: var(--color-solired-500) var(--color-stone-900);
+}
+
+code, pre, kbd, samp {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+}
+
+h1, h2 {
+  font-family: var(--font-serif);
+}
