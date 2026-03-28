@@ -35,7 +35,6 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
-    sqlitePath: process.env.NUXT_SQLITE_PATH || 'data/cms.sqlite',
     public: {
       gitCommitShort,
       gitRepositoryUrl

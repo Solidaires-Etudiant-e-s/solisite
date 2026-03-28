@@ -3,5 +3,5 @@ import { createSyndicat } from '~~/server/utils/cms/syndicats'
 
 export default defineEventHandler(async (event) => {
   await requireAdminAccess(event)
-  return createSyndicat()
+  return await createSyndicat()
 })

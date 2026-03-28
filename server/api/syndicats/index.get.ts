@@ -1,5 +1,5 @@
 import { listSyndicats } from '~~/server/utils/cms/syndicats'
 
-export default defineEventHandler(() => {
-  return listSyndicats()
+export default defineEventHandler(async () => {
+  return await listSyndicats()
 })

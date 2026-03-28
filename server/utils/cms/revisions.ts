@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import { normalizeSocialLinks, normalizeSyndicatName, type CmsArticle, type CmsPage, type CmsRevision, type CmsRevisionChangeType, type CmsRevisionEntityType, type CmsSiteSettings, type CmsSocialLink, type CmsSyndicat } from '~~/lib/cms'
 import { useCmsDatabase, runInCmsTransaction } from './database'
 import { notFound } from './http'
@@ -5,6 +6,7 @@ import { toArticle, toPage, toSiteSettings, toSyndicat } from './mappers'
 import { nowIso, resolveUniqueSlug } from './shared'
 import type { ArticleRecord, PageRecord, RevisionRecord, SiteSettingsRecord, SyndicatRecord } from './types'
 
+type CmsDatabaseClient = Prisma.TransactionClient | Awaited<ReturnType<typeof useCmsDatabase>>
 type CmsRevisionSnapshot = CmsPage | CmsArticle | CmsSyndicat | CmsSiteSettings
 
 interface CreateRevisionInput {
@@ -17,38 +19,54 @@ interface CreateRevisionInput {
 }
 
 function parseRevisionSnapshot(record: RevisionRecord) {
-  return JSON.parse(record.snapshot_json) as CmsRevisionSnapshot
+  return JSON.parse(record.snapshotJson) as CmsRevisionSnapshot
 }
 
 function toRevision(record: RevisionRecord): CmsRevision {
   return {
     id: record.id,
-    entityType: record.entity_type,
-    entityId: record.entity_id,
-    revisionLabel: record.revision_label,
-    changeType: record.change_type,
-    restoredFromRevisionId: record.restored_from_revision_id,
-    createdAt: record.created_at,
+    entityType: record.entityType as CmsRevisionEntityType,
+    entityId: record.entityId,
+    revisionLabel: record.revisionLabel,
+    changeType: record.changeType as CmsRevisionChangeType,
+    restoredFromRevisionId: record.restoredFromRevisionId,
+    createdAt: record.createdAt,
     snapshot: parseRevisionSnapshot(record)
   }
 }
 
-function getUniqueRestoredArticleSlug(baseValue: string, currentId: number) {
-  const database = useCmsDatabase()
-  return resolveUniqueSlug(
+async function getUniqueRestoredArticleSlug(baseValue: string, currentId: number, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+
+  return await resolveUniqueSlug(
     baseValue,
     'article',
-    slug => (database.query<{ id: number }>('SELECT id FROM articles WHERE slug = $slug').get({ slug })?.id ?? null),
+    async (slug) => {
+      const existing = await client.article.findUnique({
+        where: { slug },
+        select: { id: true }
+      })
+
+      return existing?.id ?? null
+    },
     currentId
   )
 }
 
-function getUniqueRestoredSyndicatSlug(baseValue: string, currentId: number) {
-  const database = useCmsDatabase()
-  return resolveUniqueSlug(
+async function getUniqueRestoredSyndicatSlug(baseValue: string, currentId: number, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+
+  return await resolveUniqueSlug(
     baseValue,
     'syndicat',
-    slug => (database.query<{ id: number }>('SELECT id FROM syndicats WHERE slug = $slug').get({ slug })?.id ?? null),
+    async (slug) => {
+      const existing = await client.syndicat.findUnique({
+        where: { slug },
+        select: { id: true }
+      })
+
+      return existing?.id ?? null
+    },
     currentId
   )
 }
@@ -75,44 +93,33 @@ function getRestoredSyndicatSocials(snapshot: Partial<CmsSyndicat> & {
   return normalizeSocialLinks(snapshot.socials, legacySocials)
 }
 
-function restorePageSnapshot(snapshot: CmsPage, revisionId: number) {
+async function restorePageSnapshot(snapshot: CmsPage, revisionId: number, database: CmsDatabaseClient) {
   const updatedAt = nowIso()
 
-  useCmsDatabase().query(`
-    UPDATE pages
-    SET title = $title,
-        description = $description,
-        headline = $headline,
-        subheadline = $subheadline,
-        cta_label = $ctaLabel,
-        cta_href = $ctaHref,
-        content_json = $contentJson,
-        updated_at = $updatedAt
-    WHERE slug = $slug
-  `).run({
-    slug: snapshot.slug,
-    title: snapshot.title,
-    description: snapshot.description,
-    headline: snapshot.headline,
-    subheadline: snapshot.subheadline,
-    ctaLabel: snapshot.ctaLabel,
-    ctaHref: snapshot.ctaHref,
-    contentJson: JSON.stringify(snapshot.content),
-    updatedAt
+  await database.page.update({
+    where: { slug: snapshot.slug },
+    data: {
+      title: snapshot.title,
+      description: snapshot.description,
+      headline: snapshot.headline,
+      subheadline: snapshot.subheadline,
+      ctaLabel: snapshot.ctaLabel,
+      ctaHref: snapshot.ctaHref,
+      contentJson: JSON.stringify(snapshot.content),
+      updatedAt
+    }
   })
 
-  const restoredRecord = useCmsDatabase().query(`
-    SELECT slug, name, title, description, headline, subheadline, cta_label, cta_href, content_json, updated_at
-    FROM pages
-    WHERE slug = $slug
-  `).get({ slug: snapshot.slug }) as PageRecord | null
+  const restoredRecord = await database.page.findUnique({
+    where: { slug: snapshot.slug }
+  }) as PageRecord | null
 
   if (!restoredRecord) {
     notFound(`Page "${snapshot.slug}" not found.`)
   }
 
   const entity = toPage(restoredRecord)
-  createPageRevision(entity, 'restore', revisionId)
+  await createPageRevision(entity, 'restore', revisionId, database)
 
   return {
     entityType: 'page' as const,
@@ -120,42 +127,32 @@ function restorePageSnapshot(snapshot: CmsPage, revisionId: number) {
   }
 }
 
-function restoreArticleSnapshot(snapshot: CmsArticle, revisionId: number) {
+async function restoreArticleSnapshot(snapshot: CmsArticle, revisionId: number, database: CmsDatabaseClient) {
   const updatedAt = nowIso()
 
-  useCmsDatabase().query(`
-    UPDATE articles
-    SET slug = $slug,
-        title = $title,
-        excerpt = $excerpt,
-        content = $content,
-        cover_image = $coverImage,
-        published_at = $publishedAt,
-        updated_at = $updatedAt
-    WHERE id = $id
-  `).run({
-    id: snapshot.id,
-    slug: getUniqueRestoredArticleSlug(snapshot.slug || snapshot.title, snapshot.id),
-    title: snapshot.title,
-    excerpt: snapshot.excerpt,
-    content: snapshot.content,
-    coverImage: snapshot.coverImage,
-    publishedAt: snapshot.publishedAt,
-    updatedAt
+  await database.article.update({
+    where: { id: snapshot.id },
+    data: {
+      slug: await getUniqueRestoredArticleSlug(snapshot.slug || snapshot.title, snapshot.id, database),
+      title: snapshot.title,
+      excerpt: snapshot.excerpt,
+      content: snapshot.content,
+      coverImage: snapshot.coverImage,
+      publishedAt: snapshot.publishedAt,
+      updatedAt
+    }
   })
 
-  const restoredRecord = useCmsDatabase().query(`
-    SELECT id, slug, title, excerpt, content, cover_image, published_at, updated_at
-    FROM articles
-    WHERE id = $id
-  `).get({ id: snapshot.id }) as ArticleRecord | null
+  const restoredRecord = await database.article.findUnique({
+    where: { id: snapshot.id }
+  }) as ArticleRecord | null
 
   if (!restoredRecord) {
     notFound(`Article "${snapshot.id}" not found.`)
   }
 
   const entity = toArticle(restoredRecord)
-  createArticleRevision(entity, 'restore', revisionId)
+  await createArticleRevision(entity, 'restore', revisionId, database)
 
   return {
     entityType: 'article' as const,
@@ -163,41 +160,42 @@ function restoreArticleSnapshot(snapshot: CmsArticle, revisionId: number) {
   }
 }
 
-function restoreSiteSettingsSnapshot(snapshot: CmsSiteSettings, revisionId: number) {
+async function restoreSiteSettingsSnapshot(snapshot: CmsSiteSettings, revisionId: number, database: CmsDatabaseClient) {
   const updatedAt = nowIso()
 
-  useCmsDatabase().query(`
-    UPDATE site_settings
-    SET union_name = $unionName,
-        site_description = $siteDescription,
-        contact_email = $contactEmail,
-        contact_phone = $contactPhone,
-        address = $address,
-        socials_json = $socialsJson,
-        updated_at = $updatedAt
-    WHERE id = 1
-  `).run({
-    unionName: snapshot.unionName,
-    siteDescription: snapshot.siteDescription,
-    contactEmail: snapshot.contactEmail,
-    contactPhone: snapshot.contactPhone,
-    address: snapshot.address,
-    socialsJson: JSON.stringify(snapshot.socials),
-    updatedAt
+  await database.siteSettings.upsert({
+    where: { id: 1 },
+    update: {
+      unionName: snapshot.unionName,
+      siteDescription: snapshot.siteDescription,
+      contactEmail: snapshot.contactEmail,
+      contactPhone: snapshot.contactPhone,
+      address: snapshot.address,
+      socialsJson: JSON.stringify(snapshot.socials),
+      updatedAt
+    },
+    create: {
+      id: 1,
+      unionName: snapshot.unionName,
+      siteDescription: snapshot.siteDescription,
+      contactEmail: snapshot.contactEmail,
+      contactPhone: snapshot.contactPhone,
+      address: snapshot.address,
+      socialsJson: JSON.stringify(snapshot.socials),
+      updatedAt
+    }
   })
 
-  const restoredRecord = useCmsDatabase().query(`
-    SELECT id, union_name, site_description, contact_email, contact_phone, address, socials_json, updated_at
-    FROM site_settings
-    WHERE id = 1
-  `).get() as SiteSettingsRecord | null
+  const restoredRecord = await database.siteSettings.findUnique({
+    where: { id: 1 }
+  }) as SiteSettingsRecord | null
 
   if (!restoredRecord) {
     notFound('Site settings not found.')
   }
 
   const entity = toSiteSettings(restoredRecord)
-  createSiteSettingsRevision(entity, 'restore', revisionId)
+  await createSiteSettingsRevision(entity, 'restore', revisionId, database)
 
   return {
     entityType: 'site-settings' as const,
@@ -205,7 +203,7 @@ function restoreSiteSettingsSnapshot(snapshot: CmsSiteSettings, revisionId: numb
   }
 }
 
-function restoreSyndicatSnapshot(snapshot: CmsSyndicat, revisionId: number) {
+async function restoreSyndicatSnapshot(snapshot: CmsSyndicat, revisionId: number, database: CmsDatabaseClient) {
   const updatedAt = nowIso()
   const name = normalizeSyndicatName(snapshot.name) || snapshot.name
   const socials = getRestoredSyndicatSocials(snapshot as Partial<CmsSyndicat> & {
@@ -214,45 +212,32 @@ function restoreSyndicatSnapshot(snapshot: CmsSyndicat, revisionId: number) {
     helloAsso?: string
   })
 
-  useCmsDatabase().query(`
-    UPDATE syndicats
-    SET slug = $slug,
-        name = $name,
-        city = $city,
-        email = $email,
-        address = $address,
-        socials_json = $socialsJson,
-        content = $content,
-        latitude = $latitude,
-        longitude = $longitude,
-        updated_at = $updatedAt
-    WHERE id = $id
-  `).run({
-    id: snapshot.id,
-    slug: getUniqueRestoredSyndicatSlug(name, snapshot.id),
-    name,
-    city: snapshot.city,
-    email: snapshot.email,
-    address: snapshot.address,
-    socialsJson: JSON.stringify(socials),
-    content: snapshot.content,
-    latitude: snapshot.latitude,
-    longitude: snapshot.longitude,
-    updatedAt
+  await database.syndicat.update({
+    where: { id: snapshot.id },
+    data: {
+      slug: await getUniqueRestoredSyndicatSlug(name, snapshot.id, database),
+      name,
+      city: snapshot.city,
+      email: snapshot.email,
+      address: snapshot.address,
+      socialsJson: JSON.stringify(socials),
+      content: snapshot.content,
+      latitude: snapshot.latitude,
+      longitude: snapshot.longitude,
+      updatedAt
+    }
   })
 
-  const restoredRecord = useCmsDatabase().query(`
-    SELECT id, slug, name, city, email, address, socials_json, content, latitude, longitude, updated_at
-    FROM syndicats
-    WHERE id = $id
-  `).get({ id: snapshot.id }) as SyndicatRecord | null
+  const restoredRecord = await database.syndicat.findUnique({
+    where: { id: snapshot.id }
+  }) as SyndicatRecord | null
 
   if (!restoredRecord) {
     notFound(`Syndicat "${snapshot.id}" not found.`)
   }
 
   const entity = toSyndicat(restoredRecord)
-  createSyndicatRevision(entity, 'restore', revisionId)
+  await createSyndicatRevision(entity, 'restore', revisionId, database)
 
   return {
     entityType: 'syndicat' as const,
@@ -260,139 +245,132 @@ function restoreSyndicatSnapshot(snapshot: CmsSyndicat, revisionId: number) {
   }
 }
 
-export function createRevision(input: CreateRevisionInput) {
-  const timestamp = nowIso()
-  const database = useCmsDatabase()
-  const result = database.query(`
-    INSERT INTO cms_revisions (
-      entity_type,
-      entity_id,
-      snapshot_json,
-      revision_label,
-      change_type,
-      restored_from_revision_id,
-      created_at
-    ) VALUES (
-      $entityType,
-      $entityId,
-      $snapshotJson,
-      $revisionLabel,
-      $changeType,
-      $restoredFromRevisionId,
-      $createdAt
-    )
-  `).run({
-    entityType: input.entityType,
-    entityId: input.entityId,
-    snapshotJson: JSON.stringify(input.snapshot),
-    revisionLabel: input.revisionLabel,
-    changeType: input.changeType,
-    restoredFromRevisionId: input.restoredFromRevisionId ?? null,
-    createdAt: timestamp
-  })
-
-  const id = Number(result.lastInsertRowid)
-  const record = database.query(`
-    SELECT id, entity_type, entity_id, snapshot_json, revision_label, change_type, restored_from_revision_id, created_at
-    FROM cms_revisions
-    WHERE id = $id
-  `).get({ id }) as RevisionRecord | null
-
-  if (!record) {
-    notFound(`Revision "${id}" not found.`)
-  }
+export async function createRevision(input: CreateRevisionInput, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const record = await client.cmsRevisionRecord.create({
+    data: {
+      entityType: input.entityType,
+      entityId: input.entityId,
+      snapshotJson: JSON.stringify(input.snapshot),
+      revisionLabel: input.revisionLabel,
+      changeType: input.changeType,
+      restoredFromRevisionId: input.restoredFromRevisionId ?? null,
+      createdAt: nowIso()
+    }
+  }) as RevisionRecord
 
   return toRevision(record)
 }
 
-export function listRevisions(entityType: CmsRevisionEntityType, entityId: string) {
-  const records = useCmsDatabase().query(`
-    SELECT id, entity_type, entity_id, snapshot_json, revision_label, change_type, restored_from_revision_id, created_at
-    FROM cms_revisions
-    WHERE entity_type = $entityType AND entity_id = $entityId
-    ORDER BY created_at DESC, id DESC
-  `).all({
-    entityType,
-    entityId
+export async function listRevisions(entityType: CmsRevisionEntityType, entityId: string, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const records = await client.cmsRevisionRecord.findMany({
+    where: {
+      entityType,
+      entityId
+    },
+    orderBy: [
+      { createdAt: 'desc' },
+      { id: 'desc' }
+    ]
   }) as RevisionRecord[]
 
   return records.map(toRevision)
 }
 
-export function getRevisionById(id: number) {
-  const record = useCmsDatabase().query(`
-    SELECT id, entity_type, entity_id, snapshot_json, revision_label, change_type, restored_from_revision_id, created_at
-    FROM cms_revisions
-    WHERE id = $id
-  `).get({ id }) as RevisionRecord | null
+export async function getRevisionById(id: number, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const record = await client.cmsRevisionRecord.findUnique({
+    where: { id }
+  }) as RevisionRecord | null
 
   return record ? toRevision(record) : null
 }
 
-export function createPageRevision(page: CmsPage, changeType: CmsRevisionChangeType = 'save', restoredFromRevisionId?: number | null) {
-  return createRevision({
+export async function createPageRevision(
+  page: CmsPage,
+  changeType: CmsRevisionChangeType = 'save',
+  restoredFromRevisionId?: number | null,
+  database?: CmsDatabaseClient
+) {
+  return await createRevision({
     entityType: 'page',
     entityId: page.slug,
     revisionLabel: page.name,
     changeType,
     snapshot: page,
     restoredFromRevisionId
-  })
+  }, database)
 }
 
-export function createArticleRevision(article: CmsArticle, changeType: CmsRevisionChangeType = 'save', restoredFromRevisionId?: number | null) {
-  return createRevision({
+export async function createArticleRevision(
+  article: CmsArticle,
+  changeType: CmsRevisionChangeType = 'save',
+  restoredFromRevisionId?: number | null,
+  database?: CmsDatabaseClient
+) {
+  return await createRevision({
     entityType: 'article',
     entityId: String(article.id),
     revisionLabel: article.title,
     changeType,
     snapshot: article,
     restoredFromRevisionId
-  })
+  }, database)
 }
 
-export function createSyndicatRevision(syndicat: CmsSyndicat, changeType: CmsRevisionChangeType = 'save', restoredFromRevisionId?: number | null) {
-  return createRevision({
+export async function createSyndicatRevision(
+  syndicat: CmsSyndicat,
+  changeType: CmsRevisionChangeType = 'save',
+  restoredFromRevisionId?: number | null,
+  database?: CmsDatabaseClient
+) {
+  return await createRevision({
     entityType: 'syndicat',
     entityId: String(syndicat.id),
     revisionLabel: syndicat.name,
     changeType,
     snapshot: syndicat,
     restoredFromRevisionId
-  })
+  }, database)
 }
 
-export function createSiteSettingsRevision(siteSettings: CmsSiteSettings, changeType: CmsRevisionChangeType = 'save', restoredFromRevisionId?: number | null) {
-  return createRevision({
+export async function createSiteSettingsRevision(
+  siteSettings: CmsSiteSettings,
+  changeType: CmsRevisionChangeType = 'save',
+  restoredFromRevisionId?: number | null,
+  database?: CmsDatabaseClient
+) {
+  return await createRevision({
     entityType: 'site-settings',
     entityId: 'global',
     revisionLabel: siteSettings.unionName || 'Paramètres du site',
     changeType,
     snapshot: siteSettings,
     restoredFromRevisionId
-  })
+  }, database)
 }
 
-export function restoreRevision(id: number) {
-  return runInCmsTransaction(() => {
-    const revision = getRevisionById(id)
+export async function restoreRevision(id: number) {
+  return await runInCmsTransaction(async (database) => {
+    const revision = await getRevisionById(id, database)
 
     if (!revision) {
       notFound(`Revision "${id}" not found.`)
     }
 
     if (revision.entityType === 'page') {
-      return restorePageSnapshot(revision.snapshot as CmsPage, revision.id)
+      return await restorePageSnapshot(revision.snapshot as CmsPage, revision.id, database)
     }
 
     if (revision.entityType === 'article') {
-      return restoreArticleSnapshot(revision.snapshot as CmsArticle, revision.id)
+      return await restoreArticleSnapshot(revision.snapshot as CmsArticle, revision.id, database)
     }
 
     if (revision.entityType === 'site-settings') {
-      return restoreSiteSettingsSnapshot(revision.snapshot as CmsSiteSettings, revision.id)
+      return await restoreSiteSettingsSnapshot(revision.snapshot as CmsSiteSettings, revision.id, database)
     }
 
-    return restoreSyndicatSnapshot(revision.snapshot as CmsSyndicat, revision.id)
+    return await restoreSyndicatSnapshot(revision.snapshot as CmsSyndicat, revision.id, database)
   })
 }

@@ -8,5 +8,5 @@ export default defineEventHandler(async (event) => {
   await requireSyndicatWriteAccess(event, id)
   const body = await readTypedBody<Partial<CmsSyndicat>>(event)
 
-  return updateSyndicat(id, body)
+  return await updateSyndicat(id, body)
 })
