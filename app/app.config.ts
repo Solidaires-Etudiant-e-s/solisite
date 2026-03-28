@@ -38,7 +38,7 @@ export default defineAppConfig({
       link: 'mingcute:link-line',
       layers: 'mingcute:layers-line',
       circleHelp: 'mingcute:question-line',
-      chevronDown: 'mingcute:arrow-down-line',
+      chevronDown: 'mingcute:down-line',
       rotateCcw: 'mingcute:refresh-2-line',
       dot: 'mingcute:newdot-line',
       plus: 'mingcute:plus-line',
