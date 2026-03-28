@@ -41,80 +41,82 @@ function pageQuery(page: number) {
     </div>
 
     <UPageBody>
-      <div
-        v-if="articles.length"
-        class="grid gap-8 md:grid-cols-2 xl:grid-cols-3"
-      >
-        <UPageCard
-          v-for="article in articles"
-          :key="article.id"
-          :title="article.title"
-          :description="article.excerpt"
-          :to="editor ? undefined : `/articles/${article.slug}`"
-          class="overflow-hidden"
+      <div class="mx-auto max-w-7xl space-y-10">
+        <div
+          v-if="articles.length"
+          class="grid gap-8 md:grid-cols-2 xl:grid-cols-3"
         >
-          <template #leading>
-            <img
-              :src="article.coverImage || '/hero.jpg'"
-              :alt="article.title"
-              class="mb-4 h-52 w-full object-cover"
-            >
-          </template>
+          <UPageCard
+            v-for="article in articles"
+            :key="article.id"
+            :title="article.title"
+            :description="article.excerpt"
+            :to="editor ? undefined : `/articles/${article.slug}`"
+            class="overflow-hidden"
+          >
+            <template #leading>
+              <img
+                :src="article.coverImage || '/hero.jpg'"
+                :alt="article.title"
+                class="mb-4 h-52 w-full object-cover"
+              >
+            </template>
 
-          <template #footer>
-            <span class="text-sm text-muted">{{ formatFrenchDate(article.publishedAt) }}</span>
-          </template>
-        </UPageCard>
-      </div>
+            <template #footer>
+              <span class="text-sm text-muted">{{ formatFrenchDate(article.publishedAt) }}</span>
+            </template>
+          </UPageCard>
+        </div>
 
-      <p
-        v-else
-        class="text-sm text-muted"
-      >
-        <CmsEditableNode
-          tag="span"
-          :target="{ id: `${page.slug}:empty-state`, kind: 'textarea', path: 'content.emptyStateText', label: 'Texte de l’état vide' }"
+        <p
+          v-else
+          class="text-sm text-muted"
         >
-          {{ content.emptyStateText }}
-        </CmsEditableNode>
-      </p>
-
-      <div
-        v-if="totalPages > 1"
-        class="mt-10 flex flex-col items-center gap-4"
-      >
-        <p class="text-sm text-muted">
-          Page {{ currentPage }} sur {{ totalPages }}
+          <CmsEditableNode
+            tag="span"
+            :target="{ id: `${page.slug}:empty-state`, kind: 'textarea', path: 'content.emptyStateText', label: 'Texte de l’état vide' }"
+          >
+            {{ content.emptyStateText }}
+          </CmsEditableNode>
         </p>
 
-        <div class="flex flex-wrap items-center justify-center gap-2">
-          <UButton
-            :to="{ query: pageQuery(currentPage - 1) }"
-            variant="outline"
-            color="neutral"
-            :disabled="currentPage === 1"
-          >
-            Precedente
-          </UButton>
+        <div
+          v-if="totalPages > 1"
+          class="flex flex-col items-center gap-4"
+        >
+          <p class="text-sm text-muted">
+            Page {{ currentPage }} sur {{ totalPages }}
+          </p>
 
-          <UButton
-            v-for="pageNumber in pageNumbers"
-            :key="pageNumber"
-            :to="{ query: pageQuery(pageNumber) }"
-            :variant="pageNumber === currentPage ? 'solid' : 'ghost'"
-            :color="pageNumber === currentPage ? 'primary' : 'neutral'"
-          >
-            {{ pageNumber }}
-          </UButton>
+          <div class="flex flex-wrap items-center justify-center gap-2">
+            <UButton
+              :to="{ query: pageQuery(currentPage - 1) }"
+              variant="outline"
+              color="neutral"
+              :disabled="currentPage === 1"
+            >
+              Precedente
+            </UButton>
 
-          <UButton
-            :to="{ query: pageQuery(currentPage + 1) }"
-            variant="outline"
-            color="neutral"
-            :disabled="currentPage === totalPages"
-          >
-            Suivante
-          </UButton>
+            <UButton
+              v-for="pageNumber in pageNumbers"
+              :key="pageNumber"
+              :to="{ query: pageQuery(pageNumber) }"
+              :variant="pageNumber === currentPage ? 'solid' : 'ghost'"
+              :color="pageNumber === currentPage ? 'primary' : 'neutral'"
+            >
+              {{ pageNumber }}
+            </UButton>
+
+            <UButton
+              :to="{ query: pageQuery(currentPage + 1) }"
+              variant="outline"
+              color="neutral"
+              :disabled="currentPage === totalPages"
+            >
+              Suivante
+            </UButton>
+          </div>
         </div>
       </div>
     </UPageBody>

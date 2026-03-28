@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { VueDraggable } from 'vue-draggable-plus'
-import { createCtaTarget, createEditableTarget, createListItemTarget, createListTarget } from '~/utils/cmsEditor'
+import { createEditableTarget, createListItemTarget, createListTarget } from '~/utils/cmsEditor'
 import { createStableItemKeyResolver } from '~/utils/cmsUi'
 
 const props = defineProps<{
@@ -15,6 +15,10 @@ const featuredArticles = computed(() => props.articles.slice(0, 6))
 const heroButtons = computed(() => content.value.heroButtons || [])
 const socials = computed(() => (props.siteSettings.socials || []).filter(social => social.href))
 const getItemKey = createStableItemKeyResolver()
+const compactSectionUi = {
+  container: 'px-3 py-10 sm:px-4 sm:py-14 lg:px-5 lg:py-16 gap-6 sm:gap-10',
+  body: 'mt-6 sm:mt-10'
+}
 
 const heroButtonsModel = computed({
   get: () => content.value.heroButtons,
@@ -40,51 +44,43 @@ const partnersModel = computed({
   <div>
     <UPageHero
       class="dark"
-      :ui="{ root: 'h-192 flex items-center', title: '!text-8xl' }"
+      :ui="{ root: 'sm:h-192 flex items-center', title: 'sm:!text-8xl' }"
     >
       <template #top>
-        <svg
-          class="absolute inset-0 -z-10 h-full w-full"
-          viewBox="0 0 1440 960"
-          preserveAspectRatio="xMidYMid slice"
-          xmlns="http://www.w3.org/2000/svg"
+        <div
+          class="absolute inset-0 -z-10 overflow-hidden"
           aria-hidden="true"
         >
-          <image
-            href="/hero.jpg"
-            width="100%"
-            height="100%"
-            preserveAspectRatio="xMidYMid slice"
-            style="filter: saturate(0%) contrast(134%) brightness(115%);"
+          <picture class="block h-full w-full">
+            <source
+              srcset="/hero/hero-home.avif"
+              type="image/avif"
+            >
+            <source
+              srcset="/hero/hero-home.webp"
+              type="image/webp"
+            >
+            <img
+              src="/hero/hero-home.png"
+              alt=""
+              class="h-full w-full object-cover"
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+              style="filter: saturate(0%) contrast(134%) brightness(115%);"
+            >
+          </picture>
+
+          <div class="absolute inset-0 bg-[#d20808]/22" />
+          <div class="absolute inset-0 bg-[#d20808]/14 mix-blend-overlay" />
+
+          <div
+            class="pointer-events-none absolute inset-0 mix-blend-soft-light opacity-30"
+            style="background-image: url('/noise.png'); background-repeat: repeat; background-size: 128px 128px;"
           />
-          <rect
-            width="100%"
-            height="100%"
-            fill="#d20808"
-            fill-opacity="0.22"
-          />
-          <rect
-            width="100%"
-            height="100%"
-            fill="#d20808"
-            fill-opacity="0.14"
-            style="mix-blend-mode: overlay;"
-          />
-          <image
-            href="/noise.png"
-            width="100%"
-            height="100%"
-            preserveAspectRatio="xMidYMid slice"
-            opacity="0.55"
-            style="mix-blend-mode: overlay;"
-          />
-          <rect
-            width="100%"
-            height="100%"
-            fill="#000000"
-            fill-opacity="0.24"
-          />
-        </svg>
+
+          <div class="absolute inset-0 bg-black/38" />
+        </div>
       </template>
 
       <template #title>
@@ -173,7 +169,7 @@ const partnersModel = computed({
 
     <UPageSection
       id="features"
-      :ui="{ features: 'lg:grid-cols-2' }"
+      :ui="{ ...compactSectionUi, features: 'lg:grid-cols-2' }"
     >
       <template #title>
         <CmsEditableNode
@@ -244,7 +240,10 @@ const partnersModel = computed({
       </template>
     </UPageSection>
 
-    <UPageSection id="articles">
+    <UPageSection
+      id="articles"
+      :ui="compactSectionUi"
+    >
       <template #title>
         <CmsEditableNode
           tag="div"
@@ -285,7 +284,10 @@ const partnersModel = computed({
       </template>
     </UPageSection>
 
-    <UPageSection id="partners">
+    <UPageSection
+      id="partners"
+      :ui="compactSectionUi"
+    >
       <template #title>
         <CmsEditableNode
           tag="div"
@@ -386,44 +388,6 @@ const partnersModel = computed({
           </UPageCard>
         </UPageGrid>
       </template>
-    </UPageSection>
-
-    <UPageSection>
-      <UPageCTA variant="subtle">
-        <template #title>
-          <CmsEditableNode
-            tag="div"
-            class="inline-block"
-            :target="createEditableTarget(`${page.slug}:cta-title`, 'content.ctaTitle', 'Titre de l’appel à l’action')"
-          >
-            {{ content.ctaTitle }}
-          </CmsEditableNode>
-        </template>
-
-        <template #description>
-          <CmsEditableNode
-            tag="div"
-            :target="createEditableTarget(`${page.slug}:cta-description`, 'content.ctaDescription', 'Description de l’appel à l’action', true)"
-          >
-            {{ content.ctaDescription }}
-          </CmsEditableNode>
-        </template>
-
-        <template #links>
-          <CmsEditableNode
-            tag="div"
-            :target="createCtaTarget(page.slug)"
-          >
-            <UButton
-              :label="content.ctaLabel || page.ctaLabel || 'Articles'"
-              :to="editor ? undefined : content.ctaHref || page.ctaHref || '/articles'"
-              :trailing-icon="content.ctaTrailingIcon || 'mingcute:arrow-right-line'"
-              color="neutral"
-              @click.prevent="undefined"
-            />
-          </CmsEditableNode>
-        </template>
-      </UPageCTA>
     </UPageSection>
 
     <SiteSocialLinksSection :socials="socials" />
