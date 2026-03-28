@@ -41,10 +41,10 @@ export function toPage(record: PageRecord): CmsPage {
     description: record.description,
     headline: record.headline,
     subheadline: record.subheadline,
-    ctaLabel: record.cta_label,
-    ctaHref: record.cta_href,
-    content: parsePageContent(record.slug, record.content_json),
-    updatedAt: record.updated_at
+    ctaLabel: record.ctaLabel,
+    ctaHref: record.ctaHref,
+    content: parsePageContent(record.slug, record.contentJson),
+    updatedAt: record.updatedAt
   }
 }
 
@@ -55,9 +55,9 @@ export function toArticle(record: ArticleRecord): CmsArticle {
     title: record.title,
     excerpt: record.excerpt,
     content: record.content,
-    coverImage: record.cover_image,
-    publishedAt: record.published_at,
-    updatedAt: record.updated_at
+    coverImage: record.coverImage,
+    publishedAt: record.publishedAt,
+    updatedAt: record.updatedAt
   }
 }
 
@@ -69,22 +69,22 @@ export function toSyndicat(record: SyndicatRecord): CmsSyndicat {
     city: record.city,
     email: record.email,
     address: record.address,
-    socials: parseSocials(record.socials_json),
+    socials: parseSocials(record.socialsJson),
     content: record.content,
     latitude: record.latitude,
     longitude: record.longitude,
-    updatedAt: record.updated_at
+    updatedAt: record.updatedAt
   }
 }
 
 export function toSiteSettings(record: SiteSettingsRecord): CmsSiteSettings {
   return {
-    unionName: record.union_name,
-    siteDescription: record.site_description,
-    contactEmail: record.contact_email,
-    contactPhone: record.contact_phone,
+    unionName: record.unionName,
+    siteDescription: record.siteDescription,
+    contactEmail: record.contactEmail,
+    contactPhone: record.contactPhone,
     address: record.address,
-    socials: parseSocials(record.socials_json),
-    updatedAt: record.updated_at
+    socials: parseSocials(record.socialsJson),
+    updatedAt: record.updatedAt
   }
 }

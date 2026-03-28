@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import type { CmsPage } from '~~/lib/cms'
 import { createPageRevision } from './revisions'
 import type { PageRecord } from './types'
@@ -6,22 +7,22 @@ import { notFound } from './http'
 import { toPage } from './mappers'
 import { nowIso } from './shared'
 
-export function listPages() {
-  const records = useCmsDatabase().query(`
-    SELECT slug, name, title, description, headline, subheadline, cta_label, cta_href, content_json, updated_at
-    FROM pages
-    ORDER BY name
-  `).all() as PageRecord[]
+type CmsDatabaseClient = Prisma.TransactionClient | Awaited<ReturnType<typeof useCmsDatabase>>
+
+export async function listPages(database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const records = await client.page.findMany({
+    orderBy: { name: 'asc' }
+  }) as PageRecord[]
 
   return records.map(toPage)
 }
 
-export function getPage(slug: string) {
-  const record = useCmsDatabase().query(`
-    SELECT slug, name, title, description, headline, subheadline, cta_label, cta_href, content_json, updated_at
-    FROM pages
-    WHERE slug = $slug
-  `).get({ slug }) as PageRecord | null
+export async function getPage(slug: string, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const record = await client.page.findUnique({
+    where: { slug }
+  }) as PageRecord | null
 
   return record ? toPage(record) : null
 }
@@ -41,9 +42,9 @@ function normalizePageUpdate(current: CmsPage, input: Partial<CmsPage>): CmsPage
   }
 }
 
-export function updatePage(slug: string, input: Partial<CmsPage>, options: UpdatePageOptions = {}) {
-  return runInCmsTransaction(() => {
-    const current = getPage(slug)
+export async function updatePage(slug: string, input: Partial<CmsPage>, options: UpdatePageOptions = {}) {
+  return await runInCmsTransaction(async (database) => {
+    const current = await getPage(slug, database)
 
     if (!current) {
       notFound(`Page "${slug}" not found.`)
@@ -51,37 +52,28 @@ export function updatePage(slug: string, input: Partial<CmsPage>, options: Updat
 
     const updated = normalizePageUpdate(current, input)
 
-    useCmsDatabase().query(`
-      UPDATE pages
-      SET title = $title,
-          description = $description,
-          headline = $headline,
-          subheadline = $subheadline,
-          cta_label = $ctaLabel,
-          cta_href = $ctaHref,
-          content_json = $contentJson,
-          updated_at = $updatedAt
-      WHERE slug = $slug
-    `).run({
-      slug: updated.slug,
-      title: updated.title,
-      description: updated.description,
-      headline: updated.headline,
-      subheadline: updated.subheadline,
-      ctaLabel: updated.ctaLabel,
-      ctaHref: updated.ctaHref,
-      contentJson: JSON.stringify(updated.content),
-      updatedAt: updated.updatedAt
+    await database.page.update({
+      where: { slug: updated.slug },
+      data: {
+        title: updated.title,
+        description: updated.description,
+        headline: updated.headline,
+        subheadline: updated.subheadline,
+        ctaLabel: updated.ctaLabel,
+        ctaHref: updated.ctaHref,
+        contentJson: JSON.stringify(updated.content),
+        updatedAt: updated.updatedAt
+      }
     })
 
-    const savedPage = getPage(slug)
+    const savedPage = await getPage(slug, database)
 
     if (!savedPage) {
       notFound(`Page "${slug}" not found.`)
     }
 
     if (!options.skipRevision) {
-      createPageRevision(savedPage)
+      await createPageRevision(savedPage, 'save', undefined, database)
     }
 
     return savedPage

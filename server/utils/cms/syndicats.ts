@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import type { CmsSyndicat } from '~~/lib/cms'
 import { normalizeSocialLinks, normalizeSyndicatName } from '~~/lib/cms'
 import { createSyndicatRevision } from './revisions'
@@ -8,42 +9,69 @@ import { notFound } from './http'
 import { toSyndicat } from './mappers'
 import { nowIso, resolveUniqueSlug } from './shared'
 
-export function listSyndicats() {
-  const records = useCmsDatabase().query(`
-    SELECT id, slug, name, city, email, address, socials_json, content, latitude, longitude, updated_at
-    FROM syndicats
-    ORDER BY city COLLATE NOCASE ASC, name COLLATE NOCASE ASC, id ASC
-  `).all() as SyndicatRecord[]
+type CmsDatabaseClient = Prisma.TransactionClient | Awaited<ReturnType<typeof useCmsDatabase>>
 
-  return records.map(toSyndicat)
+const collator = new Intl.Collator('fr', {
+  sensitivity: 'base'
+})
+
+function sortSyndicats(records: SyndicatRecord[]) {
+  return [...records].sort((left, right) => {
+    const cityOrder = collator.compare(left.city, right.city)
+
+    if (cityOrder !== 0) {
+      return cityOrder
+    }
+
+    const nameOrder = collator.compare(left.name, right.name)
+
+    if (nameOrder !== 0) {
+      return nameOrder
+    }
+
+    return left.id - right.id
+  })
 }
 
-export function getSyndicatById(id: number) {
-  const record = useCmsDatabase().query(`
-    SELECT id, slug, name, city, email, address, socials_json, content, latitude, longitude, updated_at
-    FROM syndicats
-    WHERE id = $id
-  `).get({ id }) as SyndicatRecord | null
+export async function listSyndicats(database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const records = await client.syndicat.findMany() as SyndicatRecord[]
+
+  return sortSyndicats(records).map(toSyndicat)
+}
+
+export async function getSyndicatById(id: number, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const record = await client.syndicat.findUnique({
+    where: { id }
+  }) as SyndicatRecord | null
 
   return record ? toSyndicat(record) : null
 }
 
-export function getSyndicatBySlug(slug: string) {
-  const record = useCmsDatabase().query(`
-    SELECT id, slug, name, city, email, address, socials_json, content, latitude, longitude, updated_at
-    FROM syndicats
-    WHERE slug = $slug
-  `).get({ slug }) as SyndicatRecord | null
+export async function getSyndicatBySlug(slug: string, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const record = await client.syndicat.findUnique({
+    where: { slug }
+  }) as SyndicatRecord | null
 
   return record ? toSyndicat(record) : null
 }
 
-function getUniqueSyndicatSlug(baseName: string, currentId?: number) {
-  const database = useCmsDatabase()
-  return resolveUniqueSlug(
+async function getUniqueSyndicatSlug(baseName: string, currentId?: number, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+
+  return await resolveUniqueSlug(
     baseName,
     'syndicat',
-    slug => (database.query<{ id: number }>('SELECT id FROM syndicats WHERE slug = $slug').get({ slug })?.id ?? null),
+    async (slug) => {
+      const existing = await client.syndicat.findUnique({
+        where: { slug },
+        select: { id: true }
+      })
+
+      return existing?.id ?? null
+    },
     currentId
   )
 }
@@ -52,33 +80,28 @@ function cleanSyndicatName(value: string) {
   return normalizeSyndicatName(value).trim()
 }
 
-export function createSyndicat() {
-  return runInCmsTransaction(() => {
+export async function createSyndicat() {
+  return await runInCmsTransaction(async (database) => {
     const timestamp = nowIso()
     const name = `Nouveau syndicat ${new Date().toLocaleDateString('fr-FR')}`
-    const slug = getUniqueSyndicatSlug(name)
+    const slug = await getUniqueSyndicatSlug(name, undefined, database)
 
-    useCmsDatabase().query(`
-      INSERT INTO syndicats (
-        slug, name, city, email, address, socials_json, content, latitude, longitude, updated_at
-      ) VALUES (
-        $slug, $name, $city, $email, $address, $socialsJson, $content, $latitude, $longitude, $updatedAt
-      )
-    `).run({
-      slug,
-      name,
-      city: '',
-      email: '',
-      address: '',
-      socialsJson: '[]',
-      content: '<p>Commence à écrire ici.</p>',
-      latitude: 0,
-      longitude: 0,
-      updatedAt: timestamp
+    const created = await database.syndicat.create({
+      data: {
+        slug,
+        name,
+        city: '',
+        email: '',
+        address: '',
+        socialsJson: '[]',
+        content: '<p>Commence à écrire ici.</p>',
+        latitude: 0,
+        longitude: 0,
+        updatedAt: timestamp
+      }
     })
 
-    const created = useCmsDatabase().query('SELECT last_insert_rowid() as id').get() as { id: number }
-    const syndicat = getSyndicatById(created.id)
+    const syndicat = await getSyndicatById(created.id, database)
 
     if (!syndicat) {
       notFound(`Syndicat "${created.id}" not found.`)
@@ -92,7 +115,11 @@ interface UpdateSyndicatOptions {
   skipRevision?: boolean
 }
 
-function normalizeSyndicatUpdate(current: CmsSyndicat, input: Partial<CmsSyndicat>): CmsSyndicat {
+async function normalizeSyndicatUpdate(
+  current: CmsSyndicat,
+  input: Partial<CmsSyndicat>,
+  database?: CmsDatabaseClient
+): Promise<CmsSyndicat> {
   const name = cleanSyndicatName(input.name ?? current.name) || cleanSyndicatName(current.name) || current.name
 
   return {
@@ -100,7 +127,7 @@ function normalizeSyndicatUpdate(current: CmsSyndicat, input: Partial<CmsSyndica
     ...input,
     id: current.id,
     name,
-    slug: getUniqueSyndicatSlug(name, current.id),
+    slug: await getUniqueSyndicatSlug(name, current.id, database),
     city: (input.city ?? current.city).trim(),
     email: (input.email ?? current.email).trim(),
     address: (input.address ?? current.address).trim(),
@@ -113,13 +140,13 @@ function normalizeSyndicatUpdate(current: CmsSyndicat, input: Partial<CmsSyndica
 }
 
 export async function updateSyndicat(id: number, input: Partial<CmsSyndicat>, options: UpdateSyndicatOptions = {}) {
-  const current = getSyndicatById(id)
+  const current = await getSyndicatById(id)
 
   if (!current) {
     notFound(`Syndicat "${id}" not found.`)
   }
 
-  const updated = normalizeSyndicatUpdate(current, input)
+  const updated = await normalizeSyndicatUpdate(current, input)
   const coordinates = await geocodeSyndicatAddress(updated.address, updated.city)
   const syndicatToSave: CmsSyndicat = {
     ...updated,
@@ -127,42 +154,31 @@ export async function updateSyndicat(id: number, input: Partial<CmsSyndicat>, op
     longitude: !updated.address ? 0 : (coordinates?.longitude ?? current.longitude)
   }
 
-  return runInCmsTransaction(() => {
-    useCmsDatabase().query(`
-      UPDATE syndicats
-      SET slug = $slug,
-          name = $name,
-          city = $city,
-          email = $email,
-          address = $address,
-          socials_json = $socialsJson,
-          content = $content,
-          latitude = $latitude,
-          longitude = $longitude,
-          updated_at = $updatedAt
-      WHERE id = $id
-    `).run({
-      id: syndicatToSave.id,
-      slug: syndicatToSave.slug,
-      name: syndicatToSave.name,
-      city: syndicatToSave.city,
-      email: syndicatToSave.email,
-      address: syndicatToSave.address,
-      socialsJson: JSON.stringify(syndicatToSave.socials),
-      content: syndicatToSave.content,
-      latitude: syndicatToSave.latitude,
-      longitude: syndicatToSave.longitude,
-      updatedAt: syndicatToSave.updatedAt
+  return await runInCmsTransaction(async (database) => {
+    await database.syndicat.update({
+      where: { id: syndicatToSave.id },
+      data: {
+        slug: syndicatToSave.slug,
+        name: syndicatToSave.name,
+        city: syndicatToSave.city,
+        email: syndicatToSave.email,
+        address: syndicatToSave.address,
+        socialsJson: JSON.stringify(syndicatToSave.socials),
+        content: syndicatToSave.content,
+        latitude: syndicatToSave.latitude,
+        longitude: syndicatToSave.longitude,
+        updatedAt: syndicatToSave.updatedAt
+      }
     })
 
-    const savedSyndicat = getSyndicatById(id)
+    const savedSyndicat = await getSyndicatById(id, database)
 
     if (!savedSyndicat) {
       notFound(`Syndicat "${id}" not found.`)
     }
 
     if (!options.skipRevision) {
-      createSyndicatRevision(savedSyndicat)
+      await createSyndicatRevision(savedSyndicat, 'save', undefined, database)
     }
 
     return savedSyndicat

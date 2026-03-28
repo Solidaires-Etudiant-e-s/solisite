@@ -15,5 +15,5 @@ export default defineEventHandler(async (event) => {
   }
 
   await requireRevisionReadAccess(event, entityType, entityId)
-  return listRevisions(entityType as CmsRevisionEntityType, entityId)
+  return await listRevisions(entityType as CmsRevisionEntityType, entityId)
 })

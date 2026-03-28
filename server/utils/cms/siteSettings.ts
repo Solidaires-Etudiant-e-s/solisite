@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import { createDefaultSiteSettings, createEmptySiteSettings, normalizeSocialLinks, type CmsSiteSettings } from '~~/lib/cms'
 import { createSiteSettingsRevision } from './revisions'
 import { runInCmsTransaction, useCmsDatabase } from './database'
@@ -5,13 +6,14 @@ import { toSiteSettings } from './mappers'
 import { nowIso } from './shared'
 import type { SiteSettingsRecord } from './types'
 
-export function getSiteSettings() {
+type CmsDatabaseClient = Prisma.TransactionClient | Awaited<ReturnType<typeof useCmsDatabase>>
+
+export async function getSiteSettings(database?: CmsDatabaseClient) {
   const defaultSiteSettings = createDefaultSiteSettings()
-  const record = useCmsDatabase().query(`
-    SELECT id, union_name, site_description, contact_email, contact_phone, address, socials_json, updated_at
-    FROM site_settings
-    WHERE id = 1
-  `).get() as SiteSettingsRecord | null
+  const client = database ?? await useCmsDatabase()
+  const record = await client.siteSettings.findUnique({
+    where: { id: 1 }
+  }) as SiteSettingsRecord | null
 
   if (!record) {
     return {
@@ -42,35 +44,38 @@ function normalizeSiteSettingsUpdate(current: CmsSiteSettings, input: Partial<Cm
   } satisfies CmsSiteSettings
 }
 
-export function updateSiteSettings(input: Partial<CmsSiteSettings>, options: UpdateSiteSettingsOptions = {}) {
-  return runInCmsTransaction(() => {
-    const current = getSiteSettings()
+export async function updateSiteSettings(input: Partial<CmsSiteSettings>, options: UpdateSiteSettingsOptions = {}) {
+  return await runInCmsTransaction(async (database) => {
+    const current = await getSiteSettings(database)
     const updated = normalizeSiteSettingsUpdate(current, input)
 
-    useCmsDatabase().query(`
-      UPDATE site_settings
-      SET union_name = $unionName,
-          site_description = $siteDescription,
-          contact_email = $contactEmail,
-          contact_phone = $contactPhone,
-          address = $address,
-          socials_json = $socialsJson,
-          updated_at = $updatedAt
-      WHERE id = 1
-    `).run({
-      unionName: updated.unionName,
-      siteDescription: updated.siteDescription,
-      contactEmail: updated.contactEmail,
-      contactPhone: updated.contactPhone,
-      address: updated.address,
-      socialsJson: JSON.stringify(updated.socials),
-      updatedAt: updated.updatedAt
+    await database.siteSettings.upsert({
+      where: { id: 1 },
+      update: {
+        unionName: updated.unionName,
+        siteDescription: updated.siteDescription,
+        contactEmail: updated.contactEmail,
+        contactPhone: updated.contactPhone,
+        address: updated.address,
+        socialsJson: JSON.stringify(updated.socials),
+        updatedAt: updated.updatedAt
+      },
+      create: {
+        id: 1,
+        unionName: updated.unionName,
+        siteDescription: updated.siteDescription,
+        contactEmail: updated.contactEmail,
+        contactPhone: updated.contactPhone,
+        address: updated.address,
+        socialsJson: JSON.stringify(updated.socials),
+        updatedAt: updated.updatedAt
+      }
     })
 
-    const savedSettings = getSiteSettings()
+    const savedSettings = await getSiteSettings(database)
 
     if (!options.skipRevision) {
-      createSiteSettingsRevision(savedSettings)
+      await createSiteSettingsRevision(savedSettings, 'save', undefined, database)
     }
 
     return savedSettings

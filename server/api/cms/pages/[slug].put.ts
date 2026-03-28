@@ -8,5 +8,5 @@ export default defineEventHandler(async (event) => {
   const slug = requireRouteParam(event, 'slug', 'Missing page slug.')
   const body = await readTypedBody<Partial<CmsPage>>(event)
 
-  return updatePage(slug, body)
+  return await updatePage(slug, body)
 })

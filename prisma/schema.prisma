@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Page {
+  slug        String @id
+  name        String
+  title       String
+  description String
+  headline    String
+  subheadline String
+  ctaLabel    String @default("") @map("cta_label")
+  ctaHref     String @default("") @map("cta_href")
+  contentJson String @default("") @map("content_json")
+  updatedAt   String @map("updated_at")
+
+  @@map("pages")
+}
+
+model Article {
+  id          Int    @id @default(autoincrement())
+  slug        String @unique
+  title       String
+  excerpt     String @default("")
+  content     String @default("")
+  coverImage  String @default("/hero.jpg") @map("cover_image")
+  publishedAt String @map("published_at")
+  updatedAt   String @map("updated_at")
+
+  @@map("articles")
+}
+
+model Syndicat {
+  id          Int    @id @default(autoincrement())
+  slug        String @unique
+  name        String
+  city        String @default("")
+  email       String @default("")
+  address     String @default("")
+  socialsJson String @default("[]") @map("socials_json")
+  content     String @default("")
+  latitude    Float  @default(0)
+  longitude   Float  @default(0)
+  updatedAt   String @map("updated_at")
+
+  @@map("syndicats")
+}
+
+model SiteSettings {
+  id              Int    @id @default(1)
+  unionName       String @default("") @map("union_name")
+  siteDescription String @default("") @map("site_description")
+  contactEmail    String @default("") @map("contact_email")
+  contactPhone    String @default("") @map("contact_phone")
+  address         String @default("")
+  socialsJson     String @default("[]") @map("socials_json")
+  updatedAt       String @map("updated_at")
+
+  @@map("site_settings")
+}
+
+model CmsRevisionRecord {
+  id                   Int    @id @default(autoincrement())
+  entityType           String @map("entity_type")
+  entityId             String @map("entity_id")
+  snapshotJson         String @map("snapshot_json")
+  revisionLabel        String @map("revision_label")
+  changeType           String @map("change_type")
+  restoredFromRevisionId Int? @map("restored_from_revision_id")
+  createdAt            String @map("created_at")
+
+  @@index([entityType, entityId, createdAt, id], map: "cms_revisions_entity_idx")
+  @@map("cms_revisions")
+}

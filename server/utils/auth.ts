@@ -129,7 +129,8 @@ export async function resolveCmsAccess(event: H3Event): Promise<CmsAccessContext
   }
 
   const identity = normalizeIdentity(getYunohostUserName(event, user.name))
-  const syndicat = listSyndicats().find((entry) => {
+  const syndicats = await listSyndicats()
+  const syndicat = syndicats.find((entry) => {
     const candidates = [
       entry.slug,
       entry.name,
@@ -208,7 +209,7 @@ export async function requireRevisionRestoreAccess(event: H3Event, revisionId: n
     return access
   }
 
-  const revision = getRevisionById(revisionId)
+  const revision = await getRevisionById(revisionId)
 
   if (!revision || revision.entityType !== 'syndicat' || access.managedSyndicatId !== Number(revision.entityId)) {
     throw createError({
@@ -220,10 +221,10 @@ export async function requireRevisionRestoreAccess(event: H3Event, revisionId: n
   return access
 }
 
-export function getManagedSyndicatById(managedSyndicatId: number | null) {
+export async function getManagedSyndicatById(managedSyndicatId: number | null) {
   if (!managedSyndicatId) {
     return null
   }
 
-  return getSyndicatById(managedSyndicatId)
+  return await getSyndicatById(managedSyndicatId)
 }

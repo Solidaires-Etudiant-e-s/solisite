@@ -1,23 +1,21 @@
 import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { Database } from 'bun:sqlite'
+import { pathToFileURL } from 'node:url'
+import { PrismaClient } from '@prisma/client'
 import MarkdownIt from 'markdown-it'
 
 const [, , sourceArg, dbArg] = process.argv
 
 const sourceDir = resolve(process.cwd(), sourceArg || '/tmp/sesl-contents/articles')
-const databasePath = resolve(process.cwd(), dbArg || process.env.NUXT_SQLITE_PATH || 'data/cms.sqlite')
+const databaseUrl = dbArg
+  ? pathToFileURL(resolve(process.cwd(), dbArg)).toString()
+  : (process.env.DATABASE_URL || pathToFileURL(resolve(process.cwd(), 'data/cms.sqlite')).toString())
 const coversDir = resolve(process.cwd(), 'public/uploads/articles/imported')
 const coversPublicBase = '/uploads/articles/imported'
 
 if (!existsSync(sourceDir)) {
   console.error(`Source directory not found: ${sourceDir}`)
-  process.exit(1)
-}
-
-if (!existsSync(databasePath)) {
-  console.error(`Database not found: ${databasePath}`)
   process.exit(1)
 }
 
@@ -326,37 +324,32 @@ for (const article of articles) {
   article.coverImage = await downloadCoverImage(article.coverImage)
 }
 
-const database = new Database(databasePath)
-
-database.exec('BEGIN')
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: databaseUrl
+    }
+  }
+})
 
 try {
-  database.exec('DELETE FROM articles')
-  database.exec('DELETE FROM sqlite_sequence WHERE name = \'articles\'')
-
-  const insertArticle = database.query(`
-    INSERT INTO articles (slug, title, excerpt, content, cover_image, published_at, updated_at)
-    VALUES ($slug, $title, $excerpt, $content, $coverImage, $publishedAt, $updatedAt)
-  `)
-
-  for (const article of articles) {
-    insertArticle.run({
-      $slug: article.slug,
-      $title: article.title,
-      $excerpt: article.excerpt,
-      $content: article.content,
-      $coverImage: article.coverImage,
-      $publishedAt: article.publishedAt,
-      $updatedAt: article.updatedAt
+  await prisma.$transaction(async (transaction) => {
+    await transaction.cmsRevisionRecord.deleteMany({
+      where: {
+        entityType: 'article'
+      }
     })
-  }
 
-  database.exec('COMMIT')
-} catch (error) {
-  database.exec('ROLLBACK')
-  throw error
+    await transaction.article.deleteMany()
+
+    for (const article of articles) {
+      await transaction.article.create({
+        data: article
+      })
+    }
+  })
 } finally {
-  database.close()
+  await prisma.$disconnect()
 }
 
-console.log(`Imported ${articles.length} articles into ${databasePath}`)
+console.log(`Imported ${articles.length} articles into ${databaseUrl}`)

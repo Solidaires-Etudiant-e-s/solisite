@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client'
 import type { CmsArticle } from '~~/lib/cms'
 import { createArticleRevision } from './revisions'
 import type { ArticleRecord } from './types'
@@ -6,67 +7,75 @@ import { notFound } from './http'
 import { toArticle } from './mappers'
 import { nowIso, resolveUniqueSlug } from './shared'
 
-export function listArticles() {
-  const records = useCmsDatabase().query(`
-    SELECT id, slug, title, excerpt, content, cover_image, published_at, updated_at
-    FROM articles
-    ORDER BY published_at DESC, id DESC
-  `).all() as ArticleRecord[]
+type CmsDatabaseClient = Prisma.TransactionClient | Awaited<ReturnType<typeof useCmsDatabase>>
+
+export async function listArticles(database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const records = await client.article.findMany({
+    orderBy: [
+      { publishedAt: 'desc' },
+      { id: 'desc' }
+    ]
+  }) as ArticleRecord[]
 
   return records.map(toArticle)
 }
 
-export function getArticleById(id: number) {
-  const record = useCmsDatabase().query(`
-    SELECT id, slug, title, excerpt, content, cover_image, published_at, updated_at
-    FROM articles
-    WHERE id = $id
-  `).get({ id }) as ArticleRecord | null
+export async function getArticleById(id: number, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const record = await client.article.findUnique({
+    where: { id }
+  }) as ArticleRecord | null
 
   return record ? toArticle(record) : null
 }
 
-export function getArticleBySlug(slug: string) {
-  const record = useCmsDatabase().query(`
-    SELECT id, slug, title, excerpt, content, cover_image, published_at, updated_at
-    FROM articles
-    WHERE slug = $slug
-  `).get({ slug }) as ArticleRecord | null
+export async function getArticleBySlug(slug: string, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const record = await client.article.findUnique({
+    where: { slug }
+  }) as ArticleRecord | null
 
   return record ? toArticle(record) : null
 }
 
-function getUniqueArticleSlug(baseTitle: string, currentId?: number) {
-  const database = useCmsDatabase()
-  return resolveUniqueSlug(
+async function getUniqueArticleSlug(baseTitle: string, currentId?: number, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+
+  return await resolveUniqueSlug(
     baseTitle,
     'article',
-    slug => (database.query<{ id: number }>('SELECT id FROM articles WHERE slug = $slug').get({ slug })?.id ?? null),
+    async (slug) => {
+      const existing = await client.article.findUnique({
+        where: { slug },
+        select: { id: true }
+      })
+
+      return existing?.id ?? null
+    },
     currentId
   )
 }
 
-export function createArticle() {
-  return runInCmsTransaction(() => {
+export async function createArticle() {
+  return await runInCmsTransaction(async (database) => {
     const timestamp = nowIso()
     const title = `Nouvel article ${new Date().toLocaleDateString('fr-FR')}`
-    const slug = getUniqueArticleSlug(title)
+    const slug = await getUniqueArticleSlug(title, undefined, database)
 
-    useCmsDatabase().query(`
-      INSERT INTO articles (slug, title, excerpt, content, cover_image, published_at, updated_at)
-      VALUES ($slug, $title, $excerpt, $content, $coverImage, $publishedAt, $updatedAt)
-    `).run({
-      slug,
-      title,
-      excerpt: 'Rédige un court résumé pour l’affichage dans la liste des articles.',
-      content: '<p>Commence à écrire ici.</p>',
-      coverImage: '/hero.jpg',
-      publishedAt: timestamp,
-      updatedAt: timestamp
+    const created = await database.article.create({
+      data: {
+        slug,
+        title,
+        excerpt: 'Rédige un court résumé pour l’affichage dans la liste des articles.',
+        content: '<p>Commence à écrire ici.</p>',
+        coverImage: '/hero.jpg',
+        publishedAt: timestamp,
+        updatedAt: timestamp
+      }
     })
 
-    const created = useCmsDatabase().query('SELECT last_insert_rowid() as id').get() as { id: number }
-    const article = getArticleById(created.id)
+    const article = await getArticleById(created.id, database)
 
     if (!article) {
       notFound(`Article "${created.id}" not found.`)
@@ -80,7 +89,7 @@ interface UpdateArticleOptions {
   skipRevision?: boolean
 }
 
-function normalizeArticleUpdate(current: CmsArticle, input: Partial<CmsArticle>): CmsArticle {
+async function normalizeArticleUpdate(current: CmsArticle, input: Partial<CmsArticle>, database?: CmsDatabaseClient): Promise<CmsArticle> {
   const title = (input.title || current.title).trim() || current.title
 
   return {
@@ -88,7 +97,7 @@ function normalizeArticleUpdate(current: CmsArticle, input: Partial<CmsArticle>)
     ...input,
     id: current.id,
     title,
-    slug: getUniqueArticleSlug(input.slug?.trim() || title, current.id),
+    slug: await getUniqueArticleSlug(input.slug?.trim() || title, current.id, database),
     excerpt: (input.excerpt ?? current.excerpt).trim(),
     content: input.content ?? current.content,
     coverImage: input.coverImage ?? current.coverImage,
@@ -97,45 +106,37 @@ function normalizeArticleUpdate(current: CmsArticle, input: Partial<CmsArticle>)
   }
 }
 
-export function updateArticle(id: number, input: Partial<CmsArticle>, options: UpdateArticleOptions = {}) {
-  return runInCmsTransaction(() => {
-    const current = getArticleById(id)
+export async function updateArticle(id: number, input: Partial<CmsArticle>, options: UpdateArticleOptions = {}) {
+  return await runInCmsTransaction(async (database) => {
+    const current = await getArticleById(id, database)
 
     if (!current) {
       notFound(`Article "${id}" not found.`)
     }
 
-    const updated = normalizeArticleUpdate(current, input)
+    const updated = await normalizeArticleUpdate(current, input, database)
 
-    useCmsDatabase().query(`
-      UPDATE articles
-      SET slug = $slug,
-          title = $title,
-          excerpt = $excerpt,
-          content = $content,
-          cover_image = $coverImage,
-          published_at = $publishedAt,
-          updated_at = $updatedAt
-      WHERE id = $id
-    `).run({
-      id: updated.id,
-      slug: updated.slug,
-      title: updated.title,
-      excerpt: updated.excerpt,
-      content: updated.content,
-      coverImage: updated.coverImage,
-      publishedAt: updated.publishedAt,
-      updatedAt: updated.updatedAt
+    await database.article.update({
+      where: { id: updated.id },
+      data: {
+        slug: updated.slug,
+        title: updated.title,
+        excerpt: updated.excerpt,
+        content: updated.content,
+        coverImage: updated.coverImage,
+        publishedAt: updated.publishedAt,
+        updatedAt: updated.updatedAt
+      }
     })
 
-    const savedArticle = getArticleById(id)
+    const savedArticle = await getArticleById(id, database)
 
     if (!savedArticle) {
       notFound(`Article "${id}" not found.`)
     }
 
     if (!options.skipRevision) {
-      createArticleRevision(savedArticle)
+      await createArticleRevision(savedArticle, 'save', undefined, database)
     }
 
     return savedArticle

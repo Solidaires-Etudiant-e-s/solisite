@@ -8,5 +8,5 @@ export default defineEventHandler(async (event) => {
   const id = requirePositiveIntParam(event, 'id', 'Invalid article id.')
   const body = await readTypedBody<Partial<CmsArticle>>(event)
 
-  return updateArticle(id, body)
+  return await updateArticle(id, body)
 })

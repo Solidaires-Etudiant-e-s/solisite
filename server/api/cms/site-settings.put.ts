@@ -6,5 +6,5 @@ import { updateSiteSettings } from '~~/server/utils/cms/siteSettings'
 export default defineEventHandler(async (event) => {
   await requireAdminAccess(event)
   const body = await readTypedBody<Partial<CmsSiteSettings>>(event)
-  return updateSiteSettings(body)
+  return await updateSiteSettings(body)
 })

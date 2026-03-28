@@ -3,16 +3,22 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
+    "build": "npm run prisma:generate && nuxt build",
+    "db:push": "npm run db:sync",
+    "db:sync": "node scripts/ensure-sqlite-schema.mjs",
+    "dev": "npm run db:sync && nuxt dev",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "import:articles": "bun run scripts/import-solidaires-articles.mjs",
+    "postinstall": "npm run prisma:generate && nuxt prepare",
+    "prisma:generate": "prisma generate",
+    "import:articles": "node scripts/import-solidaires-articles.mjs",
+    "import:syndicats": "node scripts/import-solidaires-syndicats.mjs",
+    "populate": "npm run db:sync && npm run import:articles && npm run import:syndicats",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
     "@iconify-json/simple-icons": "^1.2.68",
+    "@prisma/client": "^6.16.2",
     "@nuxt/ui": "^4.4.0",
     "@nuxtjs/leaflet": "^1.3.2",
     "ldapts": "^8.1.7",
@@ -26,11 +32,11 @@
   "devDependencies": {
     "@iconify-json/mingcute": "^1.2.7",
     "@nuxt/eslint": "^1.13.0",
-    "@types/bun": "^1.3.2",
     "@types/node": "^24.6.1",
     "eslint": "^9.39.2",
+    "prisma": "^6.16.2",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.2.4"
   },
-  "packageManager": "pnpm@10.28.2"
+  "packageManager": "npm@10.9.4"
 }
