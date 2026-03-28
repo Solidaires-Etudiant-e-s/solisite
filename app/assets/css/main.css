@@ -73,10 +73,15 @@ html, body {
   color: var(--ui-text);
   font-family: var(--font-sans, ui-sans-serif);
   scrollbar-color: var(--color-solired-500) var(--color-stone-100);
+  min-height: 100%;
 }
 
 .dark {
   scrollbar-color: var(--color-solired-500) var(--color-stone-900);
+}
+
+#__nuxt {
+  min-height: 100vh;
 }
 
 code, pre, kbd, samp {
@@ -85,4 +90,112 @@ code, pre, kbd, samp {
 
 h1, h2 {
   font-family: var(--font-serif);
+}
+
+.site-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.site-shell > main {
+  flex: 1;
+}
+
+.site-footer {
+  border-top: 1px solid var(--ui-border);
+  padding: calc(var(--spacing) * 10) calc(var(--spacing) * 8);
+}
+
+.site-footer__inner {
+  width: min(100%, 72rem);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  text-align: center;
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.site-footer__line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+
+.site-footer__icon {
+  flex: none;
+}
+
+.site-footer a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+@media (min-width: 768px) {
+  .site-footer__inner {
+    text-align: left;
+  }
+}
+
+.prose-content h1,
+.prose-content h2,
+.prose-content h3,
+.prose-content h4 {
+  color: var(--ui-text-highlighted);
+  line-height: 1.1;
+  margin-top: 1.5em;
+  margin-bottom: 0.45em;
+}
+
+.prose-content h1 {
+  font-size: clamp(2rem, 5vw, 3.25rem);
+}
+
+.prose-content h2 {
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+}
+
+.prose-content h3 {
+  font-size: clamp(1.3rem, 3vw, 1.85rem);
+  font-family: var(--font-sans, ui-sans-serif);
+  font-weight: var(--font-weight-bold);
+}
+
+.prose-content p,
+.prose-content ul,
+.prose-content ol,
+.prose-content blockquote,
+.prose-content pre {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+.prose-content ul,
+.prose-content ol {
+  padding-left: 1.5em;
+}
+
+.prose-content ul {
+  list-style: disc;
+}
+
+.prose-content ol {
+  list-style: decimal;
+}
+
+.prose-content blockquote {
+  border-left: 3px solid var(--ui-border);
+  color: var(--ui-text-muted);
+  padding-left: 1em;
+}
+
+.prose-content a {
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
 }
