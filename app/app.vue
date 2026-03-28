@@ -1,15 +1,21 @@
 <script setup lang="ts">
+import type { NavigationMenuItem } from '@nuxt/ui'
+
 import { toLinkTarget } from '~/utils/cmsUi'
+import { resolveSeoImage, resolveSiteUrl, useCanonicalHead } from '~/utils/seo'
 import { createEmptySiteSettings } from '~~/lib/cms'
 
 const route = useRoute()
 const runtimeConfig = useRuntimeConfig()
 const toast = useToast()
 const { data: siteSettingsData } = await useFetch<CmsSiteSettings>('/api/site-settings')
+const themeColor = '#d20808'
 
 const siteSettings = computed(() => siteSettingsData.value ?? createEmptySiteSettings())
-const title = computed(() => siteSettings.value.unionName || 'Solidaires Étudiant·es')
+const siteName = computed(() => siteSettings.value.unionName || 'Solidaires Étudiant·es')
 const description = computed(() => siteSettings.value.siteDescription || 'Syndicats de luttes, militant pour une université gratuite, ouverte à tous·tes, de qualité, émancipatrice et autogérée.')
+const siteUrl = computed(() => resolveSiteUrl(runtimeConfig.public.siteUrl))
+const defaultSocialImage = computed(() => resolveSeoImage({ image: '/hero.jpg', siteUrl: siteUrl.value }))
 const gitRepositoryUrl = computed(() => runtimeConfig.public.gitRepositoryUrl || 'https://github.com/Solidaires-Etudiant-e-s/solisite')
 const gitCommitShort = computed(() => runtimeConfig.public.gitCommitShort || '')
 const gitCommitUrl = computed(() => {
@@ -22,19 +28,23 @@ const gitCommitUrl = computed(() => {
 
 const showSiteHeader = computed(() => !route.path.startsWith('/admin'))
 const showSiteFooter = computed(() => !route.path.startsWith('/admin'))
-const navigationLinks = [{
+const navigationLinks = computed<NavigationMenuItem[]>(() => [{
   label: 'Accueil',
-  to: '/'
+  to: '/',
+  active: route.path === '/'
 }, {
   label: 'À propos',
-  to: '/a-propos'
+  to: '/a-propos',
+  active: route.path.startsWith('/a-propos')
 }, {
   label: 'Articles',
-  to: '/articles'
+  to: '/articles',
+  active: route.path.startsWith('/articles')
 }, {
   label: 'Syndicats',
-  to: '/syndicats'
-}]
+  to: '/syndicats',
+  active: route.path.startsWith('/syndicats')
+}])
 const headerButtons = computed(() => {
   const buttons: Array<{ icon: string, href: string, target?: string, label: string }> = []
 
@@ -83,44 +93,108 @@ onMounted(() => {
   })
 })
 
-useSeoMeta({ title, description, ogTitle: title, ogDescription: description })
+const canonical = useCanonicalHead(() => route.fullPath || '/', siteUrl)
+
+useHead({
+  htmlAttrs: {
+    lang: 'fr'
+  },
+  meta: [{
+    name: 'theme-color',
+    content: themeColor
+  }, {
+    name: 'msapplication-TileColor',
+    content: themeColor
+  }],
+  titleTemplate: (titleChunk) => {
+    const cleanSiteName = siteName.value
+
+    if (!titleChunk || titleChunk === cleanSiteName) {
+      return cleanSiteName
+    }
+
+    return `${titleChunk} | ${cleanSiteName}`
+  }
+})
+
+useSeoMeta({
+  title: siteName,
+  description,
+  applicationName: siteName,
+  ogSiteName: siteName,
+  ogLocale: 'fr_FR',
+  ogType: 'website',
+  ogTitle: siteName,
+  ogDescription: description,
+  ogUrl: canonical,
+  ogImage: defaultSocialImage,
+  twitterCard: 'summary_large_image',
+  twitterTitle: siteName,
+  twitterDescription: description,
+  twitterImage: defaultSocialImage
+})
 </script>
 
 <template>
   <UApp class="site-shell">
-    <UHeader v-if="showSiteHeader">
+    <UHeader
+      v-if="showSiteHeader"
+      :title="siteName"
+      mode="drawer"
+      :ui="{ container: 'sm:!px-0' }"
+    >
       <template #title>
-        <div class="flex flex-wrap items-center gap-x-8 gap-y-2">
-          <h1 class="text-2xl font-bold">
-            <NuxtLink to="/">{{ siteSettings.unionName || 'Solidaires Étudiant·es' }}</NuxtLink>
-          </h1>
+        <NuxtLink
+          to="/"
+          class="text-2xl font-bold font-serif"
+        >
+          {{ siteName }}
+        </NuxtLink>
+      </template>
 
-          <nav class="flex flex-wrap items-center gap-x-5 gap-y-1">
-            <NuxtLink
-              v-for="link in navigationLinks"
-              :key="link.to"
-              :to="link.to"
-              class="text-sm font-semibold text-toned transition hover:text-highlighted"
-              :class="route.path === link.to || (link.to !== '/' && route.path.startsWith(`${link.to}/`)) ? 'text-highlighted' : ''"
-            >
-              {{ link.label }}
-            </NuxtLink>
-          </nav>
+      <UNavigationMenu :items="navigationLinks" />
+
+      <template #right>
+        <div class="hidden lg:flex items-center gap-1.5">
+          <UButton
+            v-for="button in headerButtons"
+            :key="`${button.label}-${button.href}`"
+            :icon="button.icon"
+            variant="outline"
+            color="neutral"
+            :href="button.href"
+            :target="button.target"
+            :aria-label="button.label"
+            :title="button.label"
+          />
         </div>
       </template>
 
-      <template #right>
-        <UButton
-          v-for="button in headerButtons"
-          :key="`${button.label}-${button.href}`"
-          :icon="button.icon"
-          variant="outline"
-          color="neutral"
-          :href="button.href"
-          :target="button.target"
-          :aria-label="button.label"
-          :title="button.label"
-        />
+      <template #body>
+        <div class="space-y-6">
+          <UNavigationMenu
+            :items="navigationLinks"
+            orientation="vertical"
+            class="-mx-2.5"
+          />
+
+          <div
+            v-if="headerButtons.length"
+            class="flex flex-wrap gap-2"
+          >
+            <UButton
+              v-for="button in headerButtons"
+              :key="`mobile-${button.label}-${button.href}`"
+              :icon="button.icon"
+              variant="outline"
+              color="neutral"
+              :href="button.href"
+              :target="button.target"
+              :aria-label="button.label"
+              :title="button.label"
+            />
+          </div>
+        </div>
       </template>
     </UHeader>
 

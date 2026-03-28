@@ -17,14 +17,11 @@ const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
 
 <template>
   <UPage>
-    <UPageHeader
-      class="border-b border-default"
-      :ui="{ title: 'max-w-4xl', description: 'max-w-3xl text-lg' }"
-    >
-      <template #headline>
+    <div class="border-b border-default px-6 py-12">
+      <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
         <CmsEditableNode
           tag="span"
-          class="inline-flex"
+          class="inline-flex text-sm"
           :target="createFieldTarget(`${targetIdPrefix}:published-at`, '', 'Date de publication', [{
             key: 'publishedAt',
             label: 'Date de publication',
@@ -33,30 +30,27 @@ const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
         >
           {{ publishedLabel }}
         </CmsEditableNode>
-      </template>
 
-      <template #title>
         <CmsEditableNode
-          tag="span"
-          class="inline"
+          tag="h1"
+          class="text-4xl font-bold tracking-tight text-highlighted sm:text-5xl"
           :target="createEditableTarget(`${targetIdPrefix}:title`, 'title', 'Titre')"
         >
           {{ title }}
         </CmsEditableNode>
-      </template>
 
-      <template #description>
         <CmsEditableNode
           tag="div"
+          class="text-lg text-toned"
           :target="createEditableTarget(`${targetIdPrefix}:excerpt`, 'excerpt', 'Extrait', true)"
         >
           {{ excerpt }}
         </CmsEditableNode>
-      </template>
-    </UPageHeader>
+      </div>
+    </div>
 
     <UPageBody class="py-10">
-      <div class="mx-auto max-w-3xl space-y-10">
+      <div class="mx-auto max-w-3xl space-y-10 px-4 sm:px-0">
         <CmsEditableNode
           tag="div"
           :target="createFieldTarget(`${targetIdPrefix}:cover-image`, '', 'Image de couverture', [{

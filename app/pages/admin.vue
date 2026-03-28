@@ -69,6 +69,16 @@ useSeoMeta({
   title: 'CMS',
   description: 'Gérer les pages et articles stockés dans SQLite.'
 })
+
+useHead({
+  meta: [{
+    name: 'robots',
+    content: 'noindex, nofollow, noarchive, nosnippet'
+  }, {
+    name: 'googlebot',
+    content: 'noindex, nofollow, noarchive, nosnippet'
+  }]
+})
 </script>
 
 <template>

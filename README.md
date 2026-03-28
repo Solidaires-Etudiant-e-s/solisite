@@ -16,6 +16,8 @@ The CMS lives at `/admin`.
 
 SQLite defaults to `file:./data/cms.sqlite`. Override it with `DATABASE_URL` if needed.
 
+Set `NUXT_PUBLIC_SITE_URL` to the public origin of the site so canonical URLs and social preview images use absolute production URLs.
+
 If you change the Prisma schema, apply it locally with:
 
 ```bash
