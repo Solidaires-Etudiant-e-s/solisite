@@ -70,7 +70,7 @@ function updateDateTimeValue(value: string, key: string) {
   updateValue(value ? new Date(value).toISOString() : '', key)
 }
 
-async function uploadImage(file: File | null | undefined, key: string, uploadEndpoint?: string) {
+async function uploadAsset(file: File | null | undefined, key: string, uploadEndpoint?: string) {
   if (!file || !editor || !uploadEndpoint) {
     return
   }
@@ -167,31 +167,40 @@ function removeItem() {
           />
 
           <div
-            v-else-if="field.kind === 'image'"
+            v-else-if="field.kind === 'image' || field.kind === 'file'"
             class="space-y-3"
           >
             <div class="flex h-24 items-center justify-center rounded-lg border border-default bg-default">
               <img
-                v-if="fieldValue(field.key)"
+                v-if="field.kind === 'image' && fieldValue(field.key)"
                 :src="String(fieldValue(field.key))"
                 :alt="field.label"
                 class="h-14 max-w-[10rem] object-contain"
               >
+              <a
+                v-else-if="field.kind === 'file' && fieldValue(field.key)"
+                :href="String(fieldValue(field.key))"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-sm font-medium text-primary underline underline-offset-2"
+              >
+                {{ String(fieldValue(field.key)).split('/').pop() || 'Fichier téléversé' }}
+              </a>
               <span
                 v-else
                 class="text-sm text-muted"
               >
-                Aucune image envoyée.
+                {{ field.kind === 'image' ? 'Aucune image envoyée.' : 'Aucun fichier envoyé.' }}
               </span>
             </div>
 
             <UFileUpload
               v-model="uploadFiles[field.key]"
-              accept="image/*"
-              label="Téléverser une image"
-              description="SVG, PNG, JPG, WebP ou GIF"
+              :accept="field.kind === 'image' ? 'image/*' : '.pdf,application/pdf'"
+              :label="field.kind === 'image' ? 'Téléverser une image' : 'Téléverser un PDF'"
+              :description="field.kind === 'image' ? 'SVG, PNG, JPG, WebP ou GIF' : 'Document PDF'"
               :disabled="uploadingField === field.key"
-              @update:model-value="uploadImage($event, field.key, field.uploadEndpoint)"
+              @update:model-value="uploadAsset($event, field.key, field.uploadEndpoint)"
             />
           </div>
 

@@ -11,8 +11,9 @@
     "postinstall": "npm run prisma:generate && nuxt prepare",
     "prisma:generate": "prisma generate",
     "import:articles": "node scripts/import-solidaires-articles.mjs",
+    "import:guides": "node scripts/import-solidaires-guides.mjs",
     "import:syndicats": "node scripts/import-solidaires-syndicats.mjs",
-    "populate": "npm run db:sync && npm run import:articles && npm run import:syndicats",
+    "populate": "npm run db:sync && npm run import:articles && npm run import:guides && npm run import:syndicats",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck"
   },

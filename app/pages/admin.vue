@@ -7,8 +7,10 @@ const {
   articleStatus,
   articles,
   createArticleRecord,
+  createGuideRecord,
   createSyndicatRecord,
   creatingArticle,
+  creatingGuide,
   creatingSyndicat,
   currentDraftIsDirty,
   expandedGroups,
@@ -17,6 +19,10 @@ const {
   historyOpen,
   isAdmin,
   navigationItems,
+  guideDraft,
+  guidePreview,
+  guideStatus,
+  guides,
   pageDraft,
   pagePreview,
   pageStatus,
@@ -25,10 +31,12 @@ const {
   restoringRevision,
   revisions,
   saveArticle,
+  saveGuide,
   savePage,
   saveSiteSettings,
   saveSyndicat,
   savingArticle,
+  savingGuide,
   savingPage,
   savingSiteSettings,
   savingSyndicat,
@@ -82,28 +90,33 @@ useHead({
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-white">
+  <div class="flex min-h-screen bg-default">
     <UDashboardGroup class="flex-1">
       <CmsSidebar
         v-if="showSidebar"
         :expanded-groups="expandedGroups"
         :navigation-items="navigationItems"
         :creating-article="creatingArticle"
+        :creating-guide="creatingGuide"
         :creating-syndicat="creatingSyndicat"
         @update:expanded-groups="expandedGroups = $event"
         @create-article="createArticleRecord"
+        @create-guide="createGuideRecord"
         @create-syndicat="createSyndicatRecord"
       />
 
-      <div class="flex min-w-0 flex-1 gap-0 bg-white">
+      <div class="flex min-w-0 flex-1 gap-0 bg-default">
         <CmsEditorPanel
           v-model:page-draft="pageDraft"
           v-model:article-draft="articleDraft"
+          v-model:guide-draft="guideDraft"
           v-model:site-settings-draft="siteSettingsDraft"
           v-model:syndicat-draft="syndicatDraft"
           :articles="articles"
+          :guides="guides"
           :active-section="activeSection"
           :article-preview="articlePreview"
+          :guide-preview="guidePreview"
           :can-manage-history="canManageHistory"
           :history-open="historyOpen"
           :is-admin="isAdmin"
@@ -111,17 +124,20 @@ useHead({
           :page-status="pageStatus"
           :selected-revision="selectedRevision"
           :article-status="articleStatus"
+          :guide-status="guideStatus"
           :syndicats="syndicats"
           :syndicat-preview="syndicatPreview"
           :syndicat-status="syndicatStatus"
           :saving-page="savingPage"
           :saving-article="savingArticle"
+          :saving-guide="savingGuide"
           :saving-site-settings="savingSiteSettings"
           :saving-syndicat="savingSyndicat"
           @toggle-history="toggleHistory"
           @save-page="savePage"
           @reset-page="resetPageDraft"
           @save-article="saveArticle"
+          @save-guide="saveGuide"
           @save-site-settings="saveSiteSettings"
           @save-syndicat="saveSyndicat"
         />

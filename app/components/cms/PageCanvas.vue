@@ -7,6 +7,7 @@ const page = defineModel<CmsPage>('page', {
 
 const { articles, historyOpen, previewPage, selectedRevision, status, saving } = defineProps<{
   articles: CmsArticle[]
+  guides: CmsGuide[]
   siteSettings: CmsSiteSettings
   syndicats: CmsSyndicat[]
   historyOpen: boolean
@@ -32,7 +33,7 @@ watch(() => page.value.slug, () => {
 <template>
   <UDashboardPanel
     id="cms-page-canvas"
-    class="min-w-0 overflow-hidden bg-white"
+    class="min-w-0 overflow-hidden bg-default"
   >
     <template #header>
       <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-4">
@@ -93,6 +94,7 @@ watch(() => page.value.slug, () => {
         <CmsPagePreview
           :page="previewPage"
           :articles="articles"
+          :guides="guides"
           :site-settings="siteSettings"
           :syndicats="syndicats"
         />

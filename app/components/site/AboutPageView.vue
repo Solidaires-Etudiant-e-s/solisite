@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { VueDraggable } from 'vue-draggable-plus'
 import { createEditableTarget, createListItemTarget, createListTarget } from '~/utils/cmsEditor'
+import { cmsTouchDragOptions } from '~/utils/cmsDrag'
 import { createStableItemKeyResolver, toLinkHref, toLinkTarget, toLinkTo } from '~/utils/cmsUi'
 import type { CmsAboutPageContent } from '~~/lib/cms'
 
@@ -35,7 +36,7 @@ const missionsModel = computed({
 <template>
   <UPage>
     <section class="border-b border-default">
-      <div class="mx-auto grid max-w-7xl gap-10 px-6 py-16 lg:grid-cols-[minmax(0,1.15fr)_26rem] lg:items-center lg:px-10">
+      <div class="public-container public-section grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_26rem] lg:items-center">
         <div class="space-y-6">
           <div class="space-y-4">
             <CmsEditableNode
@@ -106,7 +107,7 @@ const missionsModel = computed({
 
         <CmsEditableNode
           tag="div"
-          class="relative overflow-hidden border border-default bg-stone-950"
+          class="media-frame relative overflow-hidden border border-default"
           :target="{
             id: `${page.slug}:hero-image`,
             kind: 'link',
@@ -123,14 +124,14 @@ const missionsModel = computed({
             :alt="content.heroImageAlt || 'Manifestation de Solidaires Étudiant·e·s'"
             class="h-full min-h-[22rem] w-full object-cover opacity-70 grayscale"
           >
-          <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(210,8,8,0.1),rgba(210,8,8,0.38))]" />
-          <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.14),transparent_45%)]" />
+          <div class="about-image-hero-overlay absolute inset-0" />
+          <div class="about-image-highlight-overlay absolute inset-0" />
         </CmsEditableNode>
       </div>
     </section>
 
     <section class="border-b border-default">
-      <div class="mx-auto grid max-w-7xl gap-10 px-6 py-16 lg:grid-cols-[minmax(0,1fr)_22rem] lg:px-10">
+      <div class="public-container public-section grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div class="space-y-5">
           <CmsEditableNode
             tag="h2"
@@ -222,7 +223,7 @@ const missionsModel = computed({
     </section>
 
     <section class="border-b border-default">
-      <div class="mx-auto max-w-7xl px-6 py-16 lg:px-10">
+      <div class="public-container public-section">
         <div class="max-w-3xl space-y-4">
           <CmsEditableNode
             tag="h2"
@@ -244,6 +245,7 @@ const missionsModel = computed({
           <template v-if="editor">
             <VueDraggable
               v-model="missionsModel"
+              v-bind="cmsTouchDragOptions"
               tag="div"
               class="contents"
               :animation="180"
@@ -298,7 +300,7 @@ const missionsModel = computed({
     </section>
 
     <section class="border-b border-default">
-      <div class="mx-auto grid max-w-7xl gap-10 px-6 py-16 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-center lg:px-10">
+      <div class="public-container public-section grid gap-10 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-center">
         <div class="space-y-5">
           <CmsEditableNode
             tag="h2"
@@ -349,7 +351,7 @@ const missionsModel = computed({
 
         <CmsEditableNode
           tag="div"
-          class="relative overflow-hidden border border-default bg-stone-950"
+          class="media-frame relative overflow-hidden border border-default"
           :target="{
             id: `${page.slug}:functioning-image`,
             kind: 'link',
@@ -366,16 +368,16 @@ const missionsModel = computed({
             :alt="content.functioningImageAlt || 'Rassemblement militant'"
             class="h-full min-h-[24rem] w-full object-cover object-[58%_center] opacity-70 grayscale"
           >
-          <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04),rgba(210,8,8,0.4))]" />
+          <div class="about-image-functioning-overlay absolute inset-0" />
         </CmsEditableNode>
       </div>
     </section>
 
     <section class="border-b border-default">
-      <div class="mx-auto grid max-w-7xl gap-10 px-6 py-16 lg:grid-cols-[24rem_minmax(0,1fr)] lg:items-center lg:px-10">
+      <div class="public-container public-section grid gap-10 lg:grid-cols-[24rem_minmax(0,1fr)] lg:items-center">
         <CmsEditableNode
           tag="div"
-          class="relative overflow-hidden border border-default bg-stone-950"
+          class="media-frame relative overflow-hidden border border-default"
           :target="{
             id: `${page.slug}:history-image`,
             kind: 'link',
@@ -392,7 +394,7 @@ const missionsModel = computed({
             :alt="content.historyImageAlt || 'Cortège étudiant'"
             class="h-full min-h-[22rem] w-full object-cover object-[40%_center] opacity-70 grayscale"
           >
-          <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(210,8,8,0.14),rgba(210,8,8,0.34))]" />
+          <div class="about-image-history-overlay absolute inset-0" />
         </CmsEditableNode>
 
         <div class="space-y-5">

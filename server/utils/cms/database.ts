@@ -1,7 +1,7 @@
 import { PrismaClient, type Prisma } from '@prisma/client'
 import { createDefaultSiteSettings } from '~~/lib/cms'
 import { defaultPages } from './content'
-import { defaultArticle, nowIso, slugify } from './shared'
+import { defaultArticle, defaultGuide, nowIso, slugify } from './shared'
 
 type CmsDatabaseClient = PrismaClient | Prisma.TransactionClient
 
@@ -73,6 +73,29 @@ async function seedArticles(database: CmsDatabaseClient) {
   })
 }
 
+async function seedGuides(database: CmsDatabaseClient) {
+  const guideCount = await database.guide.count()
+
+  if (guideCount) {
+    return
+  }
+
+  const timestamp = nowIso()
+
+  await database.guide.create({
+    data: {
+      slug: slugify(defaultGuide.title),
+      title: defaultGuide.title,
+      excerpt: defaultGuide.excerpt,
+      content: defaultGuide.content,
+      coverImage: defaultGuide.coverImage,
+      pdfFile: defaultGuide.pdfFile,
+      publishedAt: timestamp,
+      updatedAt: timestamp
+    }
+  })
+}
+
 async function seedSiteSettings(database: CmsDatabaseClient) {
   const defaultSiteSettings = createDefaultSiteSettings()
 
@@ -98,6 +121,7 @@ async function initializeDatabase(database: PrismaClient) {
   await database.$transaction(async (transaction) => {
     await seedPages(transaction)
     await seedArticles(transaction)
+    await seedGuides(transaction)
     await seedSiteSettings(transaction)
   })
 

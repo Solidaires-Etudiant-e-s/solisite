@@ -17,8 +17,8 @@ const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
 
 <template>
   <UPage>
-    <div class="border-b border-default px-6 py-12">
-      <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
+    <div class="border-b border-default public-section">
+      <div class="public-container public-container--narrow flex flex-col gap-6">
         <CmsEditableNode
           tag="span"
           class="inline-flex text-sm"
@@ -49,8 +49,8 @@ const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
       </div>
     </div>
 
-    <UPageBody class="py-10">
-      <div class="mx-auto max-w-3xl space-y-10 px-4 sm:px-0">
+    <UPageBody>
+      <div class="public-container public-container--narrow public-section space-y-10">
         <CmsEditableNode
           tag="div"
           :target="createFieldTarget(`${targetIdPrefix}:cover-image`, '', 'Image de couverture', [{

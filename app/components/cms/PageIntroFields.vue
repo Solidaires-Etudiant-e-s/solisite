@@ -11,7 +11,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl space-y-4">
+  <div class="space-y-4">
     <CmsEditableNode
       :tag="titleTag || 'h1'"
       :class="titleClass || 'text-4xl text-highlighted'"

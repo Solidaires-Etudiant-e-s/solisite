@@ -36,12 +36,14 @@ function pageQuery(page: number) {
 
 <template>
   <UPage>
-    <div class="border-b border-default px-6 py-12">
-      <CmsPageIntroFields :page="page" />
+    <div class="border-b border-default public-section">
+      <div class="public-container">
+        <CmsPageIntroFields :page="page" />
+      </div>
     </div>
 
     <UPageBody>
-      <div class="mx-auto max-w-7xl space-y-10">
+      <div class="public-container public-section space-y-10">
         <div
           v-if="articles.length"
           class="grid gap-8 md:grid-cols-2 xl:grid-cols-3"

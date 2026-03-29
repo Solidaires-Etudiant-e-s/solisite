@@ -37,9 +37,17 @@ const navigationLinks = computed<NavigationMenuItem[]>(() => [{
   to: '/a-propos',
   active: route.path.startsWith('/a-propos')
 }, {
+  label: 'International',
+  to: '/international',
+  active: route.path.startsWith('/international')
+}, {
   label: 'Articles',
   to: '/articles',
   active: route.path.startsWith('/articles')
+}, {
+  label: 'Guides',
+  to: '/guides',
+  active: route.path.startsWith('/guides')
 }, {
   label: 'Syndicats',
   to: '/syndicats',

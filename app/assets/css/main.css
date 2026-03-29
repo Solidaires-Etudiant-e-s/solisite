@@ -32,6 +32,17 @@
   --font-weight-black: 900;
 
   --spacing: 0.2rem;
+  --site-accent-rgb: 210 8 8;
+  --hero-accent-overlay: rgb(var(--site-accent-rgb) / 0.22);
+  --hero-accent-overlay-soft: rgb(var(--site-accent-rgb) / 0.14);
+  --hero-scrim-overlay: rgb(0 0 0 / 0.38);
+  --about-image-hero-overlay: linear-gradient(180deg, rgb(var(--site-accent-rgb) / 0.1), rgb(var(--site-accent-rgb) / 0.38));
+  --about-image-highlight-overlay: radial-gradient(circle at top left, rgb(255 255 255 / 0.14), transparent 45%);
+  --about-image-functioning-overlay: linear-gradient(180deg, rgb(0 0 0 / 0.04), rgb(var(--site-accent-rgb) / 0.4));
+  --about-image-history-overlay: linear-gradient(180deg, rgb(var(--site-accent-rgb) / 0.14), rgb(var(--site-accent-rgb) / 0.34));
+  --site-scrollbar-thumb: var(--color-solired-500);
+  --site-scrollbar-thumb-hover: var(--color-solired-600);
+  --site-scrollbar-track: var(--color-stone-100);
 }
 
 /* Dark mode tokens (apply via .dark) */
@@ -51,6 +62,16 @@
   --ui-border-muted: var(--color-stone-600);
   --ui-border-accented: var(--color-stone-700);
   --ui-border-inverted: var(--color-stone-200);
+  --hero-accent-overlay: rgb(var(--site-accent-rgb) / 0.34);
+  --hero-accent-overlay-soft: rgb(var(--site-accent-rgb) / 0.2);
+  --hero-scrim-overlay: rgb(0 0 0 / 0.52);
+  --about-image-hero-overlay: linear-gradient(180deg, rgb(var(--site-accent-rgb) / 0.2), rgb(var(--site-accent-rgb) / 0.54));
+  --about-image-highlight-overlay: radial-gradient(circle at top left, rgb(255 255 255 / 0.08), transparent 45%);
+  --about-image-functioning-overlay: linear-gradient(180deg, rgb(0 0 0 / 0.12), rgb(var(--site-accent-rgb) / 0.52));
+  --about-image-history-overlay: linear-gradient(180deg, rgb(var(--site-accent-rgb) / 0.22), rgb(var(--site-accent-rgb) / 0.46));
+  --site-scrollbar-thumb: var(--color-solired-400);
+  --site-scrollbar-thumb-hover: var(--color-solired-300);
+  --site-scrollbar-track: var(--color-stone-900);
 }
 
 /* Custom Colors */
@@ -72,12 +93,37 @@ html, body {
   background-color: var(--ui-bg);
   color: var(--ui-text);
   font-family: var(--font-sans, ui-sans-serif);
-  scrollbar-color: var(--color-solired-500) var(--color-stone-100);
+  scrollbar-color: var(--site-scrollbar-thumb) var(--site-scrollbar-track);
+  scrollbar-width: thin;
   min-height: 100%;
 }
 
 .dark {
-  scrollbar-color: var(--color-solired-500) var(--color-stone-900);
+  scrollbar-color: var(--site-scrollbar-thumb) var(--site-scrollbar-track);
+}
+
+* {
+  scrollbar-color: var(--site-scrollbar-thumb) var(--site-scrollbar-track);
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+*::-webkit-scrollbar-track {
+  background-color: var(--site-scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--site-scrollbar-thumb);
+  border: 2px solid var(--site-scrollbar-track);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--site-scrollbar-thumb-hover);
 }
 
 #__nuxt {
@@ -137,6 +183,52 @@ h1, h2 {
   text-underline-offset: 0.16em;
 }
 
+.public-container {
+  width: min(100%, 80rem);
+  margin-inline: auto;
+  padding-inline: clamp(1.2rem, 2.5vw, 2.5rem);
+}
+
+.public-container--narrow {
+  width: min(100%, 52rem);
+}
+
+.public-section {
+  padding-block: clamp(2.5rem, 5vw, 4rem);
+}
+
+.hero-accent-overlay {
+  background-color: var(--hero-accent-overlay);
+}
+
+.hero-accent-overlay-soft {
+  background-color: var(--hero-accent-overlay-soft);
+}
+
+.hero-scrim-overlay {
+  background-color: var(--hero-scrim-overlay);
+}
+
+.media-frame {
+  background-color: var(--ui-bg-inverted);
+}
+
+.about-image-hero-overlay {
+  background-image: var(--about-image-hero-overlay);
+}
+
+.about-image-highlight-overlay {
+  background-image: var(--about-image-highlight-overlay);
+}
+
+.about-image-functioning-overlay {
+  background-image: var(--about-image-functioning-overlay);
+}
+
+.about-image-history-overlay {
+  background-image: var(--about-image-history-overlay);
+}
+
 @media (min-width: 768px) {
   .site-footer__inner {
     text-align: left;
@@ -165,6 +257,10 @@ h1, h2 {
   font-size: clamp(1.3rem, 3vw, 1.85rem);
   font-family: var(--font-sans, ui-sans-serif);
   font-weight: var(--font-weight-bold);
+}
+
+.prose-content > :first-child {
+  margin-top: 0;
 }
 
 .prose-content p,

@@ -36,6 +36,15 @@ const page = defineModel<CmsPage>('page', {
           </UFormField>
         </template>
 
+        <template v-if="page.slug === 'guides'">
+          <UFormField label="Texte de l’état vide">
+            <UTextarea
+              v-model="(page.content as CmsGuidesPageContent).emptyStateText"
+              :rows="3"
+            />
+          </UFormField>
+        </template>
+
         <template v-if="page.slug === 'syndicats'">
           <UFormField label="Texte de l’état vide">
             <UTextarea

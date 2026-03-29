@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { VueDraggable } from 'vue-draggable-plus'
 import { createEditableTarget, createListItemTarget, createListTarget } from '~/utils/cmsEditor'
+import { cmsTouchDragOptions } from '~/utils/cmsDrag'
 import { createStableItemKeyResolver } from '~/utils/cmsUi'
 
 const props = defineProps<{
@@ -71,15 +72,15 @@ const partnersModel = computed({
             >
           </picture>
 
-          <div class="absolute inset-0 bg-[#d20808]/22" />
-          <div class="absolute inset-0 bg-[#d20808]/14 mix-blend-overlay" />
+          <div class="hero-accent-overlay absolute inset-0" />
+          <div class="hero-accent-overlay-soft absolute inset-0 mix-blend-overlay" />
 
           <div
             class="pointer-events-none absolute inset-0 mix-blend-soft-light opacity-30"
             style="background-image: url('/noise.png'); background-repeat: repeat; background-size: 128px 128px;"
           />
 
-          <div class="absolute inset-0 bg-black/38" />
+          <div class="hero-scrim-overlay absolute inset-0" />
         </div>
       </template>
 
@@ -109,6 +110,7 @@ const partnersModel = computed({
         >
           <VueDraggable
             v-model="heroButtonsModel"
+            v-bind="cmsTouchDragOptions"
             tag="div"
             class="contents"
             :animation="180"
@@ -130,7 +132,7 @@ const partnersModel = computed({
                 :color="button.variant === 'secondary' ? 'neutral' : 'primary'"
                 :variant="button.variant === 'secondary' ? 'subtle' : 'solid'"
                 :to="undefined"
-                :class="button.variant === 'primary' ? 'text-white bg-[#d20808]' : 'outline-none'"
+                :class="button.variant === 'primary' ? 'text-inverted' : 'outline-none'"
                 @click.prevent="undefined"
               />
             </CmsEditableNode>
@@ -161,7 +163,7 @@ const partnersModel = computed({
             :color="button.variant === 'secondary' ? 'neutral' : 'primary'"
             :variant="button.variant === 'secondary' ? 'subtle' : 'solid'"
             :to="button.href"
-            :class="button.variant === 'primary' ? 'text-white bg-[#d20808]' : 'outline-none'"
+            :class="button.variant === 'primary' ? 'text-inverted' : 'outline-none'"
           />
         </template>
       </template>
@@ -188,6 +190,7 @@ const partnersModel = computed({
         >
           <VueDraggable
             v-model="featuresModel"
+            v-bind="cmsTouchDragOptions"
             tag="div"
             class="contents"
             :animation="180"
@@ -305,6 +308,7 @@ const partnersModel = computed({
         >
           <VueDraggable
             v-model="partnersModel"
+            v-bind="cmsTouchDragOptions"
             tag="div"
             class="contents"
             :animation="180"

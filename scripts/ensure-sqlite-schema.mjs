@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { pathToFileURL } from 'node:url'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { resolve, dirname } from 'node:path'
 import { mkdirSync } from 'node:fs'
 
@@ -71,6 +70,20 @@ try {
   `)
 
   await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS guides (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      excerpt TEXT NOT NULL DEFAULT '',
+      content TEXT NOT NULL DEFAULT '',
+      cover_image TEXT NOT NULL DEFAULT '/hero.jpg',
+      pdf_file TEXT NOT NULL DEFAULT '',
+      published_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `)
+
+  await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS syndicats (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       slug TEXT NOT NULL UNIQUE,
@@ -117,21 +130,25 @@ try {
     ON cms_revisions (entity_type, entity_id, created_at DESC, id DESC)
   `)
 
-  await ensureColumn('pages', 'cta_label', "TEXT NOT NULL DEFAULT ''")
-  await ensureColumn('pages', 'cta_href', "TEXT NOT NULL DEFAULT ''")
-  await ensureColumn('pages', 'content_json', "TEXT NOT NULL DEFAULT ''")
-  await ensureColumn('articles', 'excerpt', "TEXT NOT NULL DEFAULT ''")
-  await ensureColumn('articles', 'content', "TEXT NOT NULL DEFAULT ''")
-  await ensureColumn('articles', 'cover_image', "TEXT NOT NULL DEFAULT '/hero.jpg'")
-  await ensureColumn('syndicats', 'socials_json', "TEXT NOT NULL DEFAULT '[]'")
-  await ensureColumn('syndicats', 'content', "TEXT NOT NULL DEFAULT ''")
+  await ensureColumn('pages', 'cta_label', 'TEXT NOT NULL DEFAULT \'\'')
+  await ensureColumn('pages', 'cta_href', 'TEXT NOT NULL DEFAULT \'\'')
+  await ensureColumn('pages', 'content_json', 'TEXT NOT NULL DEFAULT \'\'')
+  await ensureColumn('articles', 'excerpt', 'TEXT NOT NULL DEFAULT \'\'')
+  await ensureColumn('articles', 'content', 'TEXT NOT NULL DEFAULT \'\'')
+  await ensureColumn('articles', 'cover_image', 'TEXT NOT NULL DEFAULT \'/hero.jpg\'')
+  await ensureColumn('guides', 'excerpt', 'TEXT NOT NULL DEFAULT \'\'')
+  await ensureColumn('guides', 'content', 'TEXT NOT NULL DEFAULT \'\'')
+  await ensureColumn('guides', 'cover_image', 'TEXT NOT NULL DEFAULT \'/hero.jpg\'')
+  await ensureColumn('guides', 'pdf_file', 'TEXT NOT NULL DEFAULT \'\'')
+  await ensureColumn('syndicats', 'socials_json', 'TEXT NOT NULL DEFAULT \'[]\'')
+  await ensureColumn('syndicats', 'content', 'TEXT NOT NULL DEFAULT \'\'')
   await ensureColumn('syndicats', 'latitude', 'REAL NOT NULL DEFAULT 0')
   await ensureColumn('syndicats', 'longitude', 'REAL NOT NULL DEFAULT 0')
-  await ensureColumn('site_settings', 'union_name', "TEXT NOT NULL DEFAULT ''")
-  await ensureColumn('site_settings', 'site_description', "TEXT NOT NULL DEFAULT ''")
-  await ensureColumn('site_settings', 'contact_email', "TEXT NOT NULL DEFAULT ''")
-  await ensureColumn('site_settings', 'contact_phone', "TEXT NOT NULL DEFAULT ''")
-  await ensureColumn('site_settings', 'socials_json', "TEXT NOT NULL DEFAULT '[]'")
+  await ensureColumn('site_settings', 'union_name', 'TEXT NOT NULL DEFAULT \'\'')
+  await ensureColumn('site_settings', 'site_description', 'TEXT NOT NULL DEFAULT \'\'')
+  await ensureColumn('site_settings', 'contact_email', 'TEXT NOT NULL DEFAULT \'\'')
+  await ensureColumn('site_settings', 'contact_phone', 'TEXT NOT NULL DEFAULT \'\'')
+  await ensureColumn('site_settings', 'socials_json', 'TEXT NOT NULL DEFAULT \'[]\'')
 
   console.log(`SQLite schema is ready at ${databaseUrl}`)
 } finally {

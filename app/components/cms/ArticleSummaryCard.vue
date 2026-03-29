@@ -63,7 +63,7 @@ function handleKeydown(event: KeyboardEvent) {
           <UBadge
             color="neutral"
             variant="solid"
-            class="w-fit bg-white/90 text-black"
+            class="w-fit border border-default/70 bg-default/90 text-highlighted backdrop-blur-sm"
           >
             {{ publishedLabel }}
           </UBadge>

@@ -54,12 +54,14 @@ watch(filteredSyndicats, (syndicats) => {
 
 <template>
   <UPage>
-    <div class="border-b border-default px-6 py-12">
-      <CmsPageIntroFields :page="page" />
+    <div class="border-b border-default public-section">
+      <div class="public-container">
+        <CmsPageIntroFields :page="page" />
+      </div>
     </div>
 
-    <UPageBody class="py-10">
-      <div class="mx-auto max-w-7xl space-y-8">
+    <UPageBody>
+      <div class="public-container public-section space-y-8">
         <div class="grid gap-8 xl:grid-cols-[22rem_minmax(0,1fr)]">
           <UCard>
             <div class="space-y-4">

@@ -7,6 +7,9 @@ const pageDraft = defineModel<CmsPage>('pageDraft', {
 const articleDraft = defineModel<CmsArticle>('articleDraft', {
   required: true
 })
+const guideDraft = defineModel<CmsGuide>('guideDraft', {
+  required: true
+})
 const siteSettingsDraft = defineModel<CmsSiteSettings>('siteSettingsDraft', {
   required: true
 })
@@ -16,9 +19,11 @@ const syndicatDraft = defineModel<CmsSyndicat>('syndicatDraft', {
 
 defineProps<{
   articles: CmsArticle[]
+  guides: CmsGuide[]
   syndicats: CmsSyndicat[]
-  activeSection: 'pages' | 'articles' | 'syndicats' | 'site-settings'
+  activeSection: 'pages' | 'articles' | 'guides' | 'syndicats' | 'site-settings'
   articlePreview: CmsArticle
+  guidePreview: CmsGuide
   canManageHistory: boolean
   syndicatPreview: CmsSyndicat
   historyOpen: boolean
@@ -26,10 +31,12 @@ defineProps<{
   pagePreview: CmsPage
   pageStatus: string
   articleStatus: string
+  guideStatus: string
   syndicatStatus: string
   selectedRevision: CmsRevision | null
   savingPage: boolean
   savingArticle: boolean
+  savingGuide: boolean
   savingSiteSettings: boolean
   savingSyndicat: boolean
 }>()
@@ -39,6 +46,7 @@ const emit = defineEmits<{
   savePage: []
   resetPage: []
   saveArticle: []
+  saveGuide: []
   saveSiteSettings: []
   saveSyndicat: []
 }>()
@@ -49,6 +57,7 @@ const emit = defineEmits<{
     v-if="activeSection === 'pages'"
     v-model:page="pageDraft"
     :articles="articles"
+    :guides="guides"
     :site-settings="siteSettingsDraft"
     :syndicats="syndicats"
     :history-open="historyOpen"
@@ -74,10 +83,23 @@ const emit = defineEmits<{
     @save-article="emit('saveArticle')"
   />
 
+  <CmsGuideCanvas
+    v-else-if="activeSection === 'guides'"
+    v-model:guide="guideDraft"
+    :can-manage-history="canManageHistory"
+    :history-open="historyOpen"
+    :preview-guide="guidePreview"
+    :saving="savingGuide"
+    :selected-revision="selectedRevision"
+    :status="guideStatus"
+    @toggle-history="emit('toggleHistory')"
+    @save-guide="emit('saveGuide')"
+  />
+
   <UDashboardPanel
     v-else-if="activeSection === 'site-settings'"
     id="cms-site-settings-editor"
-    class="min-w-0 overflow-hidden bg-white"
+    class="min-w-0 overflow-hidden bg-default"
   >
     <template #header>
       <div class="flex items-center justify-between gap-3 px-4 py-4">

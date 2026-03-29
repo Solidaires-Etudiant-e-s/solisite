@@ -5,12 +5,14 @@ const props = defineProps<{
   expandedGroups: string[]
   navigationItems: Array<Record<string, unknown>>
   creatingArticle: boolean
+  creatingGuide: boolean
   creatingSyndicat: boolean
 }>()
 
 const emit = defineEmits<{
   'update:expandedGroups': [value: string[]]
   'createArticle': []
+  'createGuide': []
   'createSyndicat': []
 }>()
 </script>
@@ -43,6 +45,24 @@ const emit = defineEmits<{
             :loading="props.creatingArticle"
             class="-my-1"
             @click.stop="emit('createArticle')"
+          />
+          <UIcon
+            :name="appConfig.ui.icons.chevronDown"
+            data-slot="linkTrailingIcon"
+            :class="ui.linkTrailingIcon({ active })"
+          />
+        </template>
+
+        <template #[`guides-trailing`]="{ active, ui }">
+          <UButton
+            icon="mingcute:plus-line"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            square
+            :loading="props.creatingGuide"
+            class="-my-1"
+            @click.stop="emit('createGuide')"
           />
           <UIcon
             :name="appConfig.ui.icons.chevronDown"

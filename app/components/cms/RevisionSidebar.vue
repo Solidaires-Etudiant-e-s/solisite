@@ -3,7 +3,7 @@ import { formatFrenchDateTime } from '~/utils/cmsUi'
 import type { CmsRevision } from '~~/lib/cms'
 
 const props = defineProps<{
-  activeSection: 'pages' | 'articles' | 'syndicats' | 'site-settings'
+  activeSection: 'pages' | 'articles' | 'guides' | 'syndicats' | 'site-settings'
   currentDraftIsDirty: boolean
   historyLoading: boolean
   revisions: CmsRevision[]
@@ -83,7 +83,7 @@ const emit = defineEmits<{
             v-else-if="!revisions.length"
             class="px-5 py-6 text-sm text-dimmed"
           >
-            Aucune version enregistrée pour {{ props.activeSection === 'pages' ? 'cette page' : props.activeSection === 'articles' ? 'cet article' : props.activeSection === 'site-settings' ? 'ces paramètres du site' : 'ce syndicat' }}.
+            Aucune version enregistrée pour {{ props.activeSection === 'pages' ? 'cette page' : props.activeSection === 'articles' ? 'cet article' : props.activeSection === 'guides' ? 'ce guide' : props.activeSection === 'site-settings' ? 'ces paramètres du site' : 'ce syndicat' }}.
           </div>
 
           <div

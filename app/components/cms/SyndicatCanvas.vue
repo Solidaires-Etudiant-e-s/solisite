@@ -18,13 +18,15 @@ const emit = defineEmits<{
   saveSyndicat: []
 }>()
 
+const publicPageHref = computed(() => syndicat.value.slug ? `/syndicats/${syndicat.value.slug}` : undefined)
+
 provideCmsPageLiveEditor(syndicat.value)
 </script>
 
 <template>
   <UDashboardPanel
     id="cms-syndicat-canvas"
-    class="min-w-0 overflow-hidden bg-white"
+    class="min-w-0 overflow-hidden bg-default"
   >
     <template #header>
       <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-4">
@@ -38,6 +40,16 @@ provideCmsPageLiveEditor(syndicat.value)
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+          <UButton
+            label="Voir la page"
+            color="neutral"
+            variant="outline"
+            icon="mingcute:external-link-line"
+            :to="publicPageHref"
+            target="_blank"
+            :disabled="!publicPageHref"
+          />
+
           <UButton
             v-if="canManageHistory"
             :label="historyOpen ? 'Masquer l’historique' : 'Afficher l’historique'"
