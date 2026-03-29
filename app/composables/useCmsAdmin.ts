@@ -534,7 +534,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       selectedRevisionId.value = null
       await loadRevisions()
       toast.add({
-        title: 'Page enregistree',
+        title: 'Page enregistrée',
         color: 'success',
         icon: 'mingcute:check-circle-line'
       })
@@ -557,7 +557,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
       mergeArticle(savedArticle)
       toast.add({
-        title: 'Article cree',
+        title: 'Article créé',
         color: 'success',
         icon: 'mingcute:check-circle-line'
       })
@@ -580,7 +580,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
       mergeGuide(savedGuide)
       toast.add({
-        title: 'Guide cree',
+        title: 'Guide créé',
         color: 'success',
         icon: 'mingcute:check-circle-line'
       })
@@ -603,7 +603,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
       mergeSyndicat(savedSyndicat)
       toast.add({
-        title: 'Syndicat cree',
+        title: 'Syndicat créé',
         color: 'success',
         icon: 'mingcute:check-circle-line'
       })
@@ -629,7 +629,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       selectedRevisionId.value = null
       await loadRevisions()
       toast.add({
-        title: 'Article enregistre',
+        title: 'Article enregistré',
         color: 'success',
         icon: 'mingcute:check-circle-line'
       })
@@ -655,7 +655,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       selectedRevisionId.value = null
       await loadRevisions()
       toast.add({
-        title: 'Guide enregistre',
+        title: 'Guide enregistré',
         color: 'success',
         icon: 'mingcute:check-circle-line'
       })
@@ -681,7 +681,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       selectedRevisionId.value = null
       await loadRevisions()
       toast.add({
-        title: 'Syndicat enregistre',
+        title: 'Syndicat enregistré',
         color: 'success',
         icon: 'mingcute:check-circle-line'
       })
@@ -707,7 +707,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       selectedRevisionId.value = null
       await loadRevisions()
       toast.add({
-        title: 'Parametres enregistres',
+        title: 'Paramètres enregistrés',
         color: 'success',
         icon: 'mingcute:check-circle-line'
       })
@@ -753,7 +753,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       selectedRevisionId.value = null
       await loadRevisions()
       toast.add({
-        title: 'Revision restauree',
+        title: 'Révision restaurée',
         color: 'success',
         icon: 'mingcute:check-circle-line'
       })

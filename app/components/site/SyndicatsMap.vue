@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick } from 'vue'
 import { toLinkTarget } from '~/utils/cmsUi'
-import { formatSyndicatDisplayName } from '~~/lib/cms'
+import { formatSyndicatDisplayName, getPrimarySyndicatAddress, resolveSyndicatAddresses } from '~~/lib/cms'
 
 const props = defineProps<{
   syndicats: CmsSyndicat[]
@@ -25,11 +25,13 @@ const markerEntries = computed(() => {
   const grouped = new Map<string, CmsSyndicat[]>()
 
   for (const syndicat of props.syndicats) {
-    if (!syndicat.latitude || !syndicat.longitude) {
+    const primaryAddress = getPrimarySyndicatAddress(resolveSyndicatAddresses(syndicat))
+
+    if (!primaryAddress?.latitude || !primaryAddress.longitude) {
       continue
     }
 
-    const key = `${syndicat.latitude}:${syndicat.longitude}`
+    const key = `${primaryAddress.latitude}:${primaryAddress.longitude}`
     const items = grouped.get(key) || []
     items.push(syndicat)
     grouped.set(key, items)
@@ -37,6 +39,7 @@ const markerEntries = computed(() => {
 
   return [...grouped.values()].flatMap((group) => {
     return group.map((syndicat, index) => {
+      const primaryAddress = getPrimarySyndicatAddress(resolveSyndicatAddresses(syndicat))
       const count = group.length
       const offsetRadius = count > 1 ? 0.12 : 0
       const angle = count > 1 ? (Math.PI * 2 * index) / count : 0
@@ -44,8 +47,8 @@ const markerEntries = computed(() => {
       return {
         syndicat,
         latLng: [
-          syndicat.latitude + Math.sin(angle) * offsetRadius,
-          syndicat.longitude + Math.cos(angle) * offsetRadius
+          (primaryAddress?.latitude || 0) + Math.sin(angle) * offsetRadius,
+          (primaryAddress?.longitude || 0) + Math.cos(angle) * offsetRadius
         ] as [number, number]
       }
     })
@@ -54,9 +57,10 @@ const markerEntries = computed(() => {
 
 const center = computed<[number, number]>(() => {
   const active = props.syndicats.find(syndicat => syndicat.slug === props.activeSyndicatSlug)
+  const primaryAddress = active ? getPrimarySyndicatAddress(resolveSyndicatAddresses(active)) : null
 
-  if (active?.latitude && active?.longitude) {
-    return [active.latitude, active.longitude]
+  if (primaryAddress?.latitude && primaryAddress.longitude) {
+    return [primaryAddress.latitude, primaryAddress.longitude]
   }
 
   return defaultCenter
@@ -145,12 +149,25 @@ watch(() => props.activeSyndicatSlug, async (slug) => {
               {{ formatSyndicatDisplayName(entry.syndicat.name, props.unionName) }}
             </h3>
 
-            <p
-              v-if="entry.syndicat.address"
-              class="mt-2 whitespace-pre-line text-sm leading-5 text-toned"
+            <div
+              v-if="resolveSyndicatAddresses(entry.syndicat).length"
+              class="mt-2 space-y-2"
             >
-              {{ entry.syndicat.address }}
-            </p>
+              <div
+                v-for="(address, index) in resolveSyndicatAddresses(entry.syndicat)"
+                :key="`${entry.syndicat.slug}-address-${index}`"
+              >
+                <p
+                  v-if="address.label"
+                  class="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-muted"
+                >
+                  {{ address.label }}
+                </p>
+                <p class="whitespace-pre-line text-sm leading-5 text-toned">
+                  {{ address.address }}
+                </p>
+              </div>
+            </div>
 
             <div class="mt-2.5 flex flex-wrap gap-1.5">
               <UButton

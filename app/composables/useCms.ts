@@ -11,11 +11,17 @@ export {
   createEmptyPartner,
   createEmptySiteSettings,
   createEmptySocialLink,
+  createEmptySyndicatAddress,
   createEmptySyndicat,
   formatSyndicatDisplayName,
+  getPrimarySyndicatAddress,
+  hasInvalidSyndicatAddresses,
+  isValidSyndicatAddress,
   createPageContent,
   createHomePageContent,
+  normalizeSyndicatAddresses,
   normalizeSyndicatName,
+  resolveSyndicatAddresses,
   createSyndicatsPageContent,
   slugify
 } from '~~/lib/cms'
@@ -35,6 +41,7 @@ export type {
   CmsPartner,
   CmsSiteSettings,
   CmsSocialLink,
+  CmsSyndicatAddress,
   CmsSyndicat,
   CmsSyndicatsPageContent
 } from '~~/lib/cms'

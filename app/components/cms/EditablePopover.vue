@@ -10,21 +10,6 @@ const uploadFiles = ref<Record<string, File | null>>({})
 const uploadingField = ref('')
 const uploadError = ref('')
 
-const arrayItems = computed(() => {
-  if (!editor) {
-    return []
-  }
-
-  const sourcePath = props.target.kind === 'list-item' ? props.target.listPath : props.target.path
-
-  if (!sourcePath) {
-    return []
-  }
-
-  const items = readPathValue(editor.page, sourcePath)
-  return Array.isArray(items) ? items : []
-})
-
 function fieldPath(key: string) {
   if (props.target.kind === 'list-item' || props.target.kind === 'link' || props.target.kind === 'fields') {
     return props.target.path ? `${props.target.path}.${key}` : key
@@ -48,6 +33,12 @@ function updateValue(value: unknown, key?: string) {
   }
 
   editor.updateField(key ? fieldPath(key) : props.target.path, value)
+}
+
+function updateAddressSelection(value: { address: string, latitude: number, longitude: number }) {
+  updateValue(value.address, 'address')
+  updateValue(value.latitude, 'latitude')
+  updateValue(value.longitude, 'longitude')
 }
 
 function toDateTimeInputValue(value: unknown) {
@@ -88,14 +79,6 @@ async function uploadAsset(file: File | null | undefined, key: string, uploadEnd
   }
 }
 
-function addItem() {
-  if (!editor || props.target.kind !== 'list' || !props.target.itemType) {
-    return
-  }
-
-  editor.insertItem(props.target.path, props.target.itemType)
-}
-
 function removeItem() {
   if (!editor || props.target.kind !== 'list-item' || props.target.index === undefined || !props.target.listPath) {
     return
@@ -111,12 +94,6 @@ function removeItem() {
       <h3 class="text-sm font-semibold text-highlighted">
         {{ target.label }}
       </h3>
-      <p
-        v-if="target.kind === 'list'"
-        class="text-xs text-dimmed"
-      >
-        {{ arrayItems.length }} élément(s)
-      </p>
     </div>
 
     <template v-if="target.kind === 'text' || target.kind === 'textarea'">
@@ -132,15 +109,6 @@ function removeItem() {
         class="w-full"
         :model-value="String(fieldValue())"
         @update:model-value="updateValue(String($event || ''))"
-      />
-    </template>
-
-    <template v-else-if="target.kind === 'list'">
-      <UButton
-        :label="`Ajouter ${target.itemType || 'un élément'}`"
-        color="primary"
-        block
-        @click="addItem"
       />
     </template>
 
@@ -218,6 +186,12 @@ function removeItem() {
             type="datetime-local"
             :model-value="toDateTimeInputValue(fieldValue(field.key))"
             @update:model-value="updateDateTimeValue(String($event || ''), field.key)"
+          />
+
+          <CmsAddressAutocompleteField
+            v-else-if="field.kind === 'address-autocomplete'"
+            :model-value="String(fieldValue(field.key))"
+            @select="updateAddressSelection($event)"
           />
 
           <UInput

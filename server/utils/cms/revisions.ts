@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client'
-import { normalizeSocialLinks, normalizeSyndicatName, type CmsArticle, type CmsGuide, type CmsPage, type CmsRevision, type CmsRevisionChangeType, type CmsRevisionEntityType, type CmsSiteSettings, type CmsSocialLink, type CmsSyndicat } from '~~/lib/cms'
+import { normalizeSocialLinks, normalizeSyndicatAddresses, normalizeSyndicatName, type CmsArticle, type CmsGuide, type CmsPage, type CmsRevision, type CmsRevisionChangeType, type CmsRevisionEntityType, type CmsSiteSettings, type CmsSocialLink, type CmsSyndicat } from '~~/lib/cms'
 import { useCmsDatabase, runInCmsTransaction } from './database'
 import { notFound } from './http'
 import { toArticle, toGuide, toPage, toSiteSettings, toSyndicat } from './mappers'
@@ -263,6 +263,7 @@ async function restoreSyndicatSnapshot(snapshot: CmsSyndicat, revisionId: number
     twitter?: string
     helloAsso?: string
   })
+  const addresses = normalizeSyndicatAddresses(snapshot.addresses)
 
   await database.syndicat.update({
     where: { id: snapshot.id },
@@ -271,11 +272,9 @@ async function restoreSyndicatSnapshot(snapshot: CmsSyndicat, revisionId: number
       name,
       city: snapshot.city,
       email: snapshot.email,
-      address: snapshot.address,
+      addressesJson: JSON.stringify(addresses),
       socialsJson: JSON.stringify(socials),
       content: snapshot.content,
-      latitude: snapshot.latitude,
-      longitude: snapshot.longitude,
       updatedAt
     }
   })

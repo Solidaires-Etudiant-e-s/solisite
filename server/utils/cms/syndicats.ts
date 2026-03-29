@@ -1,10 +1,9 @@
 import type { Prisma } from '@prisma/client'
 import type { CmsSyndicat } from '~~/lib/cms'
-import { normalizeSocialLinks, normalizeSyndicatName } from '~~/lib/cms'
+import { hasInvalidSyndicatAddresses, normalizeSocialLinks, normalizeSyndicatAddresses, normalizeSyndicatName } from '~~/lib/cms'
 import { createSyndicatRevision } from './revisions'
 import type { SyndicatRecord } from './types'
 import { runInCmsTransaction, useCmsDatabase } from './database'
-import { geocodeSyndicatAddress } from './syndicatGeocoding'
 import { notFound } from './http'
 import { toSyndicat } from './mappers'
 import { nowIso, resolveUniqueSlug } from './shared'
@@ -80,6 +79,17 @@ function cleanSyndicatName(value: string) {
   return normalizeSyndicatName(value).trim()
 }
 
+function assertValidSyndicatAddresses(addresses: CmsSyndicat['addresses']) {
+  if (!hasInvalidSyndicatAddresses(addresses)) {
+    return
+  }
+
+  throw createError({
+    statusCode: 400,
+    statusMessage: 'Each syndicat address must include a label and a selected autocomplete result with coordinates.'
+  })
+}
+
 export async function createSyndicat() {
   return await runInCmsTransaction(async (database) => {
     const timestamp = nowIso()
@@ -92,11 +102,9 @@ export async function createSyndicat() {
         name,
         city: '',
         email: '',
-        address: '',
+        addressesJson: '[]',
         socialsJson: '[]',
         content: '<p>Commence à écrire ici.</p>',
-        latitude: 0,
-        longitude: 0,
         updatedAt: timestamp
       }
     })
@@ -130,11 +138,9 @@ async function normalizeSyndicatUpdate(
     slug: await getUniqueSyndicatSlug(name, current.id, database),
     city: (input.city ?? current.city).trim(),
     email: (input.email ?? current.email).trim(),
-    address: (input.address ?? current.address).trim(),
+    addresses: normalizeSyndicatAddresses(input.addresses, current.addresses),
     socials: normalizeSocialLinks(input.socials, current.socials),
     content: input.content ?? current.content,
-    latitude: current.latitude,
-    longitude: current.longitude,
     updatedAt: nowIso()
   }
 }
@@ -147,27 +153,20 @@ export async function updateSyndicat(id: number, input: Partial<CmsSyndicat>, op
   }
 
   const updated = await normalizeSyndicatUpdate(current, input)
-  const coordinates = await geocodeSyndicatAddress(updated.address, updated.city)
-  const syndicatToSave: CmsSyndicat = {
-    ...updated,
-    latitude: !updated.address ? 0 : (coordinates?.latitude ?? current.latitude),
-    longitude: !updated.address ? 0 : (coordinates?.longitude ?? current.longitude)
-  }
+  assertValidSyndicatAddresses(updated.addresses)
 
   return await runInCmsTransaction(async (database) => {
     await database.syndicat.update({
-      where: { id: syndicatToSave.id },
+      where: { id: updated.id },
       data: {
-        slug: syndicatToSave.slug,
-        name: syndicatToSave.name,
-        city: syndicatToSave.city,
-        email: syndicatToSave.email,
-        address: syndicatToSave.address,
-        socialsJson: JSON.stringify(syndicatToSave.socials),
-        content: syndicatToSave.content,
-        latitude: syndicatToSave.latitude,
-        longitude: syndicatToSave.longitude,
-        updatedAt: syndicatToSave.updatedAt
+        slug: updated.slug,
+        name: updated.name,
+        city: updated.city,
+        email: updated.email,
+        addressesJson: JSON.stringify(updated.addresses),
+        socialsJson: JSON.stringify(updated.socials),
+        content: updated.content,
+        updatedAt: updated.updatedAt
       }
     })
 

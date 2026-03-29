@@ -9,6 +9,7 @@ import { getRevisionById } from './cms/revisions'
 const USER_DN = 'ou=users,dc=yunohost,dc=org'
 const GROUPS_DN = 'ou=groups,dc=yunohost,dc=org'
 const LDAP_URL = process.env.LDAP_URL || 'ldap://127.0.0.1:10389'
+const ADMIN_GROUPS = ['admins', 'commissions'] as const
 
 export const enum CmsRole {
   ADMIN = 'admin',
@@ -97,7 +98,7 @@ export async function getAuthenticatedUser(event: H3Event): Promise<CmsAuthentic
 
     const entries = result.searchEntries ?? []
 
-    if (entries.some(entry => matchesGroup(entry.cn, 'admins'))) {
+    if (entries.some(entry => ADMIN_GROUPS.some(group => matchesGroup(entry.cn, group)))) {
       return { name: uid, role: CmsRole.ADMIN }
     }
 
