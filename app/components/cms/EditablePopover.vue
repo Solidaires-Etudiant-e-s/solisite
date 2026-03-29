@@ -7,6 +7,7 @@ const props = defineProps<{
 
 const editor = useCmsPageLiveEditor()
 const uploadFiles = ref<Record<string, File | null>>({})
+const uploadProgress = ref<Record<string, number>>({})
 const uploadingField = ref('')
 const uploadError = ref('')
 
@@ -68,13 +69,19 @@ async function uploadAsset(file: File | null | undefined, key: string, uploadEnd
 
   uploadingField.value = key
   uploadError.value = ''
+  uploadProgress.value[key] = 0
 
   try {
-    editor.updateField(fieldPath(key), await uploadCmsImage(file, uploadEndpoint))
+    editor.updateField(fieldPath(key), await uploadCmsImage(file, uploadEndpoint, {
+      onProgress: progress => uploadProgress.value[key] = progress
+    }))
+    uploadProgress.value[key] = 100
   } catch {
     uploadError.value = 'Échec de l’envoi.'
   } finally {
     uploadingField.value = ''
+    const { [key]: _removedProgress, ...remainingProgress } = uploadProgress.value
+    uploadProgress.value = remainingProgress
     uploadFiles.value[key] = null
   }
 }
@@ -138,30 +145,6 @@ function removeItem() {
             v-else-if="field.kind === 'image' || field.kind === 'file'"
             class="space-y-3"
           >
-            <div class="flex h-24 items-center justify-center rounded-lg border border-default bg-default">
-              <img
-                v-if="field.kind === 'image' && fieldValue(field.key)"
-                :src="String(fieldValue(field.key))"
-                :alt="field.label"
-                class="h-14 max-w-[10rem] object-contain"
-              >
-              <a
-                v-else-if="field.kind === 'file' && fieldValue(field.key)"
-                :href="String(fieldValue(field.key))"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-sm font-medium text-primary underline underline-offset-2"
-              >
-                {{ String(fieldValue(field.key)).split('/').pop() || 'Fichier téléversé' }}
-              </a>
-              <span
-                v-else
-                class="text-sm text-muted"
-              >
-                {{ field.kind === 'image' ? 'Aucune image envoyée.' : 'Aucun fichier envoyé.' }}
-              </span>
-            </div>
-
             <UFileUpload
               v-model="uploadFiles[field.key]"
               :accept="field.kind === 'image' ? 'image/*' : '.pdf,application/pdf'"
@@ -170,6 +153,22 @@ function removeItem() {
               :disabled="uploadingField === field.key"
               @update:model-value="uploadAsset($event, field.key, field.uploadEndpoint)"
             />
+
+            <div
+              v-if="uploadingField === field.key"
+              class="space-y-2"
+            >
+              <div class="flex items-center justify-between text-xs text-muted">
+                <span>Téléversement en cours…</span>
+                <span>{{ uploadProgress[field.key] || 0 }}%</span>
+              </div>
+              <div class="h-2 overflow-hidden rounded-full bg-accented">
+                <div
+                  class="h-full rounded-full bg-primary transition-[width] duration-200"
+                  :style="{ width: `${uploadProgress[field.key] || 0}%` }"
+                />
+              </div>
+            </div>
           </div>
 
           <USelect

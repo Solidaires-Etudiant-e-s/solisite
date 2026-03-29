@@ -136,7 +136,11 @@ export function toLinkHref(href: string) {
   return href.startsWith('/') ? undefined : href
 }
 
-export async function uploadCmsAsset(file: File | null | undefined, uploadEndpoint: string) {
+export async function uploadCmsAsset(
+  file: File | null | undefined,
+  uploadEndpoint: string,
+  options?: { onProgress?: (progress: number) => void }
+) {
   if (!file) {
     throw new Error('Missing file.')
   }
@@ -144,9 +148,47 @@ export async function uploadCmsAsset(file: File | null | undefined, uploadEndpoi
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await fetch(uploadEndpoint, {
-    method: 'POST',
-    body: formData
+  const response = await new Promise<Response>((resolve, reject) => {
+    const request = new XMLHttpRequest()
+
+    request.open('POST', uploadEndpoint)
+    request.responseType = 'json'
+
+    request.upload.onprogress = (event) => {
+      if (!event.lengthComputable) {
+        return
+      }
+
+      options?.onProgress?.(Math.min(100, Math.round((event.loaded / event.total) * 100)))
+    }
+
+    request.onload = () => {
+      const headers = new Headers(
+        request
+          .getAllResponseHeaders()
+          .trim()
+          .split(/[\r\n]+/)
+          .filter(Boolean)
+          .map((line) => {
+            const separatorIndex = line.indexOf(':')
+            const key = separatorIndex >= 0 ? line.slice(0, separatorIndex).trim() : line.trim()
+            const value = separatorIndex >= 0 ? line.slice(separatorIndex + 1).trim() : ''
+            return [key, value] as [string, string]
+          })
+      )
+
+      const body = request.response ?? request.responseText ?? null
+
+      resolve(new Response(body ? JSON.stringify(body) : null, {
+        status: request.status,
+        statusText: request.statusText,
+        headers
+      }))
+    }
+
+    request.onerror = () => reject(new Error('Upload failed.'))
+    request.onabort = () => reject(new Error('Upload aborted.'))
+    request.send(formData)
   })
 
   if (!response.ok) {
@@ -162,10 +204,18 @@ export async function uploadCmsAsset(file: File | null | undefined, uploadEndpoi
   return payload.path
 }
 
-export async function uploadCmsImage(file: File | null | undefined, uploadEndpoint: string) {
-  return await uploadCmsAsset(file, uploadEndpoint)
+export async function uploadCmsImage(
+  file: File | null | undefined,
+  uploadEndpoint: string,
+  options?: { onProgress?: (progress: number) => void }
+) {
+  return await uploadCmsAsset(file, uploadEndpoint, options)
 }
 
-export async function uploadCmsFile(file: File | null | undefined, uploadEndpoint: string) {
-  return await uploadCmsAsset(file, uploadEndpoint)
+export async function uploadCmsFile(
+  file: File | null | undefined,
+  uploadEndpoint: string,
+  options?: { onProgress?: (progress: number) => void }
+) {
+  return await uploadCmsAsset(file, uploadEndpoint, options)
 }
