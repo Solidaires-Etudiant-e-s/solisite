@@ -5,13 +5,12 @@ const article = defineModel<CmsArticle>('article', {
   required: true
 })
 
-const { canManageHistory, historyOpen, previewArticle, saving, selectedRevision, status } = defineProps<{
+const { canManageHistory, historyOpen, previewArticle, saving, selectedRevision } = defineProps<{
   canManageHistory: boolean
   historyOpen: boolean
   previewArticle: CmsArticle
   saving: boolean
   selectedRevision: CmsRevision | null
-  status: string
 }>()
 
 const emit = defineEmits<{
@@ -63,13 +62,6 @@ provideCmsPageLiveEditor(article.value)
 
     <template #body>
       <div class="space-y-5 px-4 pb-4">
-        <UAlert
-          v-if="status"
-          color="success"
-          variant="soft"
-          :description="status"
-        />
-
         <UAlert
           v-if="selectedRevision"
           color="warning"
