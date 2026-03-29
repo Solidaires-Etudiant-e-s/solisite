@@ -25,10 +25,10 @@ const emit = defineEmits<{
   focus: []
 }>()
 
+const toast = useToast()
 const imageInput = ref<HTMLInputElement | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploadingKind = ref<'image' | 'file' | null>(null)
-const uploadError = ref('')
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, character => ({
@@ -64,7 +64,6 @@ async function handleImageSelection(event: Event, editor: Editor | null) {
   }
 
   uploadingKind.value = 'image'
-  uploadError.value = ''
 
   try {
     const path = await uploadCmsImage(file, props.imageUploadEndpoint)
@@ -72,8 +71,13 @@ async function handleImageSelection(event: Event, editor: Editor | null) {
       src: path,
       alt: file.name
     }).run()
-  } catch {
-    uploadError.value = 'Échec de l’envoi de l’image.'
+  } catch (error) {
+    toast.add({
+      title: 'Téléversement impossible',
+      description: error instanceof Error ? error.message : 'Erreur inconnue.',
+      color: 'error',
+      icon: 'mingcute:close-circle-line'
+    })
   } finally {
     uploadingKind.value = null
     resetInput(target)
@@ -90,7 +94,6 @@ async function handleFileSelection(event: Event, editor: Editor | null) {
   }
 
   uploadingKind.value = 'file'
-  uploadError.value = ''
 
   try {
     const path = await uploadCmsFile(file, props.fileUploadEndpoint)
@@ -100,8 +103,13 @@ async function handleFileSelection(event: Event, editor: Editor | null) {
     editor.chain().focus().insertContent(
       `<p><a href="${escapedPath}" target="_blank" rel="noopener noreferrer">${escapedName}</a></p>`
     ).run()
-  } catch {
-    uploadError.value = 'Échec de l’envoi du fichier.'
+  } catch (error) {
+    toast.add({
+      title: 'Téléversement impossible',
+      description: error instanceof Error ? error.message : 'Erreur inconnue.',
+      color: 'error',
+      icon: 'mingcute:close-circle-line'
+    })
   } finally {
     uploadingKind.value = null
     resetInput(target)
@@ -171,13 +179,6 @@ function emitFocus() {
               />
             </div>
           </div>
-
-          <p
-            v-if="uploadError"
-            class="mt-2 text-sm text-error"
-          >
-            {{ uploadError }}
-          </p>
         </div>
       </template>
     </UEditor>

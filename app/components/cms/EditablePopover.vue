@@ -6,10 +6,10 @@ const props = defineProps<{
 }>()
 
 const editor = useCmsPageLiveEditor()
+const toast = useToast()
 const uploadFiles = ref<Record<string, File | null>>({})
 const uploadProgress = ref<Record<string, number>>({})
 const uploadingField = ref('')
-const uploadError = ref('')
 
 function fieldPath(key: string) {
   if (props.target.kind === 'list-item' || props.target.kind === 'link' || props.target.kind === 'fields') {
@@ -68,7 +68,6 @@ async function uploadAsset(file: File | null | undefined, key: string, uploadEnd
   }
 
   uploadingField.value = key
-  uploadError.value = ''
   uploadProgress.value[key] = 0
 
   try {
@@ -76,8 +75,13 @@ async function uploadAsset(file: File | null | undefined, key: string, uploadEnd
       onProgress: progress => uploadProgress.value[key] = progress
     }))
     uploadProgress.value[key] = 100
-  } catch {
-    uploadError.value = 'Échec de l’envoi.'
+  } catch (error) {
+    toast.add({
+      title: 'Téléversement impossible',
+      description: error instanceof Error ? error.message : 'Erreur inconnue.',
+      color: 'error',
+      icon: 'mingcute:close-circle-line'
+    })
   } finally {
     uploadingField.value = ''
     const { [key]: _removedProgress, ...remainingProgress } = uploadProgress.value
@@ -200,14 +204,6 @@ function removeItem() {
             @update:model-value="updateValue(String($event || ''), field.key)"
           />
         </UFormField>
-
-        <p
-          v-if="uploadError"
-          class="text-sm text-error"
-        >
-          {{ uploadError }}
-        </p>
-
         <div
           v-if="target.kind === 'list-item'"
           class="flex items-center gap-2"

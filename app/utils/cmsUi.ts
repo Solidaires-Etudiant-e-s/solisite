@@ -136,6 +136,40 @@ export function toLinkHref(href: string) {
   return href.startsWith('/') ? undefined : href
 }
 
+function toUploadErrorMessage(payload: unknown, fallback: string) {
+  if (typeof payload === 'string' && payload.trim()) {
+    return payload
+  }
+
+  if (!payload || typeof payload !== 'object') {
+    return fallback
+  }
+
+  const errorPayload = payload as {
+    statusMessage?: unknown
+    statusText?: unknown
+    message?: unknown
+    error?: unknown
+    data?: { message?: unknown } | unknown
+  }
+
+  const candidates = [
+    errorPayload.statusMessage,
+    errorPayload.statusText,
+    errorPayload.message,
+    errorPayload.error,
+    errorPayload.data && typeof errorPayload.data === 'object' ? (errorPayload.data as { message?: unknown }).message : undefined
+  ]
+
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.trim()) {
+      return candidate
+    }
+  }
+
+  return fallback
+}
+
 export async function uploadCmsAsset(
   file: File | null | undefined,
   uploadEndpoint: string,
@@ -191,13 +225,16 @@ export async function uploadCmsAsset(
     request.send(formData)
   })
 
+  const payload = await response.json().catch(async () => {
+    const text = await response.text().catch(() => '')
+    return text || null
+  }) as { path?: string } | string | null
+
   if (!response.ok) {
-    throw new Error('Upload failed.')
+    throw new Error(toUploadErrorMessage(payload, 'Upload failed.'))
   }
 
-  const payload = await response.json() as { path?: string }
-
-  if (!payload.path) {
+  if (!payload || typeof payload !== 'object' || !('path' in payload) || !payload.path) {
     throw new Error('Upload response is missing a path.')
   }
 
