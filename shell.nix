@@ -3,8 +3,8 @@
 }:
 pkgs.mkShell {
   buildInputs = [
-    pkgs.prisma-engines
-    pkgs.prisma
+    pkgs.prisma-engines_7
+    pkgs.prisma_7
     pkgs.bun
     pkgs.nodejs_24
     pkgs.openssl.dev
