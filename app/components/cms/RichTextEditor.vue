@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
+import ImageResize from 'tiptap-extension-resize-image'
 import { cmsRichTextToolbarItems, uploadCmsFile, uploadCmsImage } from '~/utils/cmsUi'
 
 const content = defineModel<string>({
@@ -119,6 +120,7 @@ function emitFocus() {
       content-type="html"
       :placeholder="placeholder"
       :class="editorClass"
+      :extensions="[ImageResize]"
       @focus="emitFocus"
     >
       <template #default="{ editor }">
