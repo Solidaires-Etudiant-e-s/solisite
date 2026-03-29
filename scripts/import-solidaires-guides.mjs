@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { PrismaClient } from '@prisma/client'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 
 const [, , dbArg] = process.argv
 
@@ -383,13 +384,8 @@ for (const post of posts) {
   })
 }
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: databaseUrl
-    }
-  }
-})
+const adapter = new PrismaBetterSqlite3({ url: databaseUrl })
+const prisma = new PrismaClient({ adapter })
 
 try {
   await prisma.$transaction(async (transaction) => {

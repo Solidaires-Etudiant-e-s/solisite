@@ -1,4 +1,5 @@
 import { PrismaClient, type Prisma } from '@prisma/client'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import { createDefaultSiteSettings } from '~~/lib/cms'
 import { defaultPages } from './content'
 import { defaultArticle, defaultGuide, nowIso, slugify } from './shared'
@@ -15,13 +16,8 @@ function resolveDatabaseUrl() {
 }
 
 function createDatabaseClient() {
-  return new PrismaClient({
-    datasources: {
-      db: {
-        url: resolveDatabaseUrl()
-      }
-    }
-  })
+  const adapter = new PrismaBetterSqlite3({ url: resolveDatabaseUrl() })
+  return new PrismaClient({ adapter })
 }
 
 const prisma = globalForCmsDatabase.__solisitePrisma ?? createDatabaseClient()
