@@ -4,21 +4,22 @@ import { createEditableTarget, createFieldTarget, createHtmlTarget } from '~/uti
 import { formatFrenchDate } from '~/utils/cmsUi'
 
 const props = defineProps<{
-  article: CmsArticle
+  guide: CmsGuide
 }>()
 
-const targetIdPrefix = computed(() => `article:${props.article.id || 'draft'}`)
-const publishedLabel = computed(() => formatFrenchDate(props.article.publishedAt))
-const title = computed(() => props.article.title || 'Article sans titre')
-const excerpt = computed(() => props.article.excerpt || 'Ajoute un extrait pour résumer le contenu de cet article.')
-const content = computed(() => props.article.content || '<p>Commence à écrire pour prévisualiser l’article.</p>')
-const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
+const targetIdPrefix = computed(() => `guide:${props.guide.id || 'draft'}`)
+const publishedLabel = computed(() => formatFrenchDate(props.guide.publishedAt))
+const title = computed(() => props.guide.title || 'Guide sans titre')
+const excerpt = computed(() => props.guide.excerpt || 'Ajoute un extrait pour résumer le contenu de ce guide.')
+const content = computed(() => props.guide.content || '<p>Commence à écrire pour prévisualiser le guide.</p>')
+const coverImage = computed(() => props.guide.coverImage || '/hero.jpg')
+const pdfFile = computed(() => props.guide.pdfFile || '')
 </script>
 
 <template>
   <UPage>
-    <div class="border-b border-default public-section">
-      <div class="public-container public-container--narrow flex flex-col gap-6">
+    <div class="border-b border-default px-6 py-12">
+      <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
         <CmsEditableNode
           tag="span"
           class="inline-flex text-sm"
@@ -49,8 +50,8 @@ const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
       </div>
     </div>
 
-    <UPageBody>
-      <div class="public-container public-container--narrow public-section space-y-10">
+    <UPageBody class="py-10">
+      <div class="mx-auto max-w-3xl space-y-10 px-4 sm:px-0">
         <CmsEditableNode
           tag="div"
           :target="createFieldTarget(`${targetIdPrefix}:cover-image`, '', 'Image de couverture', [{
@@ -67,6 +68,29 @@ const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
               class="h-96 w-full object-cover"
             >
           </div>
+        </CmsEditableNode>
+
+        <CmsEditableNode
+          tag="div"
+          :target="createFieldTarget(`${targetIdPrefix}:pdf-file`, '', 'Fichier PDF', [{
+            key: 'pdfFile',
+            label: 'PDF du guide',
+            kind: 'file',
+            uploadEndpoint: '/api/cms/uploads/content-file'
+          }])"
+        >
+          <UButton
+            block
+            size="xl"
+            color="primary"
+            variant="solid"
+            icon="mingcute:download-2-line"
+            :href="pdfFile || undefined"
+            :disabled="!pdfFile"
+            target="_blank"
+          >
+            {{ pdfFile ? 'Télécharger le guide en PDF' : 'Ajoute un PDF pour activer le téléchargement' }}
+          </UButton>
         </CmsEditableNode>
 
         <CmsEditableNode

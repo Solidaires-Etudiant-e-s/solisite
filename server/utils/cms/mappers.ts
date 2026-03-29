@@ -1,5 +1,5 @@
-import type { CmsArticle, CmsPage, CmsSiteSettings, CmsSocialLink, CmsSyndicat } from '~~/lib/cms'
-import type { ArticleRecord, PageRecord, SiteSettingsRecord, SyndicatRecord } from './types'
+import type { CmsArticle, CmsGuide, CmsPage, CmsSiteSettings, CmsSocialLink, CmsSyndicat } from '~~/lib/cms'
+import type { ArticleRecord, GuideRecord, PageRecord, SiteSettingsRecord, SyndicatRecord } from './types'
 import { parsePageContent } from './content'
 
 function parseSocials(raw: string | null | undefined, fallback: Array<Partial<CmsSocialLink>> = []) {
@@ -56,6 +56,20 @@ export function toArticle(record: ArticleRecord): CmsArticle {
     excerpt: record.excerpt,
     content: record.content,
     coverImage: record.coverImage,
+    publishedAt: record.publishedAt,
+    updatedAt: record.updatedAt
+  }
+}
+
+export function toGuide(record: GuideRecord): CmsGuide {
+  return {
+    id: record.id,
+    slug: record.slug,
+    title: record.title,
+    excerpt: record.excerpt,
+    content: record.content,
+    coverImage: record.coverImage,
+    pdfFile: record.pdfFile,
     publishedAt: record.publishedAt,
     updatedAt: record.updatedAt
   }

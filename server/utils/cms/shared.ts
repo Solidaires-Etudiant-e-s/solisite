@@ -9,6 +9,14 @@ export const defaultArticle = {
   coverImage: '/hero.jpg'
 }
 
+export const defaultGuide = {
+  title: 'Guide de bienvenue',
+  excerpt: 'Ajoute ici un court résumé du guide et rattache ensuite le PDF à télécharger.',
+  content: '<p>Présente ici le contenu du guide, son contexte et ce que l’on y trouve avant le téléchargement.</p>',
+  coverImage: '/hero.jpg',
+  pdfFile: ''
+}
+
 export function nowIso() {
   return new Date().toISOString()
 }

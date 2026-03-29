@@ -68,6 +68,10 @@ const defaultArticlesContent = {
   emptyStateText: 'Aucun article n’est disponible pour le moment.'
 }
 
+const defaultGuidesContent = {
+  emptyStateText: 'Aucun guide n’est disponible pour le moment.'
+}
+
 const defaultSyndicatsContent = {
   searchPlaceholder: 'Rechercher un syndicat ou une ville',
   emptyStateText: 'Aucun syndicat ne correspond à votre recherche.'
@@ -114,6 +118,14 @@ const defaultAboutContent = {
   functioningCtaHref: 'mailto:contact@solidaires-etudiant-e-s.org'
 }
 
+const defaultInternationalContent = {
+  body: `
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.</p>
+<p>Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat.</p>
+<p>Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue.</p>
+`.trim()
+}
+
 export const defaultPages = [
   {
     slug: 'home',
@@ -138,6 +150,17 @@ export const defaultPages = [
     content: defaultAboutContent
   },
   {
+    slug: 'international',
+    name: 'International',
+    title: 'International',
+    description: 'International version placeholder page.',
+    headline: 'International',
+    subheadline: 'A temporary international landing page managed in the CMS.',
+    ctaLabel: 'Home',
+    ctaHref: '/',
+    content: defaultInternationalContent
+  },
+  {
     slug: 'articles',
     name: 'Liste des articles',
     title: 'Articles',
@@ -147,6 +170,17 @@ export const defaultPages = [
     ctaLabel: 'Ouvrir l’administration',
     ctaHref: '/admin',
     content: defaultArticlesContent
+  },
+  {
+    slug: 'guides',
+    name: 'Liste des guides',
+    title: 'Guides',
+    description: 'Les guides et brochures publiés par Solidaires Étudiant·e·s.',
+    headline: 'Guides',
+    subheadline: 'Des ressources longues à lire en ligne et à télécharger en PDF.',
+    ctaLabel: 'Ouvrir l’administration',
+    ctaHref: '/admin',
+    content: defaultGuidesContent
   },
   {
     slug: 'syndicats',

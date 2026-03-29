@@ -3,14 +3,14 @@ import { formatFrenchDate } from '~/utils/cmsUi'
 
 const props = defineProps<{
   page: CmsPage
-  articles: CmsArticle[]
+  guides: CmsGuide[]
   currentPage: number
   totalPages: number
 }>()
 
 const editor = useCmsPageLiveEditor()
 const route = useRoute()
-const content = computed(() => props.page.content as CmsArticlesPageContent)
+const content = computed(() => props.page.content as CmsGuidesPageContent)
 
 const pageNumbers = computed(() => {
   const start = Math.max(1, props.currentPage - 2)
@@ -45,27 +45,34 @@ function pageQuery(page: number) {
     <UPageBody>
       <div class="public-container public-section space-y-10">
         <div
-          v-if="articles.length"
+          v-if="guides.length"
           class="grid gap-8 md:grid-cols-2 xl:grid-cols-3"
         >
           <UPageCard
-            v-for="article in articles"
-            :key="article.id"
-            :title="article.title"
-            :description="article.excerpt"
-            :to="editor ? undefined : `/articles/${article.slug}`"
+            v-for="guide in guides"
+            :key="guide.id"
+            :title="guide.title"
+            :description="guide.excerpt"
+            :to="editor ? undefined : `/guides/${guide.slug}`"
             class="overflow-hidden"
           >
             <template #leading>
               <img
-                :src="article.coverImage || '/hero.jpg'"
-                :alt="article.title"
+                :src="guide.coverImage || '/hero.jpg'"
+                :alt="guide.title"
                 class="mb-4 h-52 w-full object-cover"
               >
             </template>
 
             <template #footer>
-              <span class="text-sm text-muted">{{ formatFrenchDate(article.publishedAt) }}</span>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-sm text-muted">{{ formatFrenchDate(guide.publishedAt) }}</span>
+                <UIcon
+                  v-if="guide.pdfFile"
+                  name="mingcute:file-pdf-line"
+                  class="text-lg text-primary"
+                />
+              </div>
             </template>
           </UPageCard>
         </div>

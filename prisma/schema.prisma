@@ -35,6 +35,20 @@ model Article {
   @@map("articles")
 }
 
+model Guide {
+  id          Int    @id @default(autoincrement())
+  slug        String @unique
+  title       String
+  excerpt     String @default("")
+  content     String @default("")
+  coverImage  String @default("/hero.jpg") @map("cover_image")
+  pdfFile     String @default("") @map("pdf_file")
+  publishedAt String @map("published_at")
+  updatedAt   String @map("updated_at")
+
+  @@map("guides")
+}
+
 model Syndicat {
   id          Int    @id @default(autoincrement())
   slug        String @unique

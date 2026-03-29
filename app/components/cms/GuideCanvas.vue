@@ -1,45 +1,37 @@
 <script setup lang="ts">
 import type { CmsRevision } from '~~/lib/cms'
 
-const page = defineModel<CmsPage>('page', {
+const guide = defineModel<CmsGuide>('guide', {
   required: true
 })
 
-const { articles, historyOpen, previewPage, selectedRevision, status, saving } = defineProps<{
-  articles: CmsArticle[]
-  guides: CmsGuide[]
-  siteSettings: CmsSiteSettings
-  syndicats: CmsSyndicat[]
+const { canManageHistory, historyOpen, previewGuide, saving, selectedRevision, status } = defineProps<{
+  canManageHistory: boolean
   historyOpen: boolean
-  previewPage: CmsPage
+  previewGuide: CmsGuide
+  saving: boolean
   selectedRevision: CmsRevision | null
   status: string
-  saving: boolean
 }>()
 
 const emit = defineEmits<{
   toggleHistory: []
-  savePage: []
-  resetPage: []
+  saveGuide: []
 }>()
 
-const editor = provideCmsPageLiveEditor(page.value)
-
-watch(() => page.value.slug, () => {
-  editor.closeTarget()
-})
+provideCmsPageLiveEditor(guide.value)
 </script>
 
 <template>
   <UDashboardPanel
-    id="cms-page-canvas"
+    id="cms-guide-canvas"
     class="min-w-0 overflow-hidden bg-default"
   >
     <template #header>
       <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-4">
         <div>
           <h1 class="text-2xl text-highlighted">
-            Modifier la page en direct
+            Modifier le guide en direct
           </h1>
           <p class="text-sm text-dimmed">
             Clique sur le contenu visible pour le modifier directement.
@@ -47,9 +39,10 @@ watch(() => page.value.slug, () => {
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <CmsPageSettingsPopover v-model:page="page" />
+          <CmsGuideSettingsPopover v-model:guide="guide" />
 
           <UButton
+            v-if="canManageHistory"
             :label="historyOpen ? 'Masquer l’historique' : 'Afficher l’historique'"
             color="neutral"
             variant="outline"
@@ -58,17 +51,11 @@ watch(() => page.value.slug, () => {
           />
 
           <UButton
-            label="Réinitialiser le brouillon"
-            color="neutral"
-            variant="outline"
-            @click="emit('resetPage')"
-          />
-
-          <UButton
-            label="Enregistrer la page"
+            label="Enregistrer le guide"
             color="primary"
             :loading="saving"
-            @click="emit('savePage')"
+            :disabled="!guide.id"
+            @click="emit('saveGuide')"
           />
         </div>
       </div>
@@ -88,16 +75,10 @@ watch(() => page.value.slug, () => {
           color="warning"
           variant="soft"
           title="Aperçu historique"
-          description="Tu prévisualises une version enregistrée de la page. Les modifications continuent de s’appliquer au brouillon actuel jusqu’à restauration."
+          description="Tu prévisualises une version enregistrée du guide. Les clics continuent de modifier le brouillon actuel jusqu’à restauration."
         />
 
-        <CmsPagePreview
-          :page="previewPage"
-          :articles="articles"
-          :guides="guides"
-          :site-settings="siteSettings"
-          :syndicats="syndicats"
-        />
+        <CmsGuidePreview :guide="previewGuide" />
       </div>
     </template>
   </UDashboardPanel>

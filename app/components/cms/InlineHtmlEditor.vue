@@ -19,14 +19,14 @@ function activate() {
 
 <template>
   <div
-    class="overflow-hidden rounded-sm ring-2 ring-primary/50 ring-offset-2"
+    class="overflow-hidden rounded-sm border border-default ring-1 ring-primary/25"
     @click.stop="activate"
   >
     <CmsRichTextEditor
       v-model="content"
       placeholder="Rédige le contenu ici..."
-      editor-class="min-h-[24rem] border-0 bg-white [&_.ProseMirror]:prose-content [&_.ProseMirror]:min-h-[18rem] [&_.ProseMirror]:max-w-none [&_.ProseMirror]:px-4 [&_.ProseMirror]:pb-6 [&_.ProseMirror]:pt-4 [&_.tiptap]:prose-content [&_.tiptap]:min-h-[18rem] [&_.tiptap]:max-w-none [&_.tiptap]:px-4 [&_.tiptap]:pb-6 [&_.tiptap]:pt-4"
-      toolbar-class="sticky top-0 z-10 border-b border-default bg-white/95 px-3 py-2 backdrop-blur"
+      editor-class="min-h-[24rem] border-0 bg-default text-default [&_.ProseMirror]:prose-content [&_.ProseMirror]:min-h-[18rem] [&_.ProseMirror]:max-w-none [&_.ProseMirror]:px-4 [&_.ProseMirror]:pb-6 [&_.ProseMirror]:pt-4 [&_.tiptap]:prose-content [&_.tiptap]:min-h-[18rem] [&_.tiptap]:max-w-none [&_.tiptap]:px-4 [&_.tiptap]:pb-6 [&_.tiptap]:pt-4"
+      toolbar-class="sticky top-0 z-10 border-b border-default bg-default/95 px-3 py-2 backdrop-blur"
       @focus="activate"
     />
   </div>

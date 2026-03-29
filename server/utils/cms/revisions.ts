@@ -1,13 +1,13 @@
 import type { Prisma } from '@prisma/client'
-import { normalizeSocialLinks, normalizeSyndicatName, type CmsArticle, type CmsPage, type CmsRevision, type CmsRevisionChangeType, type CmsRevisionEntityType, type CmsSiteSettings, type CmsSocialLink, type CmsSyndicat } from '~~/lib/cms'
+import { normalizeSocialLinks, normalizeSyndicatName, type CmsArticle, type CmsGuide, type CmsPage, type CmsRevision, type CmsRevisionChangeType, type CmsRevisionEntityType, type CmsSiteSettings, type CmsSocialLink, type CmsSyndicat } from '~~/lib/cms'
 import { useCmsDatabase, runInCmsTransaction } from './database'
 import { notFound } from './http'
-import { toArticle, toPage, toSiteSettings, toSyndicat } from './mappers'
+import { toArticle, toGuide, toPage, toSiteSettings, toSyndicat } from './mappers'
 import { nowIso, resolveUniqueSlug } from './shared'
-import type { ArticleRecord, PageRecord, RevisionRecord, SiteSettingsRecord, SyndicatRecord } from './types'
+import type { ArticleRecord, GuideRecord, PageRecord, RevisionRecord, SiteSettingsRecord, SyndicatRecord } from './types'
 
 type CmsDatabaseClient = Prisma.TransactionClient | Awaited<ReturnType<typeof useCmsDatabase>>
-type CmsRevisionSnapshot = CmsPage | CmsArticle | CmsSyndicat | CmsSiteSettings
+type CmsRevisionSnapshot = CmsPage | CmsArticle | CmsGuide | CmsSyndicat | CmsSiteSettings
 
 interface CreateRevisionInput {
   entityType: CmsRevisionEntityType
@@ -43,6 +43,24 @@ async function getUniqueRestoredArticleSlug(baseValue: string, currentId: number
     'article',
     async (slug) => {
       const existing = await client.article.findUnique({
+        where: { slug },
+        select: { id: true }
+      })
+
+      return existing?.id ?? null
+    },
+    currentId
+  )
+}
+
+async function getUniqueRestoredGuideSlug(baseValue: string, currentId: number, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+
+  return await resolveUniqueSlug(
+    baseValue,
+    'guide',
+    async (slug) => {
+      const existing = await client.guide.findUnique({
         where: { slug },
         select: { id: true }
       })
@@ -156,6 +174,40 @@ async function restoreArticleSnapshot(snapshot: CmsArticle, revisionId: number, 
 
   return {
     entityType: 'article' as const,
+    entity
+  }
+}
+
+async function restoreGuideSnapshot(snapshot: CmsGuide, revisionId: number, database: CmsDatabaseClient) {
+  const updatedAt = nowIso()
+
+  await database.guide.update({
+    where: { id: snapshot.id },
+    data: {
+      slug: await getUniqueRestoredGuideSlug(snapshot.slug || snapshot.title, snapshot.id, database),
+      title: snapshot.title,
+      excerpt: snapshot.excerpt,
+      content: snapshot.content,
+      coverImage: snapshot.coverImage,
+      pdfFile: snapshot.pdfFile,
+      publishedAt: snapshot.publishedAt,
+      updatedAt
+    }
+  })
+
+  const restoredRecord = await database.guide.findUnique({
+    where: { id: snapshot.id }
+  }) as GuideRecord | null
+
+  if (!restoredRecord) {
+    notFound(`Guide "${snapshot.id}" not found.`)
+  }
+
+  const entity = toGuide(restoredRecord)
+  await createGuideRevision(entity, 'restore', revisionId, database)
+
+  return {
+    entityType: 'guide' as const,
     entity
   }
 }
@@ -319,6 +371,22 @@ export async function createArticleRevision(
   }, database)
 }
 
+export async function createGuideRevision(
+  guide: CmsGuide,
+  changeType: CmsRevisionChangeType = 'save',
+  restoredFromRevisionId?: number | null,
+  database?: CmsDatabaseClient
+) {
+  return await createRevision({
+    entityType: 'guide',
+    entityId: String(guide.id),
+    revisionLabel: guide.title,
+    changeType,
+    snapshot: guide,
+    restoredFromRevisionId
+  }, database)
+}
+
 export async function createSyndicatRevision(
   syndicat: CmsSyndicat,
   changeType: CmsRevisionChangeType = 'save',
@@ -365,6 +433,10 @@ export async function restoreRevision(id: number) {
 
     if (revision.entityType === 'article') {
       return await restoreArticleSnapshot(revision.snapshot as CmsArticle, revision.id, database)
+    }
+
+    if (revision.entityType === 'guide') {
+      return await restoreGuideSnapshot(revision.snapshot as CmsGuide, revision.id, database)
     }
 
     if (revision.entityType === 'site-settings') {

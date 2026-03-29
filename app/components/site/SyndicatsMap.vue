@@ -13,6 +13,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [syndicatSlug: string]
 }>()
+const colorMode = useColorMode()
 
 const mapRef = useTemplateRef('mapRef')
 const markerRefs = new Map<string, { leafletObject?: { openPopup?: () => void, closePopup?: () => void, getLatLng?: () => unknown } }>()
@@ -62,6 +63,10 @@ const center = computed<[number, number]>(() => {
 })
 
 const zoom = computed(() => props.activeSyndicatSlug ? 8 : defaultZoom)
+const markerStrokeColor = computed(() => colorMode.value === 'dark' ? '#57534e' : '#fee2e2')
+const markerActiveStrokeColor = computed(() => colorMode.value === 'dark' ? '#e7e5e4' : '#ffffff')
+const markerFillColor = computed(() => colorMode.value === 'dark' ? '#ef4444' : '#d20808')
+const markerActiveFillColor = computed(() => colorMode.value === 'dark' ? '#f87171' : '#b91c1c')
 
 function setMarkerRef(slug: string, instance: unknown) {
   if (!instance) {
@@ -126,8 +131,8 @@ watch(() => props.activeSyndicatSlug, async (slug) => {
         :lat-lng="entry.latLng"
         :radius="entry.syndicat.slug === activeSyndicatSlug ? 10 : 8"
         :weight="3"
-        :color="entry.syndicat.slug === activeSyndicatSlug ? '#ffffff' : '#fee2e2'"
-        :fill-color="entry.syndicat.slug === activeSyndicatSlug ? '#b91c1c' : '#d20808'"
+        :color="entry.syndicat.slug === activeSyndicatSlug ? markerActiveStrokeColor : markerStrokeColor"
+        :fill-color="entry.syndicat.slug === activeSyndicatSlug ? markerActiveFillColor : markerFillColor"
         :fill-opacity="0.95"
         @click="emit('select', entry.syndicat.slug)"
       >
@@ -154,7 +159,7 @@ watch(() => props.activeSyndicatSlug, async (slug) => {
                 color="neutral"
                 variant="outline"
                 size="sm"
-                class="border-default !text-neutral-700 hover:!text-black [&_*]:!text-inherit"
+                class="border-default !text-toned hover:!text-highlighted [&_*]:!text-inherit"
                 :to="props.interactiveLinks === false ? undefined : `mailto:${entry.syndicat.email}`"
               />
               <UButton
@@ -164,7 +169,7 @@ watch(() => props.activeSyndicatSlug, async (slug) => {
                 color="neutral"
                 variant="outline"
                 size="sm"
-                class="border-default !text-neutral-700 hover:!text-black [&_*]:!text-inherit"
+                class="border-default !text-toned hover:!text-highlighted [&_*]:!text-inherit"
                 :to="props.interactiveLinks === false ? undefined : social.href"
                 :target="toLinkTarget(social.href || '')"
               />
@@ -172,7 +177,7 @@ watch(() => props.activeSyndicatSlug, async (slug) => {
                 label="Voir la fiche"
                 color="primary"
                 size="sm"
-                class="bg-[#d20808] text-white hover:bg-[#b60a0a]"
+                class="text-inverted"
                 trailing-icon="mingcute:arrow-right-line"
                 :to="props.interactiveLinks === false ? undefined : `/syndicats/${entry.syndicat.slug}`"
               />

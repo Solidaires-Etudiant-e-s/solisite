@@ -1,26 +1,31 @@
 import type { Ref } from 'vue'
-import { cloneCmsValue, createEmptyArticle, createEmptyPage, createEmptySiteSettings, createEmptySyndicat, slugify } from '~~/lib/cms'
-import type { CmsArticle, CmsBootstrap, CmsPage, CmsRevision, CmsRevisionEntityType, CmsSiteSettings, CmsSyndicat } from '~~/lib/cms'
+import { cloneCmsValue, createEmptyArticle, createEmptyGuide, createEmptyPage, createEmptySiteSettings, createEmptySyndicat, slugify } from '~~/lib/cms'
+import type { CmsArticle, CmsBootstrap, CmsGuide, CmsPage, CmsRevision, CmsRevisionEntityType, CmsSiteSettings, CmsSyndicat } from '~~/lib/cms'
 
-type CmsAdminSection = 'pages' | 'articles' | 'syndicats' | 'site-settings'
+type CmsAdminSection = 'pages' | 'articles' | 'guides' | 'syndicats' | 'site-settings'
 
 export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   const activeSection = ref<CmsAdminSection>('pages')
-  const expandedGroups = ref(['site-settings', 'pages', 'articles', 'syndicats'])
+  const expandedGroups = ref(['site-settings', 'pages', 'articles', 'guides', 'syndicats'])
   const pageStatus = ref('')
   const articleStatus = ref('')
+  const guideStatus = ref('')
   const syndicatStatus = ref('')
   const savingPage = ref(false)
   const savingArticle = ref(false)
+  const savingGuide = ref(false)
   const savingSyndicat = ref(false)
   const savingSiteSettings = ref(false)
   const creatingArticle = ref(false)
+  const creatingGuide = ref(false)
   const creatingSyndicat = ref(false)
   const historyOpen = ref(false)
   const historyLoading = ref(false)
   const restoringRevision = ref(false)
   const syncingArticleSlug = ref(false)
   const articleSlugManuallyEdited = ref(false)
+  const syncingGuideSlug = ref(false)
+  const guideSlugManuallyEdited = ref(false)
   const revisions = ref<CmsRevision[]>([])
   const selectedRevisionId = ref<number | null>(null)
   const userRole = computed(() => data.value?.auth.user.role ?? 'admin')
@@ -30,13 +35,16 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
   const pages = ref<CmsPage[]>([])
   const articles = ref<CmsArticle[]>([])
+  const guides = ref<CmsGuide[]>([])
   const syndicats = ref<CmsSyndicat[]>([])
   const selectedPageSlug = ref('')
   const selectedArticleId = ref<number | null>(null)
+  const selectedGuideId = ref<number | null>(null)
   const selectedSyndicatId = ref<number | null>(null)
 
   const pageDraft = reactive(createEmptyPage())
   const articleDraft = reactive(createEmptyArticle())
+  const guideDraft = reactive(createEmptyGuide())
   const syndicatDraft = reactive(createEmptySyndicat())
   const siteSettingsDraft = reactive(createEmptySiteSettings())
 
@@ -48,6 +56,10 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     Object.assign(articleDraft, cloneCmsValue(source))
   }
 
+  function applyGuideDraft(source: CmsGuide) {
+    Object.assign(guideDraft, cloneCmsValue(source))
+  }
+
   function applySyndicatDraft(source: CmsSyndicat) {
     Object.assign(syndicatDraft, cloneCmsValue(source))
   }
@@ -57,6 +69,10 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   }
 
   function sortArticles(items: CmsArticle[]) {
+    return [...items].sort((left, right) => right.publishedAt.localeCompare(left.publishedAt) || right.id - left.id)
+  }
+
+  function sortGuides(items: CmsGuide[]) {
     return [...items].sort((left, right) => right.publishedAt.localeCompare(left.publishedAt) || right.id - left.id)
   }
 
@@ -90,6 +106,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
     pages.value = value.pages
     articles.value = sortArticles(value.articles)
+    guides.value = sortGuides(value.guides)
     syndicats.value = sortSyndicats(value.syndicats)
     applySiteSettingsDraft(value.siteSettings)
 
@@ -99,6 +116,10 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
     if (!selectedArticleId.value) {
       selectedArticleId.value = value.articles[0]?.id || null
+    }
+
+    if (!selectedGuideId.value) {
+      selectedGuideId.value = value.guides[0]?.id || null
     }
 
     if (!selectedSyndicatId.value) {
@@ -113,6 +134,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
   const selectedPage = computed(() => pages.value.find(page => page.slug === selectedPageSlug.value) || null)
   const selectedArticle = computed(() => articles.value.find(article => article.id === selectedArticleId.value) || null)
+  const selectedGuide = computed(() => guides.value.find(guide => guide.id === selectedGuideId.value) || null)
   const selectedSyndicat = computed(() => syndicats.value.find(syndicat => syndicat.id === selectedSyndicatId.value) || null)
   const selectedSiteSettings = computed(() => data.value?.siteSettings || null)
   const activeEntityType = computed<CmsRevisionEntityType>(() => {
@@ -122,6 +144,10 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
     if (activeSection.value === 'articles') {
       return 'article'
+    }
+
+    if (activeSection.value === 'guides') {
+      return 'guide'
     }
 
     if (activeSection.value === 'site-settings') {
@@ -137,6 +163,10 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
     if (activeSection.value === 'articles') {
       return selectedArticleId.value ? String(selectedArticleId.value) : ''
+    }
+
+    if (activeSection.value === 'guides') {
+      return selectedGuideId.value ? String(selectedGuideId.value) : ''
     }
 
     if (activeSection.value === 'site-settings') {
@@ -157,6 +187,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   const selectedRevision = computed(() => revisions.value.find(revision => revision.id === selectedRevisionId.value) || null)
   const pageDirty = computed(() => JSON.stringify(pageDraft) !== JSON.stringify(selectedPage.value))
   const articleDirty = computed(() => JSON.stringify(articleDraft) !== JSON.stringify(selectedArticle.value))
+  const guideDirty = computed(() => JSON.stringify(guideDraft) !== JSON.stringify(selectedGuide.value))
   const syndicatDirty = computed(() => JSON.stringify(syndicatDraft) !== JSON.stringify(selectedSyndicat.value))
   const siteSettingsDirty = computed(() => JSON.stringify(siteSettingsDraft) !== JSON.stringify(selectedSiteSettings.value))
   const currentDraftIsDirty = computed(() => {
@@ -166,6 +197,10 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
     if (activeSection.value === 'articles') {
       return articleDirty.value
+    }
+
+    if (activeSection.value === 'guides') {
+      return guideDirty.value
     }
 
     if (activeSection.value === 'site-settings') {
@@ -186,6 +221,9 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   const articlePreview = computed(() => selectedRevision.value?.entityType === 'article'
     ? cloneCmsValue(selectedRevision.value.snapshot as CmsArticle)
     : articleDraft)
+  const guidePreview = computed(() => selectedRevision.value?.entityType === 'guide'
+    ? cloneCmsValue(selectedRevision.value.snapshot as CmsGuide)
+    : guideDraft)
   const syndicatPreview = computed(() => selectedRevision.value?.entityType === 'syndicat'
     ? cloneCmsValue(selectedRevision.value.snapshot as CmsSyndicat)
     : syndicatDraft)
@@ -207,6 +245,16 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     applyArticleDraft(article)
     articleSlugManuallyEdited.value = false
     articleStatus.value = ''
+  }, { immediate: true })
+
+  watch(selectedGuide, (guide) => {
+    if (!guide) {
+      return
+    }
+
+    applyGuideDraft(guide)
+    guideSlugManuallyEdited.value = false
+    guideStatus.value = ''
   }, { immediate: true })
 
   watch(selectedSyndicat, (syndicat) => {
@@ -248,6 +296,28 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     }
   })
 
+  watch(() => guideDraft.slug, (slug) => {
+    if (syncingGuideSlug.value || !selectedGuide.value) {
+      return
+    }
+
+    guideSlugManuallyEdited.value = slug !== selectedGuide.value.slug
+  })
+
+  watch(() => guideDraft.title, (title) => {
+    if (guideSlugManuallyEdited.value) {
+      return
+    }
+
+    const nextSlug = slugify(title.trim())
+
+    if (nextSlug) {
+      syncingGuideSlug.value = true
+      guideDraft.slug = nextSlug
+      syncingGuideSlug.value = false
+    }
+  })
+
   const orderedPages = computed(() => {
     const homepage = pages.value.find(page => page.slug === 'home')
     const otherPages = pages.value.filter(page => page.slug !== 'home')
@@ -275,7 +345,9 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
         ? 'mingcute:home-2-line'
         : page.slug === 'syndicats'
           ? 'mingcute:map-line'
-          : 'mingcute:file-line',
+          : page.slug === 'guides'
+            ? 'mingcute:book-2-line'
+            : 'mingcute:file-line',
       value: `page:${page.slug}`,
       active: activeSection.value === 'pages' && selectedPageSlug.value === page.slug,
       onSelect: () => {
@@ -297,6 +369,22 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       onSelect: () => {
         activeSection.value = 'articles'
         selectedArticleId.value = article.id
+      }
+    }))
+  }, {
+    label: 'Guides',
+    icon: 'mingcute:book-2-line',
+    slot: 'guides',
+    value: 'guides',
+    type: 'trigger' as const,
+    defaultOpen: true,
+    children: guides.value.map(guide => ({
+      label: guide.title,
+      value: `guide:${guide.id}`,
+      active: activeSection.value === 'guides' && selectedGuideId.value === guide.id,
+      onSelect: () => {
+        activeSection.value = 'guides'
+        selectedGuideId.value = guide.id
       }
     }))
   }, {
@@ -340,6 +428,17 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     selectedArticleId.value = savedArticle.id
     activeSection.value = 'articles'
     applyArticleDraft(savedArticle)
+  }
+
+  function mergeGuide(savedGuide: CmsGuide) {
+    const nextGuides = guides.value.some(guide => guide.id === savedGuide.id)
+      ? guides.value.map(guide => guide.id === savedGuide.id ? savedGuide : guide)
+      : [savedGuide, ...guides.value]
+
+    guides.value = sortGuides(nextGuides)
+    selectedGuideId.value = savedGuide.id
+    activeSection.value = 'guides'
+    applyGuideDraft(savedGuide)
   }
 
   function mergeSyndicat(savedSyndicat: CmsSyndicat) {
@@ -407,7 +506,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     selectedRevisionId.value = id
   }
 
-  watch([historyOpen, activeSection, selectedPageSlug, selectedArticleId, selectedSyndicatId], ([open]) => {
+  watch([historyOpen, activeSection, selectedPageSlug, selectedArticleId, selectedGuideId, selectedSyndicatId], ([open]) => {
     if (!open) {
       return
     }
@@ -462,9 +561,27 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       })
 
       mergeArticle(savedArticle)
-      articleStatus.value = 'Article created.'
     } finally {
       creatingArticle.value = false
+    }
+  }
+
+  async function createGuideRecord() {
+    if (!isAdmin.value) {
+      return
+    }
+
+    creatingGuide.value = true
+    guideStatus.value = ''
+
+    try {
+      const savedGuide = await $fetch<CmsGuide>('/api/cms/guides', {
+        method: 'POST'
+      })
+
+      mergeGuide(savedGuide)
+    } finally {
+      creatingGuide.value = false
     }
   }
 
@@ -482,18 +599,13 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       })
 
       mergeSyndicat(savedSyndicat)
-      syndicatStatus.value = 'Syndicat created.'
     } finally {
       creatingSyndicat.value = false
     }
   }
 
   async function saveArticle() {
-    if (!isAdmin.value) {
-      return
-    }
-
-    if (!articleDraft.id) {
+    if (!isAdmin.value || !articleDraft.id) {
       return
     }
 
@@ -509,9 +621,30 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       mergeArticle(savedArticle)
       selectedRevisionId.value = null
       await loadRevisions()
-      articleStatus.value = 'Article saved.'
     } finally {
       savingArticle.value = false
+    }
+  }
+
+  async function saveGuide() {
+    if (!isAdmin.value || !guideDraft.id) {
+      return
+    }
+
+    savingGuide.value = true
+    guideStatus.value = ''
+
+    try {
+      const savedGuide = await $fetch<CmsGuide>(`/api/cms/guides/${guideDraft.id}`, {
+        method: 'PUT',
+        body: guideDraft
+      })
+
+      mergeGuide(savedGuide)
+      selectedRevisionId.value = null
+      await loadRevisions()
+    } finally {
+      savingGuide.value = false
     }
   }
 
@@ -532,7 +665,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       mergeSyndicat(savedSyndicat)
       selectedRevisionId.value = null
       await loadRevisions()
-      syndicatStatus.value = 'Syndicat saved.'
     } finally {
       savingSyndicat.value = false
     }
@@ -560,11 +692,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   }
 
   async function restoreSelectedRevision() {
-    if (!canManageHistory.value) {
-      return
-    }
-
-    if (!selectedRevision.value) {
+    if (!canManageHistory.value || !selectedRevision.value) {
       return
     }
 
@@ -578,6 +706,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       const response = await $fetch<
         { entityType: 'page', entity: CmsPage }
         | { entityType: 'article', entity: CmsArticle }
+        | { entityType: 'guide', entity: CmsGuide }
         | { entityType: 'syndicat', entity: CmsSyndicat }
         | { entityType: 'site-settings', entity: CmsSiteSettings }
       >(`/api/cms/revisions/${selectedRevision.value.id}/restore`, {
@@ -590,6 +719,9 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       } else if (response.entityType === 'article') {
         mergeArticle(response.entity)
         articleStatus.value = 'Revision restored.'
+      } else if (response.entityType === 'guide') {
+        mergeGuide(response.entity)
+        guideStatus.value = 'Revision restored.'
       } else if (response.entityType === 'site-settings') {
         mergeSiteSettings(response.entity)
       } else {
@@ -611,13 +743,20 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     articlePreview,
     articleStatus,
     articles,
+    canManageHistory,
     createArticleRecord,
+    createGuideRecord,
     createSyndicatRecord,
     creatingArticle,
+    creatingGuide,
     creatingSyndicat,
     currentDraftIsDirty,
     expandedGroups,
-    canManageHistory,
+    guideDirty,
+    guideDraft,
+    guidePreview,
+    guideStatus,
+    guides,
     historyLoading,
     historyOpen,
     isAdmin,
@@ -631,18 +770,20 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     restoringRevision,
     revisions,
     saveArticle,
+    saveGuide,
     savePage,
     saveSiteSettings,
     saveSyndicat,
     savingArticle,
+    savingGuide,
     savingPage,
+    savingSiteSettings,
     savingSyndicat,
-    showSidebar,
     selectedRevision,
     selectedRevisionId,
     selectRevision,
+    showSidebar,
     siteSettingsDraft,
-    savingSiteSettings,
     syndicatDirty,
     syndicatDraft,
     syndicatPreview,

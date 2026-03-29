@@ -2,6 +2,7 @@
 /* eslint-disable vue/no-v-html */
 import { VueDraggable } from 'vue-draggable-plus'
 import { createEditableTarget, createHtmlTarget, createListItemTarget, createListTarget } from '~/utils/cmsEditor'
+import { cmsTouchDragOptions } from '~/utils/cmsDrag'
 import { toLinkTarget } from '~/utils/cmsUi'
 import { formatSyndicatDisplayName } from '~~/lib/cms'
 
@@ -30,7 +31,7 @@ const hasContactLinks = computed(() => Boolean(props.syndicat.email || props.syn
 <template>
   <UPage>
     <section class="border-b border-default">
-      <div class="mx-auto max-w-7xl px-6 py-12">
+      <div class="public-container public-section">
         <p class="text-sm font-semibold text-primary">
           Syndicat local
         </p>
@@ -54,9 +55,9 @@ const hasContactLinks = computed(() => Boolean(props.syndicat.email || props.syn
       </div>
     </section>
 
-    <UPageBody class="py-10">
-      <div class="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[20rem_minmax(0,1fr)]">
-        <UCard>
+    <UPageBody class="!mt-0 !space-y-0">
+      <div class="public-container grid items-start gap-8 pt-4 pb-10 sm:pt-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
+        <UCard class="self-start">
           <div class="space-y-5">
             <div>
               <p class="text-sm font-medium text-muted">
@@ -96,6 +97,7 @@ const hasContactLinks = computed(() => Boolean(props.syndicat.email || props.syn
                 <VueDraggable
                   v-if="editor"
                   :model-value="syndicat.socials"
+                  v-bind="cmsTouchDragOptions"
                   tag="div"
                   class="flex flex-col gap-2"
                   :animation="180"

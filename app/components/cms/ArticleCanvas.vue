@@ -25,7 +25,7 @@ provideCmsPageLiveEditor(article.value)
 <template>
   <UDashboardPanel
     id="cms-article-canvas"
-    class="min-w-0 overflow-hidden bg-white"
+    class="min-w-0 overflow-hidden bg-default"
   >
     <template #header>
       <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-4">

@@ -2,7 +2,7 @@ import type { Ref } from 'vue'
 import { createEmptyFeature, createEmptyHeroButton, createEmptyPartner, createEmptySocialLink } from '~~/lib/cms'
 
 export type CmsEditableKind = 'text' | 'textarea' | 'html' | 'link' | 'list-item' | 'list' | 'fields'
-export type CmsEditableFieldKind = 'text' | 'textarea' | 'icon' | 'image' | 'select' | 'datetime'
+export type CmsEditableFieldKind = 'text' | 'textarea' | 'icon' | 'image' | 'file' | 'select' | 'datetime'
 export type CmsEditableItemType = 'feature' | 'partner' | 'hero-button' | 'social'
 
 export interface CmsEditableFieldOption {

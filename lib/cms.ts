@@ -41,6 +41,10 @@ export interface CmsArticlesPageContent {
   emptyStateText: string
 }
 
+export interface CmsGuidesPageContent {
+  emptyStateText: string
+}
+
 export interface CmsSyndicatsPageContent {
   searchPlaceholder: string
   emptyStateText: string
@@ -75,6 +79,10 @@ export interface CmsAboutPageContent {
   functioningCtaHref: string
 }
 
+export interface CmsInternationalPageContent {
+  body: string
+}
+
 export interface CmsSyndicat {
   id: number
   slug: string
@@ -89,8 +97,8 @@ export interface CmsSyndicat {
   updatedAt: string
 }
 
-export type CmsPageSlug = 'home' | 'articles' | 'syndicats' | 'a-propos'
-export type CmsPageContent = CmsHomePageContent | CmsArticlesPageContent | CmsSyndicatsPageContent | CmsAboutPageContent
+export type CmsPageSlug = 'home' | 'articles' | 'guides' | 'syndicats' | 'a-propos' | 'international'
+export type CmsPageContent = CmsHomePageContent | CmsArticlesPageContent | CmsGuidesPageContent | CmsSyndicatsPageContent | CmsAboutPageContent | CmsInternationalPageContent
 
 export interface CmsPage {
   slug: string
@@ -116,6 +124,18 @@ export interface CmsArticle {
   updatedAt: string
 }
 
+export interface CmsGuide {
+  id: number
+  slug: string
+  title: string
+  excerpt: string
+  content: string
+  coverImage: string
+  pdfFile: string
+  publishedAt: string
+  updatedAt: string
+}
+
 export interface CmsSiteSettings {
   unionName: string
   siteDescription: string
@@ -133,7 +153,7 @@ export interface CmsAuthenticatedUser {
   role: CmsUserRole
 }
 
-export const cmsRevisionEntityTypes = ['page', 'article', 'syndicat', 'site-settings'] as const
+export const cmsRevisionEntityTypes = ['page', 'article', 'guide', 'syndicat', 'site-settings'] as const
 export type CmsRevisionEntityType = typeof cmsRevisionEntityTypes[number]
 export type CmsRevisionChangeType = 'save' | 'restore'
 
@@ -145,7 +165,7 @@ export interface CmsRevision {
   changeType: CmsRevisionChangeType
   restoredFromRevisionId: number | null
   createdAt: string
-  snapshot: CmsPage | CmsArticle | CmsSyndicat | CmsSiteSettings
+  snapshot: CmsPage | CmsArticle | CmsGuide | CmsSyndicat | CmsSiteSettings
 }
 
 export interface CmsBootstrap {
@@ -155,6 +175,7 @@ export interface CmsBootstrap {
   }
   pages: CmsPage[]
   articles: CmsArticle[]
+  guides: CmsGuide[]
   syndicats: CmsSyndicat[]
   siteSettings: CmsSiteSettings
 }
@@ -218,6 +239,12 @@ export function createArticlesPageContent(): CmsArticlesPageContent {
   }
 }
 
+export function createGuidesPageContent(): CmsGuidesPageContent {
+  return {
+    emptyStateText: ''
+  }
+}
+
 export function createSyndicatsPageContent(): CmsSyndicatsPageContent {
   return {
     searchPlaceholder: '',
@@ -256,11 +283,19 @@ export function createAboutPageContent(): CmsAboutPageContent {
   }
 }
 
+export function createInternationalPageContent(): CmsInternationalPageContent {
+  return {
+    body: ''
+  }
+}
+
 const cmsPageContentFactories = {
   'home': createHomePageContent,
   'articles': createArticlesPageContent,
+  'guides': createGuidesPageContent,
   'syndicats': createSyndicatsPageContent,
-  'a-propos': createAboutPageContent
+  'a-propos': createAboutPageContent,
+  'international': createInternationalPageContent
 } satisfies Record<CmsPageSlug, () => CmsPageContent>
 
 export function createPageContent(slug: string): CmsPageContent {
@@ -290,6 +325,20 @@ export function createEmptyArticle(): CmsArticle {
     excerpt: '',
     content: '',
     coverImage: '/hero.jpg',
+    publishedAt: '',
+    updatedAt: ''
+  }
+}
+
+export function createEmptyGuide(): CmsGuide {
+  return {
+    id: 0,
+    slug: '',
+    title: '',
+    excerpt: '',
+    content: '',
+    coverImage: '/hero.jpg',
+    pdfFile: '',
     publishedAt: '',
     updatedAt: ''
   }
