@@ -5,13 +5,12 @@ const guide = defineModel<CmsGuide>('guide', {
   required: true
 })
 
-const { canManageHistory, historyOpen, previewGuide, saving, selectedRevision, status } = defineProps<{
+const { canManageHistory, historyOpen, previewGuide, saving, selectedRevision } = defineProps<{
   canManageHistory: boolean
   historyOpen: boolean
   previewGuide: CmsGuide
   saving: boolean
   selectedRevision: CmsRevision | null
-  status: string
 }>()
 
 const emit = defineEmits<{
@@ -63,13 +62,6 @@ provideCmsPageLiveEditor(guide.value)
 
     <template #body>
       <div class="space-y-5 px-4 pb-4">
-        <UAlert
-          v-if="status"
-          color="success"
-          variant="soft"
-          :description="status"
-        />
-
         <UAlert
           v-if="selectedRevision"
           color="warning"

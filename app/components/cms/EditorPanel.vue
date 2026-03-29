@@ -29,10 +29,6 @@ defineProps<{
   historyOpen: boolean
   isAdmin: boolean
   pagePreview: CmsPage
-  pageStatus: string
-  articleStatus: string
-  guideStatus: string
-  syndicatStatus: string
   selectedRevision: CmsRevision | null
   savingPage: boolean
   savingArticle: boolean
@@ -63,7 +59,6 @@ const emit = defineEmits<{
     :history-open="historyOpen"
     :preview-page="pagePreview"
     :selected-revision="selectedRevision"
-    :status="pageStatus"
     :saving="savingPage"
     @toggle-history="emit('toggleHistory')"
     @save-page="emit('savePage')"
@@ -78,7 +73,6 @@ const emit = defineEmits<{
     :preview-article="articlePreview"
     :saving="savingArticle"
     :selected-revision="selectedRevision"
-    :status="articleStatus"
     @toggle-history="emit('toggleHistory')"
     @save-article="emit('saveArticle')"
   />
@@ -91,7 +85,6 @@ const emit = defineEmits<{
     :preview-guide="guidePreview"
     :saving="savingGuide"
     :selected-revision="selectedRevision"
-    :status="guideStatus"
     @toggle-history="emit('toggleHistory')"
     @save-guide="emit('saveGuide')"
   />

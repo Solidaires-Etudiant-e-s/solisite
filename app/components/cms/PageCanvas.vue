@@ -5,7 +5,7 @@ const page = defineModel<CmsPage>('page', {
   required: true
 })
 
-const { articles, historyOpen, previewPage, selectedRevision, status, saving } = defineProps<{
+const { articles, historyOpen, previewPage, selectedRevision, saving } = defineProps<{
   articles: CmsArticle[]
   guides: CmsGuide[]
   siteSettings: CmsSiteSettings
@@ -13,7 +13,6 @@ const { articles, historyOpen, previewPage, selectedRevision, status, saving } =
   historyOpen: boolean
   previewPage: CmsPage
   selectedRevision: CmsRevision | null
-  status: string
   saving: boolean
 }>()
 
@@ -76,13 +75,6 @@ watch(() => page.value.slug, () => {
 
     <template #body>
       <div class="space-y-5 px-4 pb-4">
-        <UAlert
-          v-if="status"
-          color="success"
-          variant="soft"
-          :description="status"
-        />
-
         <UAlert
           v-if="selectedRevision"
           color="warning"

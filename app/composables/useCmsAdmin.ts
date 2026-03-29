@@ -7,10 +7,7 @@ type CmsAdminSection = 'pages' | 'articles' | 'guides' | 'syndicats' | 'site-set
 export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   const activeSection = ref<CmsAdminSection>('pages')
   const expandedGroups = ref(['site-settings', 'pages', 'articles', 'guides', 'syndicats'])
-  const pageStatus = ref('')
-  const articleStatus = ref('')
-  const guideStatus = ref('')
-  const syndicatStatus = ref('')
+  const toast = useToast()
   const savingPage = ref(false)
   const savingArticle = ref(false)
   const savingGuide = ref(false)
@@ -234,7 +231,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     }
 
     applyPageDraft(page)
-    pageStatus.value = ''
   }, { immediate: true })
 
   watch(selectedArticle, (article) => {
@@ -244,7 +240,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
     applyArticleDraft(article)
     articleSlugManuallyEdited.value = false
-    articleStatus.value = ''
   }, { immediate: true })
 
   watch(selectedGuide, (guide) => {
@@ -254,7 +249,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
     applyGuideDraft(guide)
     guideSlugManuallyEdited.value = false
-    guideStatus.value = ''
   }, { immediate: true })
 
   watch(selectedSyndicat, (syndicat) => {
@@ -263,7 +257,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     }
 
     applySyndicatDraft(syndicat)
-    syndicatStatus.value = ''
   }, { immediate: true })
 
   watch(selectedSiteSettings, (siteSettings) => {
@@ -415,7 +408,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   function resetPageDraft() {
     if (selectedPage.value) {
       applyPageDraft(selectedPage.value)
-      pageStatus.value = ''
     }
   }
 
@@ -531,7 +523,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     }
 
     savingPage.value = true
-    pageStatus.value = ''
 
     try {
       const savedPage = await $fetch<CmsPage>(`/api/cms/pages/${pageDraft.slug}`, {
@@ -542,6 +533,11 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       mergePage(savedPage)
       selectedRevisionId.value = null
       await loadRevisions()
+      toast.add({
+        title: 'Page enregistree',
+        color: 'success',
+        icon: 'mingcute:check-circle-line'
+      })
     } finally {
       savingPage.value = false
     }
@@ -553,7 +549,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     }
 
     creatingArticle.value = true
-    articleStatus.value = ''
 
     try {
       const savedArticle = await $fetch<CmsArticle>('/api/cms/articles', {
@@ -561,6 +556,11 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       })
 
       mergeArticle(savedArticle)
+      toast.add({
+        title: 'Article cree',
+        color: 'success',
+        icon: 'mingcute:check-circle-line'
+      })
     } finally {
       creatingArticle.value = false
     }
@@ -572,7 +572,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     }
 
     creatingGuide.value = true
-    guideStatus.value = ''
 
     try {
       const savedGuide = await $fetch<CmsGuide>('/api/cms/guides', {
@@ -580,6 +579,11 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       })
 
       mergeGuide(savedGuide)
+      toast.add({
+        title: 'Guide cree',
+        color: 'success',
+        icon: 'mingcute:check-circle-line'
+      })
     } finally {
       creatingGuide.value = false
     }
@@ -591,7 +595,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     }
 
     creatingSyndicat.value = true
-    syndicatStatus.value = ''
 
     try {
       const savedSyndicat = await $fetch<CmsSyndicat>('/api/cms/syndicats', {
@@ -599,6 +602,11 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       })
 
       mergeSyndicat(savedSyndicat)
+      toast.add({
+        title: 'Syndicat cree',
+        color: 'success',
+        icon: 'mingcute:check-circle-line'
+      })
     } finally {
       creatingSyndicat.value = false
     }
@@ -610,7 +618,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     }
 
     savingArticle.value = true
-    articleStatus.value = ''
 
     try {
       const savedArticle = await $fetch<CmsArticle>(`/api/cms/articles/${articleDraft.id}`, {
@@ -621,6 +628,11 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       mergeArticle(savedArticle)
       selectedRevisionId.value = null
       await loadRevisions()
+      toast.add({
+        title: 'Article enregistre',
+        color: 'success',
+        icon: 'mingcute:check-circle-line'
+      })
     } finally {
       savingArticle.value = false
     }
@@ -632,7 +644,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     }
 
     savingGuide.value = true
-    guideStatus.value = ''
 
     try {
       const savedGuide = await $fetch<CmsGuide>(`/api/cms/guides/${guideDraft.id}`, {
@@ -643,6 +654,11 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       mergeGuide(savedGuide)
       selectedRevisionId.value = null
       await loadRevisions()
+      toast.add({
+        title: 'Guide enregistre',
+        color: 'success',
+        icon: 'mingcute:check-circle-line'
+      })
     } finally {
       savingGuide.value = false
     }
@@ -654,7 +670,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     }
 
     savingSyndicat.value = true
-    syndicatStatus.value = ''
 
     try {
       const savedSyndicat = await $fetch<CmsSyndicat>(`/api/cms/syndicats/${syndicatDraft.id}`, {
@@ -665,6 +680,11 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       mergeSyndicat(savedSyndicat)
       selectedRevisionId.value = null
       await loadRevisions()
+      toast.add({
+        title: 'Syndicat enregistre',
+        color: 'success',
+        icon: 'mingcute:check-circle-line'
+      })
     } finally {
       savingSyndicat.value = false
     }
@@ -686,6 +706,11 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       mergeSiteSettings(savedSiteSettings)
       selectedRevisionId.value = null
       await loadRevisions()
+      toast.add({
+        title: 'Parametres enregistres',
+        color: 'success',
+        icon: 'mingcute:check-circle-line'
+      })
     } finally {
       savingSiteSettings.value = false
     }
@@ -715,22 +740,23 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
       if (response.entityType === 'page') {
         mergePage(response.entity)
-        pageStatus.value = 'Revision restored.'
       } else if (response.entityType === 'article') {
         mergeArticle(response.entity)
-        articleStatus.value = 'Revision restored.'
       } else if (response.entityType === 'guide') {
         mergeGuide(response.entity)
-        guideStatus.value = 'Revision restored.'
       } else if (response.entityType === 'site-settings') {
         mergeSiteSettings(response.entity)
       } else {
         mergeSyndicat(response.entity)
-        syndicatStatus.value = 'Revision restored.'
       }
 
       selectedRevisionId.value = null
       await loadRevisions()
+      toast.add({
+        title: 'Revision restauree',
+        color: 'success',
+        icon: 'mingcute:check-circle-line'
+      })
     } finally {
       restoringRevision.value = false
     }
@@ -741,7 +767,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     articleDirty,
     articleDraft,
     articlePreview,
-    articleStatus,
     articles,
     canManageHistory,
     createArticleRecord,
@@ -755,7 +780,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     guideDirty,
     guideDraft,
     guidePreview,
-    guideStatus,
     guides,
     historyLoading,
     historyOpen,
@@ -764,7 +788,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     pageDirty,
     pageDraft,
     pagePreview,
-    pageStatus,
     resetPageDraft,
     restoreSelectedRevision,
     restoringRevision,
@@ -787,7 +810,6 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     syndicatDirty,
     syndicatDraft,
     syndicatPreview,
-    syndicatStatus,
     syndicats,
     toggleHistory
   }

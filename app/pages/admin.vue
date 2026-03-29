@@ -4,7 +4,6 @@ const {
   activeSection,
   articleDraft,
   articlePreview,
-  articleStatus,
   articles,
   createArticleRecord,
   createGuideRecord,
@@ -21,11 +20,9 @@ const {
   navigationItems,
   guideDraft,
   guidePreview,
-  guideStatus,
   guides,
   pageDraft,
   pagePreview,
-  pageStatus,
   resetPageDraft,
   restoreSelectedRevision,
   restoringRevision,
@@ -47,7 +44,6 @@ const {
   siteSettingsDraft,
   syndicatDraft,
   syndicatPreview,
-  syndicatStatus,
   syndicats,
   toggleHistory
 } = useCmsAdmin(data)
@@ -121,13 +117,9 @@ useHead({
           :history-open="historyOpen"
           :is-admin="isAdmin"
           :page-preview="pagePreview"
-          :page-status="pageStatus"
           :selected-revision="selectedRevision"
-          :article-status="articleStatus"
-          :guide-status="guideStatus"
           :syndicats="syndicats"
           :syndicat-preview="syndicatPreview"
-          :syndicat-status="syndicatStatus"
           :saving-page="savingPage"
           :saving-article="savingArticle"
           :saving-guide="savingGuide"
