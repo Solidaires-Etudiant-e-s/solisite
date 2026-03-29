@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { PrismaClient } from '@prisma/client'
 import MarkdownIt from 'markdown-it'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 
 const [, , sourceArg, dbArg] = process.argv
 
@@ -324,13 +325,8 @@ for (const article of articles) {
   article.coverImage = await downloadCoverImage(article.coverImage)
 }
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: databaseUrl
-    }
-  }
-})
+const adapter = new PrismaBetterSqlite3({ url: databaseUrl })
+const prisma = new PrismaClient({ adapter })
 
 try {
   await prisma.$transaction(async (transaction) => {
