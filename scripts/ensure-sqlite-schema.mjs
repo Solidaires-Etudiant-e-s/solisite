@@ -18,8 +18,8 @@ if (sqlitePath) {
   mkdirSync(dirname(sqlitePath), { recursive: true })
 }
 
-const adapter = new PrismaBetterSqlite3({ url: databaseUrl });
-const prisma = new PrismaClient({ adapter });
+const adapter = new PrismaBetterSqlite3({ url: databaseUrl })
+const prisma = new PrismaClient({ adapter })
 
 async function columnExists(table, column) {
   const rows = await prisma.$queryRawUnsafe(`PRAGMA table_info(${table})`)
