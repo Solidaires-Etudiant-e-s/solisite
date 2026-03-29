@@ -2,13 +2,14 @@ import { Client } from 'ldapts'
 import { pathToFileURL } from 'node:url'
 import { resolve } from 'node:path'
 import { PrismaClient } from '@prisma/client'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 
 const USER_DN = 'ou=users,dc=yunohost,dc=org'
 const GROUP_DN = 'cn=syndicats,ou=groups,dc=yunohost,dc=org'
 
 const [, , uidArg, passwordArg, dbArg] = process.argv
 
-const ldapUrl = process.env.LDAP_URL || 'ldap://127.0.0.1:389'
+const ldapUrl = process.env.LDAP_URL || 'ldap://127.0.0.1:10389'
 const bindUid = uidArg
   || process.env.LDAP_BIND_UID
   || process.env.LDAP_UID
@@ -42,8 +43,8 @@ function parseMemberUid(memberDn) {
 async function fetchSyndicatUidsFromLdap() {
   const client = new Client({
     url: ldapUrl,
-    timeout: 10000,
-    connectTimeout: 10000
+    timeout: 2000,
+    connectTimeout: 2000
   })
 
   try {
@@ -93,13 +94,8 @@ if (!uids.length) {
   process.exit(0)
 }
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: databaseUrl
-    }
-  }
-})
+const adapter = new PrismaBetterSqlite3({ url: databaseUrl })
+const prisma = new PrismaClient({ adapter })
 
 let createdCount = 0
 let existingCount = 0
