@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { createListItemTargetFromListTarget } from '~/utils/cmsEditor'
+
 defineOptions({
   inheritAttrs: false
 })
@@ -38,6 +40,21 @@ function activate(event: MouseEvent) {
 
   event.preventDefault()
   event.stopPropagation()
+
+  if (props.target.kind === 'list' && props.target.itemType) {
+    const index = editor.insertItem(props.target.path, props.target.itemType)
+
+    if (index !== null) {
+      const nextTarget = createListItemTargetFromListTarget(props.target, index)
+
+      if (nextTarget) {
+        editor.openTarget(nextTarget)
+      }
+    }
+
+    return
+  }
+
   editor.openTarget(props.target)
 }
 </script>

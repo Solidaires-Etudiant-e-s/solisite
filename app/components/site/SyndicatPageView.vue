@@ -4,7 +4,7 @@ import { VueDraggable } from 'vue-draggable-plus'
 import { createEditableTarget, createHtmlTarget, createListItemTarget, createListTarget } from '~/utils/cmsEditor'
 import { cmsTouchDragOptions } from '~/utils/cmsDrag'
 import { toLinkTarget } from '~/utils/cmsUi'
-import { formatSyndicatDisplayName } from '~~/lib/cms'
+import { formatSyndicatDisplayName, resolveSyndicatAddresses } from '~~/lib/cms'
 
 const props = defineProps<{
   syndicat: CmsSyndicat
@@ -14,6 +14,7 @@ const props = defineProps<{
 const editor = useCmsPageLiveEditor()
 const targetIdPrefix = computed(() => `syndicat:${props.syndicat.id || 'draft'}`)
 const displayName = computed(() => formatSyndicatDisplayName(props.syndicat.name || 'Syndicat local', props.unionName))
+const addresses = computed(() => resolveSyndicatAddresses(props.syndicat))
 const showCitySubtitle = computed(() => {
   const city = props.syndicat.city?.trim()
   const name = props.syndicat.name?.trim()
@@ -163,15 +164,77 @@ const hasContactLinks = computed(() => Boolean(props.syndicat.email || props.syn
 
             <div>
               <p class="text-sm font-medium text-muted">
-                Adresse
+                Adresses
               </p>
-              <CmsEditableNode
-                tag="p"
-                class="mt-1 whitespace-pre-line text-sm leading-6 text-toned"
-                :target="createEditableTarget(`${targetIdPrefix}:address`, 'address', 'Adresse du local', true)"
-              >
-                {{ syndicat.address || 'Adresse à préciser' }}
-              </CmsEditableNode>
+
+              <div class="mt-3 space-y-3">
+                <VueDraggable
+                  v-if="editor"
+                  :model-value="syndicat.addresses || []"
+                  v-bind="cmsTouchDragOptions"
+                  tag="div"
+                  class="space-y-3"
+                  :animation="180"
+                  ghost-class="opacity-60"
+                  chosen-class="scale-[1.02]"
+                  @update:model-value="editor.updateField('addresses', $event)"
+                  @start="editor.closeTarget()"
+                >
+                  <CmsEditableNode
+                    v-for="(address, index) in syndicat.addresses || []"
+                    :key="index"
+                    tag="div"
+                    class="rounded-xl border border-default px-3 py-2"
+                    :target="createListItemTarget(targetIdPrefix, 'address', index, 'addresses', 'Adresse')"
+                  >
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+                      {{ address.label || `Adresse ${index + 1}` }}
+                    </p>
+                    <p class="mt-1 whitespace-pre-line text-sm leading-6 text-toned">
+                      {{ address.address || 'Choisis une adresse via l’autocomplétion.' }}
+                    </p>
+                  </CmsEditableNode>
+                </VueDraggable>
+
+                <template v-else-if="addresses.length">
+                  <div
+                    v-for="(address, index) in addresses"
+                    :key="`${address.label}-${index}`"
+                    class="rounded-xl border border-default px-3 py-2"
+                  >
+                    <p
+                      v-if="address.label"
+                      class="text-xs font-semibold uppercase tracking-[0.16em] text-muted"
+                    >
+                      {{ address.label }}
+                    </p>
+                    <p class="whitespace-pre-line text-sm leading-6 text-toned">
+                      {{ address.address }}
+                    </p>
+                  </div>
+                </template>
+
+                <CmsEditableNode
+                  v-if="editor"
+                  tag="div"
+                  :target="createListTarget(targetIdPrefix, 'address', 'addresses', 'Adresses')"
+                >
+                  <UButton
+                    label="Ajouter une adresse"
+                    icon="mingcute:plus-line"
+                    color="neutral"
+                    variant="outline"
+                    block
+                  />
+                </CmsEditableNode>
+
+                <p
+                  v-else-if="!addresses.length"
+                  class="text-sm text-muted"
+                >
+                  Adresse à préciser
+                </p>
+              </div>
             </div>
           </div>
         </UCard>

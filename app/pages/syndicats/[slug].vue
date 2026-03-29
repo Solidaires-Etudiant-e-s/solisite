@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { requireCmsData } from '~/utils/cmsData'
 import { buildSeoTitle, firstNonEmpty, resolveSeoImage, resolveSiteUrl, stripHtml, truncateText } from '~/utils/seo'
-import { formatSyndicatDisplayName } from '~~/lib/cms'
+import { formatSyndicatDisplayName, getPrimarySyndicatAddress, resolveSyndicatAddresses } from '~~/lib/cms'
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug || ''))
@@ -15,9 +15,10 @@ const syndicat = computed(() => requireCmsData(syndicatData.value, 'Syndicat int
 const unionName = computed(() => siteSettingsData.value?.unionName || '')
 const pageTitle = computed(() => formatSyndicatDisplayName(syndicat.value.name, unionName.value))
 const siteUrl = computed(() => resolveSiteUrl(runtimeConfig.public.siteUrl))
+const primaryAddress = computed(() => getPrimarySyndicatAddress(resolveSyndicatAddresses(syndicat.value)))
 const seoDescription = computed(() => truncateText(firstNonEmpty(
-  syndicat.value.city && syndicat.value.address
-    ? `${pageTitle.value} est le syndicat local de ${unionName.value || 'Solidaires Étudiant·es'} à ${syndicat.value.city}. Adresse: ${syndicat.value.address}.`
+  syndicat.value.city && primaryAddress.value?.address
+    ? `${pageTitle.value} est le syndicat local de ${unionName.value || 'Solidaires Étudiant·es'} à ${syndicat.value.city}. Adresse: ${primaryAddress.value.address}.`
     : syndicat.value.city
       ? `${pageTitle.value} est le syndicat local de ${unionName.value || 'Solidaires Étudiant·es'} à ${syndicat.value.city}.`
       : '',

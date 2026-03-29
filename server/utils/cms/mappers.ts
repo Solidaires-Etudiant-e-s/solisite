@@ -1,4 +1,4 @@
-import type { CmsArticle, CmsGuide, CmsPage, CmsSiteSettings, CmsSocialLink, CmsSyndicat } from '~~/lib/cms'
+import { normalizeSyndicatAddresses, type CmsArticle, type CmsGuide, type CmsPage, type CmsSiteSettings, type CmsSocialLink, type CmsSyndicat, type CmsSyndicatAddress } from '~~/lib/cms'
 import type { ArticleRecord, GuideRecord, PageRecord, SiteSettingsRecord, SyndicatRecord } from './types'
 import { parsePageContent } from './content'
 
@@ -31,6 +31,21 @@ function parseSocials(raw: string | null | undefined, fallback: Array<Partial<Cm
       icon: typeof item.icon === 'string' ? item.icon : ''
     }))
     .filter(item => item.label || item.href || item.icon)
+}
+
+function parseSyndicatAddresses(raw: string | null | undefined) {
+  let addresses: CmsSyndicatAddress[] = []
+
+  try {
+    const parsed = JSON.parse(raw || '[]') as unknown
+    addresses = Array.isArray(parsed)
+      ? normalizeSyndicatAddresses(parsed as CmsSyndicatAddress[])
+      : []
+  } catch {
+    addresses = []
+  }
+
+  return addresses
 }
 
 export function toPage(record: PageRecord): CmsPage {
@@ -76,17 +91,17 @@ export function toGuide(record: GuideRecord): CmsGuide {
 }
 
 export function toSyndicat(record: SyndicatRecord): CmsSyndicat {
+  const addresses = parseSyndicatAddresses(record.addressesJson)
+
   return {
     id: record.id,
     slug: record.slug,
     name: record.name,
     city: record.city,
     email: record.email,
-    address: record.address,
+    addresses,
     socials: parseSocials(record.socialsJson),
     content: record.content,
-    latitude: record.latitude,
-    longitude: record.longitude,
     updatedAt: record.updatedAt
   }
 }

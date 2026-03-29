@@ -38,6 +38,11 @@ async function ensureColumn(table, column, definition) {
   await prisma.$executeRawUnsafe(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`)
 }
 
+async function readRows(sql) {
+  const rows = await prisma.$queryRawUnsafe(sql)
+  return Array.isArray(rows) ? rows : []
+}
+
 try {
   await prisma.$connect()
 
@@ -90,11 +95,9 @@ try {
       name TEXT NOT NULL,
       city TEXT NOT NULL DEFAULT '',
       email TEXT NOT NULL DEFAULT '',
-      address TEXT NOT NULL DEFAULT '',
+      addresses_json TEXT NOT NULL DEFAULT '[]',
       socials_json TEXT NOT NULL DEFAULT '[]',
       content TEXT NOT NULL DEFAULT '',
-      latitude REAL NOT NULL DEFAULT 0,
-      longitude REAL NOT NULL DEFAULT 0,
       updated_at TEXT NOT NULL
     )
   `)
@@ -140,15 +143,82 @@ try {
   await ensureColumn('guides', 'content', 'TEXT NOT NULL DEFAULT \'\'')
   await ensureColumn('guides', 'cover_image', 'TEXT NOT NULL DEFAULT \'/hero.jpg\'')
   await ensureColumn('guides', 'pdf_file', 'TEXT NOT NULL DEFAULT \'\'')
+  await ensureColumn('syndicats', 'addresses_json', 'TEXT NOT NULL DEFAULT \'[]\'')
   await ensureColumn('syndicats', 'socials_json', 'TEXT NOT NULL DEFAULT \'[]\'')
   await ensureColumn('syndicats', 'content', 'TEXT NOT NULL DEFAULT \'\'')
-  await ensureColumn('syndicats', 'latitude', 'REAL NOT NULL DEFAULT 0')
-  await ensureColumn('syndicats', 'longitude', 'REAL NOT NULL DEFAULT 0')
   await ensureColumn('site_settings', 'union_name', 'TEXT NOT NULL DEFAULT \'\'')
   await ensureColumn('site_settings', 'site_description', 'TEXT NOT NULL DEFAULT \'\'')
   await ensureColumn('site_settings', 'contact_email', 'TEXT NOT NULL DEFAULT \'\'')
   await ensureColumn('site_settings', 'contact_phone', 'TEXT NOT NULL DEFAULT \'\'')
   await ensureColumn('site_settings', 'socials_json', 'TEXT NOT NULL DEFAULT \'[]\'')
+
+  const hasLegacyAddressColumn = await columnExists('syndicats', 'address')
+  const hasLegacyLatitudeColumn = await columnExists('syndicats', 'latitude')
+  const hasLegacyLongitudeColumn = await columnExists('syndicats', 'longitude')
+
+  if (hasLegacyAddressColumn && hasLegacyLatitudeColumn && hasLegacyLongitudeColumn) {
+    const syndicats = await readRows(`
+      SELECT id, address, addresses_json, latitude, longitude
+      FROM syndicats
+    `)
+
+    for (const syndicat of syndicats) {
+      let parsedAddresses = []
+
+      try {
+        const parsed = JSON.parse(String(syndicat.addresses_json || '[]'))
+        parsedAddresses = Array.isArray(parsed) ? parsed : []
+      } catch {
+        parsedAddresses = []
+      }
+
+      const address = String(syndicat.address || '').trim()
+
+      if (parsedAddresses.length) {
+        const normalizedAddresses = parsedAddresses
+          .map((entry, index) => ({
+            label: String(entry?.label || '').trim(),
+            address: String(entry?.address || '').trim(),
+            order: Number.isFinite(Number(entry?.order)) ? Number(entry.order) : index,
+            latitude: Number(entry?.latitude || 0),
+            longitude: Number(entry?.longitude || 0)
+          }))
+          .sort((left, right) => left.order - right.order)
+          .map((entry, index) => ({
+            ...entry,
+            order: index
+          }))
+
+        const normalizedJson = JSON.stringify(normalizedAddresses)
+
+        if (normalizedJson !== String(syndicat.addresses_json || '[]')) {
+          await prisma.$executeRawUnsafe(
+            'UPDATE syndicats SET addresses_json = ? WHERE id = ?',
+            normalizedJson,
+            Number(syndicat.id)
+          )
+        }
+
+        continue
+      }
+
+      if (!address) {
+        continue
+      }
+
+      await prisma.$executeRawUnsafe(
+        'UPDATE syndicats SET addresses_json = ? WHERE id = ?',
+        JSON.stringify([{
+          label: '',
+          address,
+          order: 0,
+          latitude: Number(syndicat.latitude || 0),
+          longitude: Number(syndicat.longitude || 0)
+        }]),
+        Number(syndicat.id)
+      )
+    }
+  }
 
   console.log(`SQLite schema is ready at ${databaseUrl}`)
 } finally {

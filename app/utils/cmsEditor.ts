@@ -59,8 +59,17 @@ const targetFields = {
     key: 'href',
     label: 'Lien',
     kind: 'text'
+  }],
+  'address': [{
+    key: 'label',
+    label: 'Libellé',
+    kind: 'text'
+  }, {
+    key: 'address',
+    label: 'Adresse',
+    kind: 'address-autocomplete'
   }]
-} satisfies Record<'social' | 'feature' | 'hero-button' | 'partner', CmsEditableFieldSchema[]>
+} satisfies Record<'social' | 'feature' | 'hero-button' | 'partner' | 'address', CmsEditableFieldSchema[]>
 
 export function createEditableTarget(id: string, path: string, label: string, multiline = false): CmsEditableTarget {
   return {
@@ -73,7 +82,7 @@ export function createEditableTarget(id: string, path: string, label: string, mu
 
 export function createListItemTarget(
   pageSlug: string,
-  itemType: 'social' | 'feature' | 'hero-button' | 'partner',
+  itemType: 'social' | 'feature' | 'hero-button' | 'partner' | 'address',
   index: number,
   listPath: string,
   label: string
@@ -90,13 +99,35 @@ export function createListItemTarget(
   }
 }
 
-export function createListTarget(pageSlug: string, itemType: 'social' | 'feature' | 'hero-button' | 'partner', path: string, label: string): CmsEditableTarget {
+export function createListTarget(pageSlug: string, itemType: 'social' | 'feature' | 'hero-button' | 'partner' | 'address', path: string, label: string): CmsEditableTarget {
   return {
     id: `${pageSlug}:${path}`,
     kind: 'list',
     path,
     label,
     itemType
+  }
+}
+
+export function createListItemTargetFromListTarget(target: CmsEditableTarget, index: number): CmsEditableTarget | null {
+  if (target.kind !== 'list' || !target.itemType) {
+    return null
+  }
+
+  const suffix = `:${target.path}`
+  const pageSlug = target.id.endsWith(suffix)
+    ? target.id.slice(0, -suffix.length)
+    : target.id
+
+  return {
+    id: `${pageSlug}:${target.itemType}:${index}`,
+    kind: 'list-item',
+    path: `${target.path}[${index}]`,
+    label: `${target.label} ${index + 1}`,
+    itemType: target.itemType,
+    index,
+    listPath: target.path,
+    fields: targetFields[target.itemType]
   }
 }
 

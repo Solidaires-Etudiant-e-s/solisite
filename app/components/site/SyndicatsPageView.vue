@@ -30,7 +30,7 @@ const filteredSyndicats = computed(() => {
     const haystack = normalizeSearch([
       syndicat.name,
       syndicat.city,
-      syndicat.address,
+      ...(syndicat.addresses || []).map(entry => `${entry.label} ${entry.address}`),
       syndicat.email
     ].join(' '))
 

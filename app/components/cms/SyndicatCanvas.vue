@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CmsRevision } from '~~/lib/cms'
+import { hasInvalidSyndicatAddresses } from '~~/lib/cms'
 
 const syndicat = defineModel<CmsSyndicat>('syndicat', {
   required: true
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 }>()
 
 const publicPageHref = computed(() => syndicat.value.slug ? `/syndicats/${syndicat.value.slug}` : undefined)
+const hasInvalidAddresses = computed(() => hasInvalidSyndicatAddresses(syndicat.value.addresses || []))
 
 provideCmsPageLiveEditor(syndicat.value)
 </script>
@@ -63,7 +65,7 @@ provideCmsPageLiveEditor(syndicat.value)
             label="Enregistrer"
             color="primary"
             :loading="saving"
-            :disabled="!syndicat.id"
+            :disabled="!syndicat.id || hasInvalidAddresses"
             @click="emit('saveSyndicat')"
           />
         </div>
@@ -78,6 +80,14 @@ provideCmsPageLiveEditor(syndicat.value)
           variant="soft"
           title="Aperçu historique"
           description="Tu prévisualises une version enregistrée du syndicat. Les clics continuent de modifier le brouillon actuel jusqu’à restauration."
+        />
+
+        <UAlert
+          v-if="hasInvalidAddresses"
+          color="warning"
+          variant="soft"
+          title="Adresse incomplète"
+          description="Chaque adresse doit avoir un libellé et être choisie dans l’autocomplétion pour enregistrer ses coordonnées."
         />
 
         <CmsSyndicatPreview

@@ -23,6 +23,14 @@ export interface CmsSocialLink {
   icon: string
 }
 
+export interface CmsSyndicatAddress {
+  label: string
+  address: string
+  order: number
+  latitude: number
+  longitude: number
+}
+
 export interface CmsHomePageContent {
   heroButtons: CmsHeroButton[]
   featuresTitle: string
@@ -89,11 +97,9 @@ export interface CmsSyndicat {
   name: string
   city: string
   email: string
-  address: string
+  addresses: CmsSyndicatAddress[]
   socials: CmsSocialLink[]
   content: string
-  latitude: number
-  longitude: number
   updatedAt: string
 }
 
@@ -351,12 +357,20 @@ export function createEmptySyndicat(): CmsSyndicat {
     name: '',
     city: '',
     email: '',
-    address: '',
+    addresses: [],
     socials: [],
     content: '',
-    latitude: 0,
-    longitude: 0,
     updatedAt: ''
+  }
+}
+
+export function createEmptySyndicatAddress(): CmsSyndicatAddress {
+  return {
+    label: '',
+    address: '',
+    order: 0,
+    latitude: 0,
+    longitude: 0
   }
 }
 
@@ -370,6 +384,53 @@ export function normalizeSocialLinks(input: CmsSocialLink[] | undefined, current
       icon: (social.icon || '').trim()
     }))
     .filter(social => social.label || social.href || social.icon)
+}
+
+export function normalizeSyndicatAddresses(input: CmsSyndicatAddress[] | undefined, current: CmsSyndicatAddress[] = []) {
+  const source = input ?? current
+
+  return source
+    .map((entry, index) => {
+      const order = Number(entry.order)
+      const latitude = Number(entry.latitude)
+      const longitude = Number(entry.longitude)
+
+      return {
+        label: (entry.label || '').trim(),
+        address: (entry.address || '').trim(),
+        order: Number.isFinite(order) ? order : index,
+        latitude: Number.isFinite(latitude) ? latitude : 0,
+        longitude: Number.isFinite(longitude) ? longitude : 0
+      }
+    })
+    .filter(entry => entry.label || entry.address || entry.latitude || entry.longitude)
+    .sort((left, right) => left.order - right.order)
+    .map((entry, index) => ({
+      ...entry,
+      order: index
+    }))
+}
+
+export function getPrimarySyndicatAddress(addresses: CmsSyndicatAddress[] = []) {
+  return addresses.find(entry => entry.address.trim()) || null
+}
+
+export function isValidSyndicatAddress(address: CmsSyndicatAddress) {
+  return Boolean(
+    address.label.trim()
+    && address.address.trim()
+    && Number.isFinite(address.latitude)
+    && Number.isFinite(address.longitude)
+    && (address.latitude || address.longitude)
+  )
+}
+
+export function resolveSyndicatAddresses(syndicat: Pick<CmsSyndicat, 'addresses'>) {
+  return normalizeSyndicatAddresses(syndicat.addresses)
+}
+
+export function hasInvalidSyndicatAddresses(addresses: CmsSyndicatAddress[] = []) {
+  return addresses.some(address => !isValidSyndicatAddress(address))
 }
 
 export function normalizeSyndicatName(value: string) {

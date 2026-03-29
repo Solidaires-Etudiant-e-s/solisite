@@ -134,11 +134,9 @@ try {
           name: uid,
           city: '',
           email: '',
-          address: '',
+          addressesJson: '[]',
           socialsJson: '[]',
           content: '<p>Commence à écrire ici.</p>',
-          latitude: 0,
-          longitude: 0,
           updatedAt: new Date().toISOString()
         }
       })

@@ -55,11 +55,9 @@ model Syndicat {
   name        String
   city        String @default("")
   email       String @default("")
-  address     String @default("")
+  addressesJson String @default("[]") @map("addresses_json")
   socialsJson String @default("[]") @map("socials_json")
   content     String @default("")
-  latitude    Float  @default(0)
-  longitude   Float  @default(0)
   updatedAt   String @map("updated_at")
 
   @@map("syndicats")

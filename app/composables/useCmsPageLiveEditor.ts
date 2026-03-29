@@ -1,9 +1,9 @@
 import type { Ref } from 'vue'
-import { createEmptyFeature, createEmptyHeroButton, createEmptyPartner, createEmptySocialLink } from '~~/lib/cms'
+import { createEmptyFeature, createEmptyHeroButton, createEmptyPartner, createEmptySocialLink, createEmptySyndicatAddress } from '~~/lib/cms'
 
 export type CmsEditableKind = 'text' | 'textarea' | 'html' | 'link' | 'list-item' | 'list' | 'fields'
-export type CmsEditableFieldKind = 'text' | 'textarea' | 'icon' | 'image' | 'file' | 'select' | 'datetime'
-export type CmsEditableItemType = 'feature' | 'partner' | 'hero-button' | 'social'
+export type CmsEditableFieldKind = 'text' | 'textarea' | 'icon' | 'image' | 'file' | 'select' | 'datetime' | 'address-autocomplete'
+export type CmsEditableItemType = 'feature' | 'partner' | 'hero-button' | 'social' | 'address'
 
 export interface CmsEditableFieldOption {
   label: string
@@ -37,7 +37,7 @@ interface CmsPageLiveEditor<T extends object = Record<string, unknown>> {
   openTarget: (target: CmsEditableTarget) => void
   closeTarget: () => void
   updateField: (path: string, value: unknown) => void
-  insertItem: (path: string, itemType: CmsEditableItemType, index?: number) => void
+  insertItem: (path: string, itemType: CmsEditableItemType, index?: number) => number | null
   removeItem: (path: string, index: number) => void
   moveItem: (path: string, from: number, to: number) => void
   createItem: (itemType: CmsEditableItemType) => Record<string, unknown>
@@ -94,6 +94,10 @@ function createItem(itemType: CmsEditableItemType) {
     return { ...createEmptyPartner() }
   }
 
+  if (itemType === 'address') {
+    return { ...createEmptySyndicatAddress() }
+  }
+
   return { ...createEmptyHeroButton() }
 }
 
@@ -123,12 +127,13 @@ export function provideCmsPageLiveEditor<T extends object>(page: T) {
     const items = readPathValue(pageRecord, path)
 
     if (!Array.isArray(items)) {
-      return
+      return null
     }
 
     const nextItem = createItem(itemType)
     const insertionIndex = typeof index === 'number' ? index : items.length
     items.splice(insertionIndex, 0, nextItem)
+    return insertionIndex
   }
 
   function removeItem(path: string, index: number) {
