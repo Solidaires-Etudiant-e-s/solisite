@@ -1,9 +1,14 @@
 import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { loadEnvFile } from 'node:process'
 import { resolve } from 'node:path'
 import { PrismaClient } from '@prisma/client'
 import MarkdownIt from 'markdown-it'
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
+
+if (existsSync('.env')) {
+  loadEnvFile('.env')
+}
 
 const [, , sourceArg, dbArg] = process.argv
 

@@ -1,5 +1,12 @@
+import { existsSync } from 'node:fs'
+import { loadEnvFile } from 'node:process'
 import { PrismaClient } from '@prisma/client'
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
+import mariadb from 'mariadb'
+
+if (existsSync('.env')) {
+  loadEnvFile('.env')
+}
 
 const [, , dbArg] = process.argv
 
@@ -8,6 +15,52 @@ const databaseUrl = dbArg || process.env.DATABASE_URL
 if (!databaseUrl) {
   throw new Error('DATABASE_URL is required to sync the MySQL schema.')
 }
+
+function escapeIdentifier(value) {
+  return `\`${String(value).replaceAll('`', '``')}\``
+}
+
+function getServerConnectionOptions(value) {
+  const url = new URL(value)
+  const database = decodeURIComponent(url.pathname.replace(/^\/+/, ''))
+
+  if (!database) {
+    throw new Error('DATABASE_URL must include a database name.')
+  }
+
+  return {
+    connection: {
+      host: url.hostname || 'localhost',
+      port: Number(url.port || 3306),
+      user: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password)
+    },
+    database
+  }
+}
+
+function maskDatabaseUrl(value) {
+  const url = new URL(value)
+
+  if (url.password) {
+    url.password = '***'
+  }
+
+  return url.toString()
+}
+
+async function ensureDatabaseExists(value) {
+  const { connection: connectionOptions, database } = getServerConnectionOptions(value)
+  const connection = await mariadb.createConnection(connectionOptions)
+
+  try {
+    await connection.query(`CREATE DATABASE IF NOT EXISTS ${escapeIdentifier(database)} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`)
+  } finally {
+    await connection.end()
+  }
+}
+
+await ensureDatabaseExists(databaseUrl)
 
 const adapter = new PrismaMariaDb(databaseUrl)
 const prisma = new PrismaClient({ adapter })
@@ -233,7 +286,7 @@ try {
     }
   }
 
-  console.log(`MySQL schema is ready at ${databaseUrl}`)
+  console.log(`MySQL schema is ready at ${maskDatabaseUrl(databaseUrl)}`)
 } finally {
   await prisma.$disconnect()
 }

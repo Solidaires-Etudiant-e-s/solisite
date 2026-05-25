@@ -148,7 +148,7 @@ useSeoMeta({
     <UHeader
       v-if="showSiteHeader"
       :title="siteName"
-      mode="drawer"
+      mode="modal"
       :ui="{ container: 'sm:!px-0' }"
     >
       <template #title>

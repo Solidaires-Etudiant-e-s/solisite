@@ -1,6 +1,12 @@
+import { existsSync } from 'node:fs'
+import { loadEnvFile } from 'node:process'
 import { Client } from 'ldapts'
 import { PrismaClient } from '@prisma/client'
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
+
+if (existsSync('.env')) {
+  loadEnvFile('.env')
+}
 
 const USER_DN = 'ou=users,dc=yunohost,dc=org'
 const GROUP_DN = 'cn=syndicats,ou=groups,dc=yunohost,dc=org'

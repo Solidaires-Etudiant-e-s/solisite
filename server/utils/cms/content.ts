@@ -119,6 +119,8 @@ const defaultAboutContent = {
 }
 
 const defaultInternationalContent = {
+  partnersTitle: 'our international partners',
+  partners: defaultHomeContent.partners,
   body: `
 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.</p>
 <p>Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat.</p>
@@ -235,6 +237,17 @@ function normalizeAboutContent(raw: Record<string, unknown> | null | undefined) 
   }
 }
 
+function normalizeInternationalContent(raw: Record<string, unknown> | null | undefined) {
+  const fallback = cloneCmsValue(defaultInternationalContent)
+  const parsed = raw || {}
+
+  return {
+    ...fallback,
+    ...parsed,
+    partners: Array.isArray(parsed.partners) ? parsed.partners : fallback.partners
+  }
+}
+
 export function parsePageContent(slug: string, raw: string | null | undefined) {
   const fallback = getDefaultPageContent(slug)
 
@@ -251,6 +264,10 @@ export function parsePageContent(slug: string, raw: string | null | undefined) {
 
     if (slug === 'a-propos') {
       return normalizeAboutContent(parsed)
+    }
+
+    if (slug === 'international') {
+      return normalizeInternationalContent(parsed)
     }
 
     return {

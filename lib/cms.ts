@@ -89,6 +89,8 @@ export interface CmsAboutPageContent {
 
 export interface CmsInternationalPageContent {
   body: string
+  partnersTitle: string
+  partners: CmsPartner[]
 }
 
 export interface CmsSyndicat {
@@ -291,7 +293,9 @@ export function createAboutPageContent(): CmsAboutPageContent {
 
 export function createInternationalPageContent(): CmsInternationalPageContent {
   return {
-    body: ''
+    body: '',
+    partnersTitle: '',
+    partners: []
   }
 }
 

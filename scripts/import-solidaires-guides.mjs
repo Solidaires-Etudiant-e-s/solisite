@@ -1,8 +1,13 @@
 import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { loadEnvFile } from 'node:process'
 import { resolve } from 'node:path'
 import { PrismaClient } from '@prisma/client'
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
+
+if (existsSync('.env')) {
+  loadEnvFile('.env')
+}
 
 const [, , dbArg] = process.argv
 
