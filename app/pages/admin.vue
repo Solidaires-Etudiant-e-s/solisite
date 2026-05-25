@@ -71,7 +71,7 @@ if (import.meta.client) {
 
 useSeoMeta({
   title: 'CMS',
-  description: 'Gérer les pages et articles stockés dans SQLite.'
+  description: 'Gérer les pages et articles stockés dans MySQL.'
 })
 
 useHead({

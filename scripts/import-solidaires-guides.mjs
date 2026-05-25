@@ -1,22 +1,23 @@
 import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { pathToFileURL } from 'node:url'
 import { PrismaClient } from '@prisma/client'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+import { PrismaMariaDb } from '@prisma/adapter-mariadb'
 
 const [, , dbArg] = process.argv
 
 const LEGACY_SITE_URL = 'https://solidaires-etudiant-e-s.org/site'
 const TAG_SLUG = 'guide'
 const FALLBACK_TAG_ID = 594
-const databaseUrl = dbArg
-  ? pathToFileURL(resolve(process.cwd(), dbArg)).toString()
-  : (process.env.DATABASE_URL || pathToFileURL(resolve(process.cwd(), 'data/cms.sqlite')).toString())
+const databaseUrl = dbArg || process.env.DATABASE_URL
 const coversDir = resolve(process.cwd(), 'public/uploads/guides/imported/covers')
 const pdfsDir = resolve(process.cwd(), 'public/uploads/guides/imported/pdfs')
 const coversPublicBase = '/uploads/guides/imported/covers'
 const pdfsPublicBase = '/uploads/guides/imported/pdfs'
+
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL is required to import guides.')
+}
 
 const manualPdfUrls = new Map([
   [5601, 'https://solidaires-etudiant-e-s.org/site/wp-content/uploads/2020/08/Guide_de_letudiant-e_version_web_aout_2020.pdf'],
@@ -384,7 +385,7 @@ for (const post of posts) {
   })
 }
 
-const adapter = new PrismaBetterSqlite3({ url: databaseUrl })
+const adapter = new PrismaMariaDb(databaseUrl)
 const prisma = new PrismaClient({ adapter })
 
 try {

@@ -1,5 +1,5 @@
 import { PrismaClient, type Prisma } from '@prisma/client'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+import { PrismaMariaDb } from '@prisma/adapter-mariadb'
 import { createDefaultSiteSettings } from '~~/lib/cms'
 import { defaultPages } from './content'
 import { defaultArticle, defaultGuide, nowIso, slugify } from './shared'
@@ -12,11 +12,17 @@ const globalForCmsDatabase = globalThis as typeof globalThis & {
 }
 
 function resolveDatabaseUrl() {
-  return process.env.DATABASE_URL?.trim() || 'file:./data/cms.sqlite'
+  const databaseUrl = process.env.DATABASE_URL?.trim()
+
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL is not set')
+  }
+
+  return databaseUrl
 }
 
 function createDatabaseClient() {
-  const adapter = new PrismaBetterSqlite3({ url: resolveDatabaseUrl() })
+  const adapter = new PrismaMariaDb(resolveDatabaseUrl())
   return new PrismaClient({ adapter })
 }
 

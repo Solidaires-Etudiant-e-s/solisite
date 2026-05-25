@@ -1,8 +1,6 @@
 import { Client } from 'ldapts'
-import { pathToFileURL } from 'node:url'
-import { resolve } from 'node:path'
 import { PrismaClient } from '@prisma/client'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+import { PrismaMariaDb } from '@prisma/adapter-mariadb'
 
 const USER_DN = 'ou=users,dc=yunohost,dc=org'
 const GROUP_DN = 'cn=syndicats,ou=groups,dc=yunohost,dc=org'
@@ -21,9 +19,11 @@ const bindPassword = passwordArg
   || process.env.EMULATE_SSOWAT_PWD1
   || ''
 const bindDn = process.env.LDAP_BIND_DN || (bindUid ? `uid=${bindUid},${USER_DN}` : '')
-const databaseUrl = dbArg
-  ? pathToFileURL(resolve(process.cwd(), dbArg)).toString()
-  : (process.env.DATABASE_URL || pathToFileURL(resolve(process.cwd(), 'data/cms.sqlite')).toString())
+const databaseUrl = dbArg || process.env.DATABASE_URL
+
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL is required to import syndicats.')
+}
 
 function slugify(value) {
   return value
@@ -94,7 +94,7 @@ if (!uids.length) {
   process.exit(0)
 }
 
-const adapter = new PrismaBetterSqlite3({ url: databaseUrl })
+const adapter = new PrismaMariaDb(databaseUrl)
 const prisma = new PrismaClient({ adapter })
 
 let createdCount = 0

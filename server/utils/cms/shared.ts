@@ -4,8 +4,8 @@ export { slugify } from '~~/lib/cms'
 
 export const defaultArticle = {
   title: 'Launching the custom CMS',
-  excerpt: 'The Directus layer is gone. Content now lives directly in SQLite.',
-  content: '<p>This first article confirms the new content flow: Nuxt UI editor, SQLite persistence, and shared preview components.</p><p>Keep the model small, keep the UI clear, and expand only when the content model truly needs it.</p>',
+  excerpt: 'The Directus layer is gone. Content now lives directly in MySQL.',
+  content: '<p>This first article confirms the new content flow: Nuxt UI editor, MySQL persistence, and shared preview components.</p><p>Keep the model small, keep the UI clear, and expand only when the content model truly needs it.</p>',
   coverImage: '/hero.jpg'
 }
 

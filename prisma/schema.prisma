@@ -3,87 +3,87 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
 }
 
 model Page {
-  slug        String @id
-  name        String
-  title       String
-  description String
-  headline    String
-  subheadline String
-  ctaLabel    String @default("") @map("cta_label")
-  ctaHref     String @default("") @map("cta_href")
-  contentJson String @default("") @map("content_json")
-  updatedAt   String @map("updated_at")
+  slug        String @id @db.VarChar(191)
+  name        String @db.VarChar(255)
+  title       String @db.VarChar(255)
+  description String @db.Text
+  headline    String @db.VarChar(512)
+  subheadline String @db.Text
+  ctaLabel    String @default("") @map("cta_label") @db.VarChar(255)
+  ctaHref     String @default("") @map("cta_href") @db.VarChar(512)
+  contentJson String @map("content_json") @db.LongText
+  updatedAt   String @map("updated_at") @db.VarChar(64)
 
   @@map("pages")
 }
 
 model Article {
   id          Int    @id @default(autoincrement())
-  slug        String @unique
-  title       String
-  excerpt     String @default("")
-  content     String @default("")
-  coverImage  String @default("/hero.jpg") @map("cover_image")
-  publishedAt String @map("published_at")
-  updatedAt   String @map("updated_at")
+  slug        String @unique @db.VarChar(191)
+  title       String @db.VarChar(255)
+  excerpt     String @db.Text
+  content     String @db.LongText
+  coverImage  String @default("/hero.jpg") @map("cover_image") @db.VarChar(512)
+  publishedAt String @map("published_at") @db.VarChar(64)
+  updatedAt   String @map("updated_at") @db.VarChar(64)
 
   @@map("articles")
 }
 
 model Guide {
   id          Int    @id @default(autoincrement())
-  slug        String @unique
-  title       String
-  excerpt     String @default("")
-  content     String @default("")
-  coverImage  String @default("/hero.jpg") @map("cover_image")
-  pdfFile     String @default("") @map("pdf_file")
-  publishedAt String @map("published_at")
-  updatedAt   String @map("updated_at")
+  slug        String @unique @db.VarChar(191)
+  title       String @db.VarChar(255)
+  excerpt     String @db.Text
+  content     String @db.LongText
+  coverImage  String @default("/hero.jpg") @map("cover_image") @db.VarChar(512)
+  pdfFile     String @default("") @map("pdf_file") @db.VarChar(512)
+  publishedAt String @map("published_at") @db.VarChar(64)
+  updatedAt   String @map("updated_at") @db.VarChar(64)
 
   @@map("guides")
 }
 
 model Syndicat {
   id          Int    @id @default(autoincrement())
-  slug        String @unique
-  name        String
-  city        String @default("")
-  email       String @default("")
-  addressesJson String @default("[]") @map("addresses_json")
-  socialsJson String @default("[]") @map("socials_json")
-  content     String @default("")
-  updatedAt   String @map("updated_at")
+  slug        String @unique @db.VarChar(191)
+  name        String @db.VarChar(255)
+  city        String @default("") @db.VarChar(255)
+  email       String @default("") @db.VarChar(255)
+  addressesJson String @map("addresses_json") @db.LongText
+  socialsJson String @map("socials_json") @db.LongText
+  content     String @db.LongText
+  updatedAt   String @map("updated_at") @db.VarChar(64)
 
   @@map("syndicats")
 }
 
 model SiteSettings {
   id              Int    @id @default(1)
-  unionName       String @default("") @map("union_name")
-  siteDescription String @default("") @map("site_description")
-  contactEmail    String @default("") @map("contact_email")
-  contactPhone    String @default("") @map("contact_phone")
-  address         String @default("")
-  socialsJson     String @default("[]") @map("socials_json")
-  updatedAt       String @map("updated_at")
+  unionName       String @default("") @map("union_name") @db.VarChar(255)
+  siteDescription String @map("site_description") @db.Text
+  contactEmail    String @default("") @map("contact_email") @db.VarChar(255)
+  contactPhone    String @default("") @map("contact_phone") @db.VarChar(64)
+  address         String @db.Text
+  socialsJson     String @map("socials_json") @db.LongText
+  updatedAt       String @map("updated_at") @db.VarChar(64)
 
   @@map("site_settings")
 }
 
 model CmsRevisionRecord {
   id                   Int    @id @default(autoincrement())
-  entityType           String @map("entity_type")
-  entityId             String @map("entity_id")
-  snapshotJson         String @map("snapshot_json")
-  revisionLabel        String @map("revision_label")
-  changeType           String @map("change_type")
+  entityType           String @map("entity_type") @db.VarChar(64)
+  entityId             String @map("entity_id") @db.VarChar(191)
+  snapshotJson         String @map("snapshot_json") @db.LongText
+  revisionLabel        String @map("revision_label") @db.VarChar(255)
+  changeType           String @map("change_type") @db.VarChar(64)
   restoredFromRevisionId Int? @map("restored_from_revision_id")
-  createdAt            String @map("created_at")
+  createdAt            String @map("created_at") @db.VarChar(64)
 
   @@index([entityType, entityId, createdAt, id], map: "cms_revisions_entity_idx")
   @@map("cms_revisions")

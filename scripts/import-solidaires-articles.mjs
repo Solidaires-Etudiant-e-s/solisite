@@ -1,19 +1,20 @@
 import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { pathToFileURL } from 'node:url'
 import { PrismaClient } from '@prisma/client'
 import MarkdownIt from 'markdown-it'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+import { PrismaMariaDb } from '@prisma/adapter-mariadb'
 
 const [, , sourceArg, dbArg] = process.argv
 
 const sourceDir = resolve(process.cwd(), sourceArg || '/tmp/sesl-contents/articles')
-const databaseUrl = dbArg
-  ? pathToFileURL(resolve(process.cwd(), dbArg)).toString()
-  : (process.env.DATABASE_URL || pathToFileURL(resolve(process.cwd(), 'data/cms.sqlite')).toString())
+const databaseUrl = dbArg || process.env.DATABASE_URL
 const coversDir = resolve(process.cwd(), 'public/uploads/articles/imported')
 const coversPublicBase = '/uploads/articles/imported'
+
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL is required to import articles.')
+}
 
 if (!existsSync(sourceDir)) {
   console.error(`Source directory not found: ${sourceDir}`)
@@ -325,7 +326,7 @@ for (const article of articles) {
   article.coverImage = await downloadCoverImage(article.coverImage)
 }
 
-const adapter = new PrismaBetterSqlite3({ url: databaseUrl })
+const adapter = new PrismaMariaDb(databaseUrl)
 const prisma = new PrismaClient({ adapter })
 
 try {
