@@ -43,6 +43,7 @@ export interface CmsHomePageContent {
   ctaLabel: string
   ctaHref: string
   ctaTrailingIcon: string
+ 
 }
 
 export interface CmsArticlesPageContent {
@@ -56,6 +57,11 @@ export interface CmsGuidesPageContent {
 export interface CmsSyndicatsPageContent {
   searchPlaceholder: string
   emptyStateText: string
+  noSyndicatButtonLabel?: string
+  noSyndicatModalTitle?: string
+  noSyndicatModalBody?: string
+  noSyndicatModalCtaLabel?: string
+  noSyndicatModalCtaHref?: string
 }
 
 export interface CmsAboutPageContent {
@@ -93,6 +99,16 @@ export interface CmsInternationalPageContent {
   partners: CmsPartner[]
 }
 
+export interface CmsFundamentalText {
+  title: string
+  body: string
+}
+
+export interface CmsFundamentalTextsPageContent {
+  intro: string
+  texts: CmsFundamentalText[]
+}
+
 export interface CmsSyndicat {
   id: number
   slug: string
@@ -105,8 +121,8 @@ export interface CmsSyndicat {
   updatedAt: string
 }
 
-export type CmsPageSlug = 'home' | 'articles' | 'guides' | 'syndicats' | 'a-propos' | 'international'
-export type CmsPageContent = CmsHomePageContent | CmsArticlesPageContent | CmsGuidesPageContent | CmsSyndicatsPageContent | CmsAboutPageContent | CmsInternationalPageContent
+export type CmsPageSlug = 'home' | 'articles' | 'guides' | 'syndicats' | 'a-propos' | 'international' | 'textes-fondamentaux'
+export type CmsPageContent = CmsHomePageContent | CmsArticlesPageContent | CmsGuidesPageContent | CmsSyndicatsPageContent | CmsAboutPageContent | CmsInternationalPageContent | CmsFundamentalTextsPageContent
 
 export interface CmsPage {
   slug: string
@@ -225,6 +241,13 @@ export function createEmptyPartner(): CmsPartner {
   }
 }
 
+export function createEmptyFundamentalText(): CmsFundamentalText {
+  return {
+    title: '',
+    body: ''
+  }
+}
+
 export function createHomePageContent(): CmsHomePageContent {
   return {
     heroButtons: [],
@@ -256,7 +279,12 @@ export function createGuidesPageContent(): CmsGuidesPageContent {
 export function createSyndicatsPageContent(): CmsSyndicatsPageContent {
   return {
     searchPlaceholder: '',
-    emptyStateText: ''
+    emptyStateText: '',
+    noSyndicatButtonLabel: 'Pas de syndicat dans ta ville ?',
+    noSyndicatModalTitle: 'Pas de syndicat local ?',
+    noSyndicatModalBody: 'Tu peux toujours rejoindre la lutte au niveau national en adhérant au niveau national. Nous te redirigeons vers la page d’adhésion nationale.',
+    noSyndicatModalCtaLabel: 'Aller à l’adhésion nationale',
+    noSyndicatModalCtaHref: '/adhesion-nationale'
   }
 }
 
@@ -299,13 +327,21 @@ export function createInternationalPageContent(): CmsInternationalPageContent {
   }
 }
 
+export function createFundamentalTextsPageContent(): CmsFundamentalTextsPageContent {
+  return {
+    intro: '',
+    texts: []
+  }
+}
+
 const cmsPageContentFactories = {
   'home': createHomePageContent,
   'articles': createArticlesPageContent,
   'guides': createGuidesPageContent,
   'syndicats': createSyndicatsPageContent,
   'a-propos': createAboutPageContent,
-  'international': createInternationalPageContent
+  'international': createInternationalPageContent,
+  'textes-fondamentaux': createFundamentalTextsPageContent
 } satisfies Record<CmsPageSlug, () => CmsPageContent>
 
 export function createPageContent(slug: string): CmsPageContent {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { createFieldTarget } from '~/utils/cmsEditor'
 import { formatSyndicatDisplayName } from '~~/lib/cms'
 
 const props = defineProps<{
@@ -11,6 +12,48 @@ const editor = useCmsPageLiveEditor()
 const content = computed(() => props.page.content as CmsSyndicatsPageContent)
 const search = ref('')
 const selectedSlug = ref('')
+const showNoSyndicatModal = ref(false)
+const router = useRouter()
+const noSyndicatTargetFields = [{
+  key: 'noSyndicatButtonLabel',
+  label: 'Libellé du bouton',
+  kind: 'text' as const
+}, {
+  key: 'noSyndicatModalTitle',
+  label: 'Titre de la fenêtre',
+  kind: 'text' as const
+}, {
+  key: 'noSyndicatModalBody',
+  label: 'Texte de la fenêtre',
+  kind: 'textarea' as const,
+  rows: 5
+}, {
+  key: 'noSyndicatModalCtaLabel',
+  label: 'Libellé du lien',
+  kind: 'text' as const
+}, {
+  key: 'noSyndicatModalCtaHref',
+  label: 'Lien',
+  kind: 'text' as const
+}]
+
+function navigateToJoinNational() {
+  const href = (content.value as CmsSyndicatsPageContent).noSyndicatModalCtaHref || ''
+
+  if (!href) {
+    showNoSyndicatModal.value = false
+    return
+  }
+
+  showNoSyndicatModal.value = false
+
+  if (href.startsWith('/')) {
+    void router.push(href)
+    return
+  }
+
+  window.open(href, '_blank')
+}
 
 function normalizeSearch(value: string) {
   return value
@@ -56,7 +99,34 @@ watch(filteredSyndicats, (syndicats) => {
   <UPage>
     <div class="border-b border-default public-section">
       <div class="public-container">
-        <CmsPageIntroFields :page="page" />
+        <div class="flex items-center justify-between gap-4">
+          <CmsPageIntroFields :page="page" />
+
+          <div
+            v-if="content.noSyndicatButtonLabel || editor"
+            class="ml-4"
+          >
+            <CmsEditableNode
+              v-if="editor"
+              tag="div"
+              :target="createFieldTarget(`${page.slug}:no-syndicat-modal`, 'content', 'Bouton sans syndicat', noSyndicatTargetFields)"
+            >
+              <UButton
+                color="primary"
+                variant="solid"
+                :label="content.noSyndicatButtonLabel || 'Pas de syndicat dans ta ville ?'"
+              />
+            </CmsEditableNode>
+
+            <UButton
+              v-else
+              color="primary"
+              variant="solid"
+              :label="content.noSyndicatButtonLabel"
+              @click="showNoSyndicatModal = true"
+            />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -135,5 +205,31 @@ watch(filteredSyndicats, (syndicats) => {
         </div>
       </div>
     </UPageBody>
+    <UModal
+      v-model:open="showNoSyndicatModal"
+      :title="content.noSyndicatModalTitle"
+    >
+      <template #body>
+        <p class="text-sm text-toned">
+          {{ content.noSyndicatModalBody }}
+        </p>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <UButton
+            label="Annuler"
+            color="neutral"
+            variant="ghost"
+            @click="showNoSyndicatModal = false"
+          />
+          <UButton
+            :label="content.noSyndicatModalCtaLabel"
+            color="primary"
+            @click="navigateToJoinNational"
+          />
+        </div>
+      </template>
+    </UModal>
   </UPage>
 </template>

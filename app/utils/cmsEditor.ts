@@ -68,8 +68,13 @@ const targetFields = {
     key: 'address',
     label: 'Adresse',
     kind: 'address-autocomplete'
+  }],
+  'fundamental-text': [{
+    key: 'title',
+    label: 'Titre',
+    kind: 'text'
   }]
-} satisfies Record<'social' | 'feature' | 'hero-button' | 'partner' | 'address', CmsEditableFieldSchema[]>
+} satisfies Record<'social' | 'feature' | 'hero-button' | 'partner' | 'address' | 'fundamental-text', CmsEditableFieldSchema[]>
 
 export function createEditableTarget(id: string, path: string, label: string, multiline = false): CmsEditableTarget {
   return {
@@ -82,7 +87,7 @@ export function createEditableTarget(id: string, path: string, label: string, mu
 
 export function createListItemTarget(
   pageSlug: string,
-  itemType: 'social' | 'feature' | 'hero-button' | 'partner' | 'address',
+  itemType: 'social' | 'feature' | 'hero-button' | 'partner' | 'address' | 'fundamental-text',
   index: number,
   listPath: string,
   label: string
@@ -99,7 +104,7 @@ export function createListItemTarget(
   }
 }
 
-export function createListTarget(pageSlug: string, itemType: 'social' | 'feature' | 'hero-button' | 'partner' | 'address', path: string, label: string): CmsEditableTarget {
+export function createListTarget(pageSlug: string, itemType: 'social' | 'feature' | 'hero-button' | 'partner' | 'address' | 'fundamental-text', path: string, label: string): CmsEditableTarget {
   return {
     id: `${pageSlug}:${path}`,
     kind: 'list',

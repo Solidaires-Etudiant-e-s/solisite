@@ -1,9 +1,9 @@
 import type { Ref } from 'vue'
-import { createEmptyFeature, createEmptyHeroButton, createEmptyPartner, createEmptySocialLink, createEmptySyndicatAddress } from '~~/lib/cms'
+import { createEmptyFeature, createEmptyFundamentalText, createEmptyHeroButton, createEmptyPartner, createEmptySocialLink, createEmptySyndicatAddress } from '~~/lib/cms'
 
 export type CmsEditableKind = 'text' | 'textarea' | 'html' | 'link' | 'list-item' | 'list' | 'fields'
 export type CmsEditableFieldKind = 'text' | 'textarea' | 'icon' | 'image' | 'file' | 'select' | 'datetime' | 'address-autocomplete'
-export type CmsEditableItemType = 'feature' | 'partner' | 'hero-button' | 'social' | 'address'
+export type CmsEditableItemType = 'feature' | 'partner' | 'hero-button' | 'social' | 'address' | 'fundamental-text'
 
 export interface CmsEditableFieldOption {
   label: string
@@ -96,6 +96,10 @@ function createItem(itemType: CmsEditableItemType) {
 
   if (itemType === 'address') {
     return { ...createEmptySyndicatAddress() }
+  }
+
+  if (itemType === 'fundamental-text') {
+    return { ...createEmptyFundamentalText() }
   }
 
   return { ...createEmptyHeroButton() }

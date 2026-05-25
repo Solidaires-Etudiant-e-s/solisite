@@ -1,4 +1,5 @@
 import { cloneCmsValue, createPageContent } from '~~/lib/cms'
+import { defaultFundamentalTextsContent } from './fundamentalTextsContent'
 
 const defaultHomeContent = {
   heroButtons: [{
@@ -163,6 +164,17 @@ export const defaultPages = [
     content: defaultInternationalContent
   },
   {
+    slug: 'textes-fondamentaux',
+    name: 'Textes fondamentaux',
+    title: 'Textes fondamentaux',
+    description: 'Les textes politiques et syndicaux de référence de Solidaires Étudiant·e·s.',
+    headline: 'Textes fondamentaux',
+    subheadline: 'Charte d’Amiens, charte de SUD PTT et charte de Solidaires étudiant-e-s réunies dans une lecture par volets.',
+    ctaLabel: 'À propos',
+    ctaHref: '/a-propos',
+    content: defaultFundamentalTextsContent
+  },
+  {
     slug: 'articles',
     name: 'Liste des articles',
     title: 'Articles',
@@ -248,6 +260,17 @@ function normalizeInternationalContent(raw: Record<string, unknown> | null | und
   }
 }
 
+function normalizeFundamentalTextsContent(raw: Record<string, unknown> | null | undefined) {
+  const fallback = cloneCmsValue(defaultFundamentalTextsContent)
+  const parsed = raw || {}
+
+  return {
+    ...fallback,
+    ...parsed,
+    texts: Array.isArray(parsed.texts) ? parsed.texts : fallback.texts
+  }
+}
+
 export function parsePageContent(slug: string, raw: string | null | undefined) {
   const fallback = getDefaultPageContent(slug)
 
@@ -268,6 +291,10 @@ export function parsePageContent(slug: string, raw: string | null | undefined) {
 
     if (slug === 'international') {
       return normalizeInternationalContent(parsed)
+    }
+
+    if (slug === 'textes-fondamentaux') {
+      return normalizeFundamentalTextsContent(parsed)
     }
 
     return {

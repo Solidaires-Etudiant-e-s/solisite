@@ -41,6 +41,10 @@ const props = defineProps<{
     v-else-if="props.page.slug === 'international'"
     :page="props.page"
   />
+  <SiteFundamentalTextsPageView
+    v-else-if="props.page.slug === 'textes-fondamentaux'"
+    :page="props.page"
+  />
   <SiteSyndicatsPageView
     v-else
     :page="props.page"

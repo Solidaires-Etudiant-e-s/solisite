@@ -256,6 +256,14 @@ useSeoMeta({
           </template>
           <span>.</span>
         </p>
+
+        <p class="site-footer__line">
+          <UIcon
+            name="mingcute:map-pin-line"
+            class="site-footer__icon"
+          />
+          <span>Solidaires Étudiant-e-s syndicats de luttes, association de loi 1901. Paris (25-27, rue des Envierges).</span>
+        </p>
       </div>
     </footer>
   </UApp>
