@@ -35,6 +35,8 @@ defineProps<{
   savingGuide: boolean
   savingSiteSettings: boolean
   savingSyndicat: boolean
+  deletingArticle: boolean
+  deletingSyndicat: boolean
 }>()
 
 const emit = defineEmits<{
@@ -42,9 +44,11 @@ const emit = defineEmits<{
   savePage: []
   resetPage: []
   saveArticle: []
+  deleteArticle: []
   saveGuide: []
   saveSiteSettings: []
   saveSyndicat: []
+  deleteSyndicat: []
 }>()
 </script>
 
@@ -72,9 +76,11 @@ const emit = defineEmits<{
     :history-open="historyOpen"
     :preview-article="articlePreview"
     :saving="savingArticle"
+    :deleting="deletingArticle"
     :selected-revision="selectedRevision"
     @toggle-history="emit('toggleHistory')"
     @save-article="emit('saveArticle')"
+    @delete-article="emit('deleteArticle')"
   />
 
   <CmsGuideCanvas
@@ -141,9 +147,11 @@ const emit = defineEmits<{
     :can-manage-history="canManageHistory"
     :history-open="historyOpen"
     :saving="savingSyndicat"
+    :deleting="deletingSyndicat"
     :selected-revision="selectedRevision"
     :union-name="siteSettingsDraft.unionName"
     @toggle-history="emit('toggleHistory')"
     @save-syndicat="emit('saveSyndicat')"
+    @delete-syndicat="emit('deleteSyndicat')"
   />
 </template>

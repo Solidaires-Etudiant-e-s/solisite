@@ -142,3 +142,19 @@ export async function updateArticle(id: number, input: Partial<CmsArticle>, opti
     return savedArticle
   })
 }
+
+export async function deleteArticle(id: number) {
+  return await runInCmsTransaction(async (database) => {
+    const current = await getArticleById(id, database)
+
+    if (!current) {
+      notFound(`Article "${id}" not found.`)
+    }
+
+    await database.article.delete({
+      where: { id }
+    })
+
+    return { id }
+  })
+}

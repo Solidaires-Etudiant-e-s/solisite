@@ -10,12 +10,14 @@ const { canManageHistory, historyOpen, previewArticle, saving, selectedRevision 
   historyOpen: boolean
   previewArticle: CmsArticle
   saving: boolean
+  deleting: boolean
   selectedRevision: CmsRevision | null
 }>()
 
 const emit = defineEmits<{
   toggleHistory: []
   saveArticle: []
+  deleteArticle: []
 }>()
 
 provideCmsPageLiveEditor(article.value)
@@ -38,6 +40,7 @@ provideCmsPageLiveEditor(article.value)
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+
           <CmsArticleSettingsPopover v-model:article="article" />
 
           <UButton
@@ -50,10 +53,20 @@ provideCmsPageLiveEditor(article.value)
           />
 
           <UButton
+            label="Supprimer"
+            color="error"
+            variant="outline"
+            icon="mingcute:delete-line"
+            :loading="deleting"
+            :disabled="!article.id || saving"
+            @click="emit('deleteArticle')"
+          />
+
+          <UButton
             label="Enregistrer l’article"
             color="primary"
             :loading="saving"
-            :disabled="!article.id"
+            :disabled="!article.id || deleting"
             @click="emit('saveArticle')"
           />
         </div>

@@ -10,6 +10,7 @@ const { canManageHistory, historyOpen, saving, selectedRevision, unionName } = d
   canManageHistory: boolean
   historyOpen: boolean
   saving: boolean
+  deleting: boolean
   selectedRevision: CmsRevision | null
   unionName?: string
 }>()
@@ -17,6 +18,7 @@ const { canManageHistory, historyOpen, saving, selectedRevision, unionName } = d
 const emit = defineEmits<{
   toggleHistory: []
   saveSyndicat: []
+  deleteSyndicat: []
 }>()
 
 const publicPageHref = computed(() => syndicat.value.slug ? `/syndicats/${syndicat.value.slug}` : undefined)
@@ -62,10 +64,20 @@ provideCmsPageLiveEditor(syndicat.value)
           />
 
           <UButton
+            label="Supprimer"
+            color="error"
+            variant="outline"
+            icon="mingcute:delete-line"
+            :loading="deleting"
+            :disabled="!syndicat.id || saving"
+            @click="emit('deleteSyndicat')"
+          />
+
+          <UButton
             label="Enregistrer"
             color="primary"
             :loading="saving"
-            :disabled="!syndicat.id || hasInvalidAddresses"
+            :disabled="!syndicat.id || hasInvalidAddresses || deleting"
             @click="emit('saveSyndicat')"
           />
         </div>

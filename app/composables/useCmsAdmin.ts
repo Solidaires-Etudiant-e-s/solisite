@@ -12,6 +12,8 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   const savingArticle = ref(false)
   const savingGuide = ref(false)
   const savingSyndicat = ref(false)
+  const deletingArticle = ref(false)
+  const deletingSyndicat = ref(false)
   const savingSiteSettings = ref(false)
   const creatingArticle = ref(false)
   const creatingGuide = ref(false)
@@ -690,6 +692,84 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     }
   }
 
+  async function deleteArticle() {
+    if (!isAdmin.value || !articleDraft.id) {
+      return
+    }
+
+    if (!window.confirm('Supprimer cet article ? Cette action est définitive.')) {
+      return
+    }
+
+    deletingArticle.value = true
+
+    try {
+      await $fetch(`/api/cms/articles/${articleDraft.id}`, {
+        method: 'DELETE'
+      })
+
+      articles.value = articles.value.filter(article => article.id !== articleDraft.id)
+      const nextArticle = articles.value[0] || null
+
+      if (nextArticle) {
+        selectedArticleId.value = nextArticle.id
+        applyArticleDraft(nextArticle)
+      } else {
+        selectedArticleId.value = null
+        applyArticleDraft(createEmptyArticle())
+      }
+
+      selectedRevisionId.value = null
+      await loadRevisions()
+      toast.add({
+        title: 'Article supprimé',
+        color: 'success',
+        icon: 'mingcute:check-circle-line'
+      })
+    } finally {
+      deletingArticle.value = false
+    }
+  }
+
+  async function deleteSyndicat() {
+    if (!syndicatDraft.id) {
+      return
+    }
+
+    if (!window.confirm('Supprimer ce syndicat ? Cette action est définitive.')) {
+      return
+    }
+
+    deletingSyndicat.value = true
+
+    try {
+      await $fetch(`/api/cms/syndicats/${syndicatDraft.id}`, {
+        method: 'DELETE'
+      })
+
+      syndicats.value = syndicats.value.filter(syndicat => syndicat.id !== syndicatDraft.id)
+      const nextSyndicat = syndicats.value[0] || null
+
+      if (nextSyndicat) {
+        selectedSyndicatId.value = nextSyndicat.id
+        applySyndicatDraft(nextSyndicat)
+      } else {
+        selectedSyndicatId.value = null
+        applySyndicatDraft(createEmptySyndicat())
+      }
+
+      selectedRevisionId.value = null
+      await loadRevisions()
+      toast.add({
+        title: 'Syndicat supprimé',
+        color: 'success',
+        icon: 'mingcute:check-circle-line'
+      })
+    } finally {
+      deletingSyndicat.value = false
+    }
+  }
+
   async function saveSiteSettings() {
     if (!isAdmin.value) {
       return
@@ -802,6 +882,10 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     savingPage,
     savingSiteSettings,
     savingSyndicat,
+    deleteArticle,
+    deleteSyndicat,
+    deletingArticle,
+    deletingSyndicat,
     selectedRevision,
     selectedRevisionId,
     selectRevision,

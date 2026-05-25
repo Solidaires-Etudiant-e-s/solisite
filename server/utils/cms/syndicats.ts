@@ -183,3 +183,19 @@ export async function updateSyndicat(id: number, input: Partial<CmsSyndicat>, op
     return savedSyndicat
   })
 }
+
+export async function deleteSyndicat(id: number) {
+  return await runInCmsTransaction(async (database) => {
+    const current = await getSyndicatById(id, database)
+
+    if (!current) {
+      notFound(`Syndicat "${id}" not found.`)
+    }
+
+    await database.syndicat.delete({
+      where: { id }
+    })
+
+    return { id }
+  })
+}

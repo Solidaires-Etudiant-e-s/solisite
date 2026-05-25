@@ -11,6 +11,8 @@ const {
   creatingArticle,
   creatingGuide,
   creatingSyndicat,
+  deletingArticle,
+  deletingSyndicat,
   currentDraftIsDirty,
   expandedGroups,
   canManageHistory,
@@ -32,6 +34,8 @@ const {
   savePage,
   saveSiteSettings,
   saveSyndicat,
+  deleteArticle,
+  deleteSyndicat,
   savingArticle,
   savingGuide,
   savingPage,
@@ -125,13 +129,17 @@ useHead({
           :saving-guide="savingGuide"
           :saving-site-settings="savingSiteSettings"
           :saving-syndicat="savingSyndicat"
+          :deleting-article="deletingArticle"
+          :deleting-syndicat="deletingSyndicat"
           @toggle-history="toggleHistory"
           @save-page="savePage"
           @reset-page="resetPageDraft"
           @save-article="saveArticle"
+          @delete-article="deleteArticle"
           @save-guide="saveGuide"
           @save-site-settings="saveSiteSettings"
           @save-syndicat="saveSyndicat"
+          @delete-syndicat="deleteSyndicat"
         />
 
         <CmsRevisionSidebar
