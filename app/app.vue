@@ -88,19 +88,6 @@ const headerButtons = computed(() => {
   return buttons
 })
 
-onMounted(() => {
-  if (route.path.startsWith('/admin')) {
-    return
-  }
-
-  toast.add({
-    title: 'Site en beta',
-    description: 'Ce site est en beta. Attendez-vous a des bugs et merci de tous les signaler.',
-    color: 'warning',
-    icon: 'mingcute:alert-line'
-  })
-})
-
 const canonical = useCanonicalHead(() => route.fullPath || '/', siteUrl)
 
 useHead({
