@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { requireCmsData, resolveSiteSettings } from '~/utils/cmsData'
-import { buildSeoTitle, firstNonEmpty, resolveSeoImage, resolveSiteUrl, truncateText } from '~/utils/seo'
+import { firstNonEmpty, resolveSeoImage, resolveSiteUrl, truncateText } from '~/utils/seo'
 
 const [{ data: pageData }, { data: articlesData }, { data: siteSettingsData }] = await Promise.all([
   useFetch<CmsPage>('/api/pages/home'),
@@ -13,7 +13,6 @@ const articles = computed(() => articlesData.value || [])
 const siteSettings = computed(() => resolveSiteSettings(siteSettingsData.value))
 const runtimeConfig = useRuntimeConfig()
 const router = useRouter()
-const siteName = computed(() => siteSettings.value.unionName || 'Solidaires Étudiant·es')
 const homeSeoTitle = 'Solidaires Étudiant·e·s, syndicats de lutte'
 const siteUrl = computed(() => resolveSiteUrl(runtimeConfig.public.siteUrl))
 const socialImage = computed(() => resolveSeoImage({
@@ -64,16 +63,17 @@ onMounted(() => {
 useSeoMeta({
   title: homeSeoTitle,
   description: seoDescription,
-  ogTitle: () => buildSeoTitle(homeSeoTitle, siteName.value),
+  ogTitle: homeSeoTitle,
   ogDescription: seoDescription,
   ogImage: socialImage,
-  twitterTitle: () => buildSeoTitle(homeSeoTitle, siteName.value),
+  twitterTitle: homeSeoTitle,
   twitterDescription: seoDescription,
   twitterImage: socialImage
 })
 
 useHead({
-  titleTemplate: '%s'
+  title: homeSeoTitle,
+  titleTemplate: title => title || ''
 })
 </script>
 
