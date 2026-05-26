@@ -25,7 +25,8 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
-    '@nuxtjs/leaflet'
+    '@nuxtjs/leaflet',
+    'nuxt-jsonld'
   ],
 
   devtools: {

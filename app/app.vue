@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
-import { toLinkTarget } from '~/utils/cmsUi'
-import { resolveSeoImage, resolveSiteUrl, useCanonicalHead } from '~/utils/seo'
-import { createEmptySiteSettings } from '~~/lib/cms'
-
 const route = useRoute()
 const runtimeConfig = useRuntimeConfig()
 const { data: siteSettingsData } = await useFetch<CmsSiteSettings>('/api/site-settings')
 const themeColor = '#d20808'
 
 const siteSettings = computed(() => siteSettingsData.value ?? createEmptySiteSettings())
-const siteName = computed(() => siteSettings.value.unionName || 'Solidaires Étudiant·es')
+const siteName = computed(() => siteSettings.value.unionName || 'Solidaires Étudiant-e-s')
 const description = computed(() => siteSettings.value.siteDescription || 'Fédération de syndicats de luttes, militant pour une université gratuite, ouverte à tous·tes, de qualité, émancipatrice et autogérée.')
 const siteUrl = computed(() => resolveSiteUrl(runtimeConfig.public.siteUrl))
 const defaultSocialImage = computed(() => resolveSeoImage({ image: '/hero.jpg', siteUrl: siteUrl.value }))
@@ -24,6 +20,49 @@ const gitCommitUrl = computed(() => {
 
   return `${gitRepositoryUrl.value.replace(/\.git$/, '')}/commit/${gitCommitShort.value}`
 })
+
+useJsonld(() => ({
+  '@context': 'https://schema.org',
+  '@type': 'WorkersUnion',
+  'name': siteName.value,
+  'alternateName': 'SESL',
+  'description': description.value,
+  'url': 'https://www.solidaires-etudiant-e-s.org',
+  'logo': 'https://www.solidaires-etudiant-e-s.org/logo.png',
+  'foundingDate': '2013-01-27',
+  'areaServed': 'FR',
+  'address': {
+    '@type': 'PostalAddress',
+    'streetAddress': '25-27 rue des Envierges',
+    'addressLocality': 'Paris',
+    'addressRegion': 'Île-de-France',
+    'postalCode': '75020',
+    'addressCountry': 'FR'
+  },
+  'contactPoint': {
+    '@type': 'ContactPoint',
+    'contactType': 'General Contact',
+    'telephone': '+33-6-86-80-24-45',
+    'email': 'contact@solidaires-etudiant-e-s.org'
+  },
+  'sameAs': [
+    'https://www.facebook.com/solidairesetudiantes',
+    'https://bsky.app/profile/solidaires-etudiant-e-s.org',
+    'https://x.com/SolidairesEtu',
+    'https://www.instagram.com/solidairesetu',
+    'https://mastodon.social/@solidairesetu',
+    'https://fr.wikipedia.org/wiki/Solidaires_%C3%A9tudiant-e-s'
+  ],
+  'memberOf': {
+    '@type': 'Organization',
+    'name': 'Union Syndicale Solidaires',
+    'url': 'https://solidaires.org'
+  },
+  'parentOrganization': {
+    '@type': 'Organization',
+    'name': 'Union Syndicale Solidaires'
+  }
+}))
 
 const showSiteHeader = computed(() => !route.path.startsWith('/admin'))
 const showSiteFooter = computed(() => !route.path.startsWith('/admin'))

@@ -37,6 +37,35 @@ useSeoMeta({
   twitterDescription: seoDescription,
   twitterImage: socialImage
 })
+
+useJsonld(() => ({
+  '@context': 'https://schema.org',
+  '@type': 'NewsArticle',
+  'headline': article.value.title,
+  'datePublished': article.value.publishedAt,
+  'dateModified': article.value.updatedAt,
+  'author': {
+    '@type': 'WorkersUnion',
+    'name': 'Solidaires Étudiant-e-s'
+  },
+  'publisher': {
+    '@type': 'WorkersUnion',
+    'name': 'Solidaires Étudiant-e-s',
+    'logo': {
+      '@type': 'ImageObject',
+      'url': 'https://solidaires-etudiant-e-s.org/logo.png'
+    }
+  },
+  'image': {
+    '@type': 'ImageObject',
+    'url': article.value.coverImage,
+    'width': '1200',
+    'height': '630'
+  },
+  // 'keywords': 'étudiants, revendications, gouvernement', todo
+  'articleBody': article.value.content,
+  'inLanguage': 'fr'
+}))
 </script>
 
 <template>

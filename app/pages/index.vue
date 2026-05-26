@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { requireCmsData, resolveSiteSettings } from '~/utils/cmsData'
-import { firstNonEmpty, resolveSeoImage, resolveSiteUrl, truncateText } from '~/utils/seo'
-
 const [{ data: pageData }, { data: articlesData }, { data: siteSettingsData }] = await Promise.all([
   useFetch<CmsPage>('/api/pages/home'),
   useArticles(),
