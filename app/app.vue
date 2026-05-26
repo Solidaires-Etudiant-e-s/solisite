@@ -12,7 +12,7 @@ const themeColor = '#d20808'
 
 const siteSettings = computed(() => siteSettingsData.value ?? createEmptySiteSettings())
 const siteName = computed(() => siteSettings.value.unionName || 'Solidaires Étudiant·es')
-const description = computed(() => siteSettings.value.siteDescription || 'Syndicats de luttes, militant pour une université gratuite, ouverte à tous·tes, de qualité, émancipatrice et autogérée.')
+const description = computed(() => siteSettings.value.siteDescription || 'Fédération de syndicats de luttes, militant pour une université gratuite, ouverte à tous·tes, de qualité, émancipatrice et autogérée.')
 const siteUrl = computed(() => resolveSiteUrl(runtimeConfig.public.siteUrl))
 const defaultSocialImage = computed(() => resolveSeoImage({ image: '/hero.jpg', siteUrl: siteUrl.value }))
 const gitRepositoryUrl = computed(() => runtimeConfig.public.gitRepositoryUrl || 'https://github.com/Solidaires-Etudiant-e-s/solisite')
