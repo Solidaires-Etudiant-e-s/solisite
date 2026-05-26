@@ -7,7 +7,6 @@ import { createEmptySiteSettings } from '~~/lib/cms'
 
 const route = useRoute()
 const runtimeConfig = useRuntimeConfig()
-const toast = useToast()
 const { data: siteSettingsData } = await useFetch<CmsSiteSettings>('/api/site-settings')
 const themeColor = '#d20808'
 
@@ -100,6 +99,15 @@ useHead({
   }, {
     name: 'msapplication-TileColor',
     content: themeColor
+  }],
+  link: [{
+    rel: 'icon',
+    type: 'image/png',
+    sizes: '128x128',
+    href: '/logo.png'
+  }, {
+    rel: 'apple-touch-icon',
+    href: '/logo.png'
   }],
   titleTemplate: (titleChunk) => {
     const cleanSiteName = siteName.value

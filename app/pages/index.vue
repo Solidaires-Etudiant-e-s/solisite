@@ -14,10 +14,10 @@ const siteSettings = computed(() => resolveSiteSettings(siteSettingsData.value))
 const runtimeConfig = useRuntimeConfig()
 const router = useRouter()
 const siteName = computed(() => siteSettings.value.unionName || 'Solidaires Étudiant·es')
+const homeSeoTitle = 'Solidaires Étudiant·e·s, syndicats de lutte'
 const siteUrl = computed(() => resolveSiteUrl(runtimeConfig.public.siteUrl))
 const socialImage = computed(() => resolveSeoImage({
-  image: articles.value[0]?.coverImage,
-  fallbackImage: '/hero.jpg',
+  image: '/hero/hero-home.png',
   siteUrl: siteUrl.value
 }))
 const seoDescription = computed(() => truncateText(firstNonEmpty(
@@ -62,14 +62,18 @@ onMounted(() => {
 })
 
 useSeoMeta({
-  title: page.value.title,
+  title: homeSeoTitle,
   description: seoDescription,
-  ogTitle: () => buildSeoTitle(page.value.title, siteName.value),
+  ogTitle: () => buildSeoTitle(homeSeoTitle, siteName.value),
   ogDescription: seoDescription,
   ogImage: socialImage,
-  twitterTitle: () => buildSeoTitle(page.value.title, siteName.value),
+  twitterTitle: () => buildSeoTitle(homeSeoTitle, siteName.value),
   twitterDescription: seoDescription,
   twitterImage: socialImage
+})
+
+useHead({
+  titleTemplate: '%s'
 })
 </script>
 
