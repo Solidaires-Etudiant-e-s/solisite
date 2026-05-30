@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /yunohost
+Disallow: /admin

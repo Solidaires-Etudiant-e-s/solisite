@@ -26,7 +26,9 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/ui',
     '@nuxtjs/leaflet',
-    'nuxt-jsonld'
+    'nuxt-jsonld',
+    '@nuxtjs/sitemap',
+    '@nuxtjs/robots'
   ],
 
   devtools: {
@@ -52,5 +54,15 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
+  },
+
+  robots: {
+    blockNonSeoBots: true
+  },
+
+  sitemap: {
+    sources: [
+      '/api/__sitemap__/articles'
+    ]
   }
 })
