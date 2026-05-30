@@ -46,7 +46,8 @@ useJsonld(() => ({
   'dateModified': article.value.updatedAt,
   'author': {
     '@type': 'WorkersUnion',
-    'name': 'Solidaires Étudiant-e-s'
+    'name': 'Solidaires Étudiant-e-s',
+    'url': 'https://www.solidaires-etudiant-e-s.org'
   },
   'publisher': {
     '@type': 'WorkersUnion',

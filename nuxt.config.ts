@@ -47,6 +47,10 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-01-15',
 
+  nitro: {
+    compressPublicAssets: true
+  },
+
   eslint: {
     config: {
       stylistic: {
@@ -62,7 +66,8 @@ export default defineNuxtConfig({
 
   sitemap: {
     sources: [
-      '/api/__sitemap__/articles'
+      '/api/__sitemap__/articles',
+      '/api/__sitemap__/guides'
     ]
   }
 })

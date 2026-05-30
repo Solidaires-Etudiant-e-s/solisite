@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
+import type { Organization } from 'schema-dts'
 
 const route = useRoute()
 const runtimeConfig = useRuntimeConfig()
@@ -20,6 +21,34 @@ const gitCommitUrl = computed(() => {
 
   return `${gitRepositoryUrl.value.replace(/\.git$/, '')}/commit/${gitCommitShort.value}`
 })
+
+const uss = {
+  '@type': 'Organization',
+  'name': 'Union Syndicale Solidaires',
+  'url': 'https://solidaires.org',
+  'logo': 'https://solidaires.org/static/img/logo/logo_solidaires.svg',
+  'email': 'contact@solidaires.org',
+  'telephone': '+33-1-58-39-30-20',
+  'contactPoint': {
+    '@type': 'ContactPoint',
+    'contactType': 'General Contact',
+    'telephone': '+33-6-86-80-24-45',
+    'email': 'contact@solidaires-etudiant-e-s.org'
+  },
+  'sameAs': [
+    'https://www.instagram.com/union_solidaires/',
+    'https://bsky.app/profile/solidaires.org'
+  ],
+  'address': {
+    '@type': 'PostalAddress',
+    'streetAddress': '31 rue de la Grange aux Belles',
+    'addressLocality': 'Paris',
+    'addressRegion': 'Île-de-France',
+    'postalCode': '75010',
+    'addressCountry': 'FR'
+  },
+  'description': 'Union syndicale de luttes, de classe ett autogestionaire !'
+} satisfies Organization
 
 useJsonld(() => ({
   '@context': 'https://schema.org',
@@ -53,15 +82,8 @@ useJsonld(() => ({
     'https://mastodon.social/@solidairesetu',
     'https://fr.wikipedia.org/wiki/Solidaires_%C3%A9tudiant-e-s'
   ],
-  'memberOf': {
-    '@type': 'Organization',
-    'name': 'Union Syndicale Solidaires',
-    'url': 'https://solidaires.org'
-  },
-  'parentOrganization': {
-    '@type': 'Organization',
-    'name': 'Union Syndicale Solidaires'
-  }
+  'memberOf': uss,
+  'parentOrganization': uss
 }))
 
 const showSiteHeader = computed(() => !route.path.startsWith('/admin'))
