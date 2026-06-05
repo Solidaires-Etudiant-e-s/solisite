@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { formatFrenchDate } from '~/utils/cmsUi'
+
+const search = defineModel<string>('search')
 
 const props = defineProps<{
   page: CmsPage
@@ -44,30 +45,24 @@ function pageQuery(page: number) {
 
     <UPageBody>
       <div class="public-container public-section space-y-10">
+        <UInput
+          v-model="search"
+          icon="mingcute:search-line"
+          placeholder="Rechercher..."
+          class="w-full mb-4"
+        />
         <div
           v-if="articles.length"
           class="grid gap-8 md:grid-cols-2 xl:grid-cols-3"
         >
-          <UPageCard
+          <CmsArticleSummaryCard
             v-for="article in articles"
             :key="article.id"
-            :title="article.title"
-            :description="article.excerpt"
             :to="editor ? undefined : `/articles/${article.slug}`"
             class="overflow-hidden"
-          >
-            <template #leading>
-              <img
-                :src="article.coverImage || '/hero.jpg'"
-                :alt="article.title"
-                class="mb-4 h-52 w-full object-cover"
-              >
-            </template>
-
-            <template #footer>
-              <span class="text-sm text-muted">{{ formatFrenchDate(article.publishedAt) }}</span>
-            </template>
-          </UPageCard>
+            :article="article"
+            :immersive="true"
+          />
         </div>
 
         <p

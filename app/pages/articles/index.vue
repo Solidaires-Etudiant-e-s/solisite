@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { requireCmsData, resolveSiteSettings } from '~/utils/cmsData'
-import { buildSeoTitle, firstNonEmpty, resolveSeoImage, resolveSiteUrl, truncateText } from '~/utils/seo'
+import { useFuse } from '@vueuse/integrations/useFuse'
 
 const ARTICLES_PER_PAGE = 9
 
@@ -32,8 +31,11 @@ function parsePage(input: string | null | Array<string | null> | undefined) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 1
 }
 
+const search = ref('')
+const articlesFiltered = useFuse(search, allArticles, { fuseOptions: { keys: ['title'] } }).results
+
 const totalPages = computed(() => {
-  return Math.max(1, Math.ceil(allArticles.value.length / ARTICLES_PER_PAGE))
+  return Math.max(1, Math.ceil(articlesFiltered.value.length / ARTICLES_PER_PAGE))
 })
 
 const currentPage = computed(() => {
@@ -42,7 +44,7 @@ const currentPage = computed(() => {
 
 const paginatedArticles = computed(() => {
   const start = (currentPage.value - 1) * ARTICLES_PER_PAGE
-  return allArticles.value.slice(start, start + ARTICLES_PER_PAGE)
+  return articlesFiltered.value.slice(start, start + ARTICLES_PER_PAGE).map(a => a.item)
 })
 const title = computed(() => currentPage.value > 1 ? `${page.value.title} - Page ${currentPage.value}` : page.value.title)
 const seoDescription = computed(() => {
@@ -77,6 +79,7 @@ if (import.meta.client) {
 
 <template>
   <SiteArticlesPageView
+    v-model:search="search"
     :page="page"
     :articles="paginatedArticles"
     :current-page="currentPage"

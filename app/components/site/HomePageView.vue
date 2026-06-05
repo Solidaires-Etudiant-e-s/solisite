@@ -280,14 +280,14 @@ const partnersModel = computed({
           <template #default="{ item: article }">
             <CmsArticleSummaryCard
               :article="article"
-              immersive
+              :immersive="true"
             />
           </template>
         </UCarousel>
       </template>
     </UPageSection>
 
-        
+
 
     <UPageSection
       id="partners"
