@@ -57,6 +57,7 @@ function handleKeydown(event: KeyboardEvent) {
           loading="lazy"
           decoding="async"
           draggable="false"
+          format="webp"
         />
         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <div class="absolute inset-x-0 bottom-0 flex h-full flex-col justify-end gap-4 p-6">
@@ -84,6 +85,7 @@ function handleKeydown(event: KeyboardEvent) {
           loading="lazy"
           decoding="async"
           draggable="false"
+          format="webp"
         />
 
         <div class="flex items-center gap-3">

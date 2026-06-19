@@ -65,6 +65,7 @@ const pdfFile = computed(() => props.guide.pdfFile || '')
             <NuxtImg
               :src="coverImage"
               :alt="title"
+              format="webp"
               class="h-96 w-full object-cover"
             />
           </div>

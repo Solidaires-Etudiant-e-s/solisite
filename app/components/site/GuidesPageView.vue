@@ -60,6 +60,7 @@ function pageQuery(page: number) {
               <NuxtImg
                 :src="guide.coverImage || '/hero.jpg'"
                 :alt="guide.title"
+                format="webp"
                 class="mb-4 h-52 w-full object-cover"
               />
             </template>

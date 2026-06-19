@@ -70,6 +70,10 @@ export default defineNuxtConfig({
     }
   },
 
+  image: {
+    format: ['webp']
+  },
+
   robots: {
     blockNonSeoBots: true
   },

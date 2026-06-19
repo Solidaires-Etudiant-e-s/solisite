@@ -107,6 +107,7 @@ const partnersModel = computed({
                         v-if="partner.logo"
                         :src="partner.logo"
                         :alt="partner.name"
+                        format="webp"
                         class="h-12 object-contain"
                       />
                       <span
@@ -153,6 +154,7 @@ const partnersModel = computed({
                     v-if="partner.logo"
                     :src="partner.logo"
                     :alt="partner.name"
+                    format="webp"
                     class="h-18 object-contain"
                   />
                   <span
