@@ -54,7 +54,7 @@ onMounted(() => {
 
   const { isBot } = useBotDetection()
 
-  if (!hasFrenchLanguage || isBot.value) {
+  if (!hasFrenchLanguage && !isBot.value) {
     showInternationalRedirectPrompt.value = true
   }
 })
