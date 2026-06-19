@@ -62,11 +62,11 @@ const pdfFile = computed(() => props.guide.pdfFile || '')
           }])"
         >
           <div class="overflow-hidden rounded-2xl border border-default bg-muted">
-            <img
+            <NuxtImg
               :src="coverImage"
               :alt="title"
               class="h-96 w-full object-cover"
-            >
+            />
           </div>
         </CmsEditableNode>
 

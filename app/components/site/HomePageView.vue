@@ -61,7 +61,7 @@ const partnersModel = computed({
               srcset="/hero/hero-home.webp"
               type="image/webp"
             >
-            <img
+            <NuxtImg
               src="/hero/hero-home.png"
               alt=""
               class="h-full w-full object-cover"
@@ -69,7 +69,7 @@ const partnersModel = computed({
               decoding="async"
               fetchpriority="high"
               style="filter: saturate(0%) contrast(134%) brightness(115%);"
-            >
+            />
           </picture>
 
           <div class="hero-accent-overlay absolute inset-0" />
@@ -331,12 +331,12 @@ const partnersModel = computed({
               >
                 <template #leading>
                   <div class="flex h-16 w-full items-center justify-center">
-                    <img
+                    <NuxtImg
                       v-if="partner.logo"
                       :src="partner.logo"
                       :alt="partner.name"
                       class="h-12 object-contain"
-                    >
+                    />
                     <span
                       v-else
                       class="text-sm text-muted"
@@ -377,12 +377,12 @@ const partnersModel = computed({
           >
             <template #leading>
               <div class="flex h-16 items-center justify-center">
-                <img
+                <NuxtImg
                   v-if="partner.logo"
                   :src="partner.logo"
                   :alt="partner.name"
                   class="h-18 object-contain"
-                >
+                />
                 <span
                   v-else
                   class="text-sm text-muted"

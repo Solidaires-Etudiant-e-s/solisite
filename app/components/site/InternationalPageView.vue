@@ -103,12 +103,12 @@ const partnersModel = computed({
                 >
                   <template #leading>
                     <div class="flex h-16 w-full items-center justify-center">
-                      <img
+                      <NuxtImg
                         v-if="partner.logo"
                         :src="partner.logo"
                         :alt="partner.name"
                         class="h-12 object-contain"
-                      >
+                      />
                       <span
                         v-else
                         class="text-sm text-muted"
@@ -149,12 +149,12 @@ const partnersModel = computed({
             >
               <template #leading>
                 <div class="flex h-16 items-center justify-center">
-                  <img
+                  <NuxtImg
                     v-if="partner.logo"
                     :src="partner.logo"
                     :alt="partner.name"
                     class="h-18 object-contain"
-                  >
+                  />
                   <span
                     v-else
                     class="text-sm text-muted"

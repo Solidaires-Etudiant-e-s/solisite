@@ -119,11 +119,11 @@ const missionsModel = computed({
             ]
           }"
         >
-          <img
+          <NuxtImg
             :src="content.heroImage || '/hero.jpg'"
             :alt="content.heroImageAlt || 'Manifestation de Solidaires Étudiant·e·s'"
             class="h-full min-h-[22rem] w-full object-cover opacity-70 grayscale"
-          >
+          />
           <div class="about-image-hero-overlay absolute inset-0" />
           <div class="about-image-highlight-overlay absolute inset-0" />
         </CmsEditableNode>
@@ -363,11 +363,11 @@ const missionsModel = computed({
             ]
           }"
         >
-          <img
+          <NuxtImg
             :src="content.functioningImage || '/hero.jpg'"
             :alt="content.functioningImageAlt || 'Rassemblement militant'"
             class="h-full min-h-[24rem] w-full object-cover object-[58%_center] opacity-70 grayscale"
-          >
+          />
           <div class="about-image-functioning-overlay absolute inset-0" />
         </CmsEditableNode>
       </div>
@@ -389,11 +389,11 @@ const missionsModel = computed({
             ]
           }"
         >
-          <img
+          <NuxtImg
             :src="content.historyImage || '/hero.jpg'"
             :alt="content.historyImageAlt || 'Cortège étudiant'"
             class="h-full min-h-[22rem] w-full object-cover object-[40%_center] opacity-70 grayscale"
-          >
+          />
           <div class="about-image-history-overlay absolute inset-0" />
         </CmsEditableNode>
 

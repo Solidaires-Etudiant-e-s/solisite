@@ -52,7 +52,9 @@ onMounted(() => {
     : [navigator.language]
   const hasFrenchLanguage = deviceLanguages.some(language => isFrenchLanguage(language))
 
-  if (!hasFrenchLanguage) {
+  const { isBot } = useBotDetection()
+
+  if (!hasFrenchLanguage || isBot.value) {
     showInternationalRedirectPrompt.value = true
   }
 })

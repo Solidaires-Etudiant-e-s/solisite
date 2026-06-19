@@ -208,12 +208,15 @@ useSeoMeta({
       :ui="{ container: 'sm:!px-0' }"
     >
       <template #title>
-        <NuxtLink
-          to="/"
-          class="text-2xl font-bold font-serif"
-        >
-          {{ siteName }}
-        </NuxtLink>
+        <ClientOnly>
+          <NuxtLink
+            key="site-title-link"
+            to="/"
+            class="text-2xl font-bold font-serif"
+          >
+            Solidaires Étudiant-e-s
+          </NuxtLink>
+        </ClientOnly>
       </template>
 
       <UNavigationMenu :items="navigationLinks" />

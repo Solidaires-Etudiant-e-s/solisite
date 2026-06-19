@@ -28,7 +28,9 @@ export default defineNuxtConfig({
     '@nuxtjs/leaflet',
     'nuxt-jsonld',
     '@nuxtjs/sitemap',
-    '@nuxtjs/robots'
+    '@nuxtjs/robots',
+    '@nuxt/image',
+    '@nuxt/fonts'
   ],
 
   devtools: {
@@ -49,6 +51,14 @@ export default defineNuxtConfig({
 
   nitro: {
     compressPublicAssets: true
+  },
+
+  vite: {
+    optimizeDeps: {
+      include: [
+        'tiptap-extension-resize-image'
+      ]
+    }
   },
 
   eslint: {

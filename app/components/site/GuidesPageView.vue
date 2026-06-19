@@ -57,11 +57,11 @@ function pageQuery(page: number) {
             class="overflow-hidden"
           >
             <template #leading>
-              <img
+              <NuxtImg
                 :src="guide.coverImage || '/hero.jpg'"
                 :alt="guide.title"
                 class="mb-4 h-52 w-full object-cover"
-              >
+              />
             </template>
 
             <template #footer>
