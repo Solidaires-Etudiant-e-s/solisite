@@ -30,7 +30,8 @@ export default defineNuxtConfig({
     '@nuxtjs/sitemap',
     '@nuxtjs/robots',
     '@nuxt/image',
-    '@nuxt/fonts'
+    '@nuxt/fonts',
+    'nuxt-umami'
   ],
 
   devtools: {
@@ -117,4 +118,11 @@ export default defineNuxtConfig({
       '/api/__sitemap__/guides'
     ]
   },
+
+  umami: {
+    id: process.env.UMANI,
+    host: 'https://umami.solidaires-etudiant-e-s.org',
+    autoTrack: true,
+    ignoreLocalhost: true
+  }
 })
