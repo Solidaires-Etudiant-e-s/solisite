@@ -47,6 +47,39 @@ export default defineNuxtConfig({
     }
   },
 
+  routeRules: {
+    '/articles': {
+      isr: 600,
+      headers: {
+        'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600'
+      }
+    },
+    '/articles/**': {
+      isr: 600,
+      headers: {
+        'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600'
+      }
+    },
+    '/guides': {
+      isr: 600,
+      headers: {
+        'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600'
+      }
+    },
+    '/guides/**': {
+      isr: 600,
+      headers: {
+        'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600'
+      }
+    },
+    '/': {
+      isr: 150,
+      headers: {
+        'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600'
+      }
+    }
+  },
+
   compatibilityDate: '2025-01-15',
 
   nitro: {
@@ -83,5 +116,5 @@ export default defineNuxtConfig({
       '/api/__sitemap__/articles',
       '/api/__sitemap__/guides'
     ]
-  }
+  },
 })

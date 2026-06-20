@@ -66,6 +66,7 @@ const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
               :alt="title"
               format="webp"
               class="h-96 w-full object-cover"
+              preload
             />
           </div>
         </CmsEditableNode>
