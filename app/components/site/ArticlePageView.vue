@@ -61,13 +61,12 @@ const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
           }])"
         >
           <div class="overflow-hidden rounded-2xl border border-default bg-muted">
-            <NuxtImg
+            <img
               :src="coverImage"
               :alt="title"
-              format="webp"
               class="h-96 w-full object-cover"
               preload
-            />
+            >
           </div>
         </CmsEditableNode>
 

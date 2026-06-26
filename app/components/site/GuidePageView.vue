@@ -7,6 +7,7 @@ const props = defineProps<{
   guide: CmsGuide
 }>()
 
+const editor = useCmsPageLiveEditor()
 const targetIdPrefix = computed(() => `guide:${props.guide.id || 'draft'}`)
 const publishedLabel = computed(() => formatFrenchDate(props.guide.publishedAt))
 const title = computed(() => props.guide.title || 'Guide sans titre')
@@ -62,12 +63,11 @@ const pdfFile = computed(() => props.guide.pdfFile || '')
           }])"
         >
           <div class="overflow-hidden rounded-2xl border border-default bg-muted">
-            <NuxtImg
+            <img
               :src="coverImage"
               :alt="title"
-              format="webp"
               class="h-96 w-full object-cover"
-            />
+            >
           </div>
         </CmsEditableNode>
 
@@ -87,7 +87,7 @@ const pdfFile = computed(() => props.guide.pdfFile || '')
             variant="solid"
             icon="mingcute:download-2-line"
             :href="pdfFile || undefined"
-            :disabled="!pdfFile"
+            :disabled="!pdfFile && !editor?.enabled"
             target="_blank"
           >
             {{ pdfFile ? 'Télécharger le guide en PDF' : 'Ajoute un PDF pour activer le téléchargement' }}
