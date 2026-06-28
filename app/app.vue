@@ -271,58 +271,72 @@ useSeoMeta({
 
     <footer
       v-if="showSiteFooter"
-      class="site-footer"
+      class="border-t border-default px-8 py-10"
     >
-      <div class="site-footer__inner">
-        <p class="site-footer__line">
-          <UIcon
-            name="mingcute:world-2-line"
-            class="site-footer__icon"
-          />
-          <span>Site web réalisé par les militant·e·s de Solidaires Étudiant·e·s publié sous licence </span>
-          <a
-            href="https://www.gnu.org/licenses/agpl-3.0.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            AGPL-3.0
-          </a>
-          <span>.</span>
-        </p>
-
-        <p class="site-footer__line">
-          <UIcon
-            name="mingcute:github-line"
-            class="site-footer__icon"
-          />
-          <span>Code source disponible sur </span>
-          <a
-            :href="gitRepositoryUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            GitHub
-          </a>
-          <template v-if="gitCommitShort && gitCommitUrl">
-            <span>, commit actuel </span>
+      <div class="mx-auto flex w-full max-w-6xl flex-col gap-4 text-[0.98rem] leading-normal md:flex-row md:items-center md:justify-between">
+        <div class="flex flex-col gap-2">
+          <p class="flex flex-wrap items-center justify-center gap-[0.2rem] md:justify-start">
+            <UIcon
+              name="mingcute:world-2-line"
+              class="shrink-0"
+            />
+            <span>Site web réalisé par les militant·e·s de Solidaires Étudiant·e·s publié sous licence </span>
             <a
-              :href="gitCommitUrl"
+              href="https://www.gnu.org/licenses/agpl-3.0.html"
               target="_blank"
               rel="noopener noreferrer"
+              class="text-inherit underline underline-offset-[0.16em]"
             >
-              {{ gitCommitShort }}
+              AGPL-3.0
             </a>
-          </template>
-          <span>.</span>
-        </p>
+            <span>.</span>
+          </p>
 
-        <p class="site-footer__line">
-          <UIcon
-            name="mingcute:map-pin-line"
-            class="site-footer__icon"
+          <p class="flex flex-wrap items-center justify-center gap-[0.2rem] md:justify-start">
+            <UIcon
+              name="mingcute:github-line"
+              class="shrink-0"
+            />
+            <span>Code source disponible sur </span>
+            <a
+              :href="gitRepositoryUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-inherit underline underline-offset-[0.16em]"
+            >
+              GitHub
+            </a>
+            <template v-if="gitCommitShort && gitCommitUrl">
+              <span>, commit actuel </span>
+              <a
+                :href="gitCommitUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-inherit underline underline-offset-[0.16em]"
+              >
+                {{ gitCommitShort }}
+              </a>
+            </template>
+            <span>.</span>
+          </p>
+
+          <p class="flex flex-wrap items-center justify-center gap-[0.2rem] md:justify-start">
+            <UIcon
+              name="mingcute:map-pin-line"
+              class="shrink-0"
+            />
+            <span>Solidaires Étudiant-e-s syndicats de luttes, association de loi 1901. Paris (25-27, rue des Envierges).</span>
+          </p>
+        </div>
+
+        <div class="flex shrink-0 flex-col items-center md:items-end">
+          <UButton
+            label="Contacter la cellule de veille"
+            icon="mingcute:lifebuoy-line"
+            color="primary"
+            to="mailto:sf@solidaires-etudiant-e-s.org"
           />
-          <span>Solidaires Étudiant-e-s syndicats de luttes, association de loi 1901. Paris (25-27, rue des Envierges).</span>
-        </p>
+        </div>
       </div>
     </footer>
   </UApp>
