@@ -32,28 +32,63 @@ async function main() {
   const tags = extractTags(sqlContent)
   console.log(`Found ${tags.size} unique WordPress post tags`)
 
-  if (DRY_RUN) {
-    const sample = [...tags.entries()].slice(0, 10)
-    for (const [slug, tag] of sample) {
-      console.log(`  Tag: ${tag.name} (${slug})`)
+  const postSlugToPostId = extractPosts(sqlContent)
+  console.log(`Found ${postSlugToPostId.size} published WordPress posts`)
+
+  const { postTagTermTaxonomyIds, termTaxonomyIdToTermId } = extractTaxonomy(sqlContent)
+  console.log(`  WordPress post_tag taxonomies: ${postTagTermTaxonomyIds.size}`)
+
+  const termIdToSlug = new Map()
+  extractTerms(sqlContent, termIdToSlug)
+  console.log(`  WordPress terms: ${termIdToSlug.size}`)
+
+  const postIdToTermTaxonomyIds = extractRelationships(sqlContent, postTagTermTaxonomyIds)
+  console.log(`  Posts with tag relationships: ${postIdToTermTaxonomyIds.size}`)
+
+  const cmsArticles = await prisma.article.findMany({
+    select: { slug: true, id: true }
+  })
+  const cmsBySlug = new Map(cmsArticles.map(a => [a.slug, a]))
+  console.log(`Found ${cmsArticles.length} CMS articles`)
+
+  let matched = 0
+  let linked = 0
+
+  for (const [wpSlug, postId] of postSlugToPostId) {
+    const termTaxonomyIds = postIdToTermTaxonomyIds.get(postId) || []
+    const tagSlugs = new Set()
+
+    for (const ttId of termTaxonomyIds) {
+      const termId = termTaxonomyIdToTermId.get(ttId)
+      const slug = termId && termIdToSlug.get(termId)
+      if (slug && tags.has(slug)) {
+        tagSlugs.add(slug)
+      }
     }
-    console.log('(dry run - no changes made)')
-    await prisma.$disconnect()
-    return
+
+    if (tagSlugs.size === 0) continue
+
+    const article = cmsBySlug.get(wpSlug)
+    if (!article) continue
+
+    const dbTags = [...tagSlugs].map(s => tags.get(s))
+    matched++
+
+    if (DRY_RUN) {
+      console.log(`  [dry] ${wpSlug} -> ${dbTags.map(t => t.name).join(', ')}`)
+      continue
+    }
+
+    await syncArticleTags(prisma, article.id, dbTags)
+    linked++
   }
 
-  let imported = 0
-
-  for (const [slug, tag] of tags) {
-    await prisma.tag.upsert({
-      where: { slug },
-      update: { name: tag.name },
-      create: { name: tag.name, slug }
-    })
-    imported++
+  if (DRY_RUN) {
+    console.log(`(dry run - would link tags to ${matched} articles)`)
+  } else {
+    console.log(`Linked tags to ${linked} CMS articles`)
   }
 
-  console.log(`Imported ${imported} tags into CMS database`)
   await prisma.$disconnect()
 }
 
@@ -70,44 +105,58 @@ function stripQuotes(value) {
   return str
 }
 
-function splitSqlFields(row) {
+function splitFields(raw) {
   const fields = []
   let current = ''
   let inString = false
   let escapeNext = false
 
-  for (let i = 0; i < row.length; i++) {
-    const char = row[i]
+  for (let i = 0; i < raw.length; i++) {
+    const char = raw[i]
+    if (escapeNext) { current += char; escapeNext = false; continue }
+    if (char === '\\') { escapeNext = true; current += char; continue }
+    if (char === "'") { inString = !inString; current += char; continue }
+    if (char === ',' && !inString) { fields.push(current); current = ''; continue }
+    current += char
+  }
+  fields.push(current)
+  return fields
+}
 
-    if (escapeNext) {
-      current += char
-      escapeNext = false
-      continue
+function extractRows(block) {
+  const rows = []
+  let current = ''
+  let inString = false
+  let escapeNext = false
+  let parenDepth = 0
+
+  for (let i = 0; i < block.length; i++) {
+    const char = block[i]
+    if (escapeNext) { current += char; escapeNext = false; continue }
+    if (char === '\\') { escapeNext = true; current += char; continue }
+    if (char === "'") { inString = !inString; current += char; continue }
+    if (!inString) {
+      if (char === '(') {
+        if (parenDepth === 0) current = ''
+        parenDepth++
+        if (parenDepth > 1) current += char
+        continue
+      }
+      if (char === ')') {
+        parenDepth--
+        if (parenDepth === 0) {
+          rows.push(splitFields(current))
+          current = ''
+          continue
+        }
+        current += char
+        continue
+      }
     }
-
-    if (char === '\\') {
-      escapeNext = true
-      current += char
-      continue
-    }
-
-    if (char === "'") {
-      inString = !inString
-      current += char
-      continue
-    }
-
-    if (char === ',' && !inString) {
-      fields.push(current.trim())
-      current = ''
-      continue
-    }
-
     current += char
   }
 
-  fields.push(current.trim())
-  return fields
+  return rows
 }
 
 function extractTags(sqlContent) {
@@ -120,48 +169,11 @@ function extractTags(sqlContent) {
 
   for (const match of taxonomyMatches) {
     const block = match[1]
-
-    let rowStart = 0
-    let inString = false
-    let escapeNext = false
-    let parenDepth = 0
-
-    for (let i = 0; i < block.length; i++) {
-      const char = block[i]
-
-      if (escapeNext) {
-        escapeNext = false
-        continue
-      }
-
-      if (char === '\\') {
-        escapeNext = true
-        continue
-      }
-
-      if (char === "'") {
-        inString = !inString
-        continue
-      }
-
-      if (!inString) {
-        if (char === '(') {
-          if (parenDepth === 0) rowStart = i
-          parenDepth++
-        } else if (char === ')') {
-          parenDepth--
-          if (parenDepth === 0) {
-            const rowStr = block.substring(rowStart + 1, i)
-            const fields = splitSqlFields(rowStr)
-            if (fields.length >= 3) {
-              const taxonomy = stripQuotes(fields[2])
-              if (taxonomy === 'post_tag') {
-                const termTaxonomyId = stripQuotes(fields[0])
-                postTagTermTaxonomyIds.add(termTaxonomyId)
-              }
-            }
-          }
-        }
+    for (const fields of extractRows(block)) {
+      if (fields.length < 3) continue
+      const taxonomy = stripQuotes(fields[2])
+      if (taxonomy === 'post_tag') {
+        postTagTermTaxonomyIds.add(stripQuotes(fields[0]))
       }
     }
   }
@@ -171,55 +183,139 @@ function extractTags(sqlContent) {
 
   for (const match of termsMatches) {
     const block = match[1]
-
-    let rowStart = 0
-    let inString = false
-    let escapeNext = false
-    let parenDepth = 0
-
-    for (let i = 0; i < block.length; i++) {
-      const char = block[i]
-
-      if (escapeNext) {
-        escapeNext = false
-        continue
-      }
-
-      if (char === '\\') {
-        escapeNext = true
-        continue
-      }
-
-      if (char === "'") {
-        inString = !inString
-        continue
-      }
-
-      if (!inString) {
-        if (char === '(') {
-          if (parenDepth === 0) rowStart = i
-          parenDepth++
-        } else if (char === ')') {
-          parenDepth--
-          if (parenDepth === 0) {
-            const rowStr = block.substring(rowStart + 1, i)
-            const fields = splitSqlFields(rowStr)
-            if (fields.length >= 3) {
-              const termId = stripQuotes(fields[0])
-              const name = stripQuotes(fields[1])
-              const slug = stripQuotes(fields[2])
-
-              if (name && slug) {
-                tags.set(slug, { name, slug })
-              }
-            }
-          }
-        }
+    for (const fields of extractRows(block)) {
+      if (fields.length < 3) continue
+      const name = stripQuotes(fields[1])
+      const slug = stripQuotes(fields[2])
+      if (name && slug) {
+        tags.set(slug, { name, slug })
       }
     }
   }
 
   return tags
+}
+
+function extractPosts(sqlContent) {
+  const postSlugToId = new Map()
+
+  const postsRegex = /INSERT INTO `wp_posts` \([^)]+\) VALUES\n([\s\S]*?);/g
+  const postsMatches = [...sqlContent.matchAll(postsRegex)]
+
+  for (const match of postsMatches) {
+    const block = match[1]
+    for (const fields of extractRows(block)) {
+      if (fields.length < 22) continue
+      const postType = stripQuotes(fields[20])
+      const postStatus = stripQuotes(fields[7])
+      const postName = stripQuotes(fields[11])
+      const postId = stripQuotes(fields[0])
+      if (postType === 'post' && postStatus === 'publish' && postName && postId) {
+        postSlugToId.set(postName, postId)
+      }
+    }
+  }
+
+  return postSlugToId
+}
+
+function extractTaxonomy(sqlContent) {
+  const postTagTermTaxonomyIds = new Set()
+  const termTaxonomyIdToTermId = new Map()
+
+  const taxonomyRegex = /INSERT INTO `wp_term_taxonomy` \([^)]+\) VALUES\n([\s\S]*?);/g
+  const taxonomyMatches = [...sqlContent.matchAll(taxonomyRegex)]
+
+  for (const match of taxonomyMatches) {
+    const block = match[1]
+    for (const fields of extractRows(block)) {
+      if (fields.length < 3) continue
+      const taxonomy = stripQuotes(fields[2])
+      if (taxonomy === 'post_tag') {
+        postTagTermTaxonomyIds.add(stripQuotes(fields[0]))
+        termTaxonomyIdToTermId.set(
+          stripQuotes(fields[0]),
+          stripQuotes(fields[1])
+        )
+      }
+    }
+  }
+
+  return { postTagTermTaxonomyIds, termTaxonomyIdToTermId }
+}
+
+function extractTerms(sqlContent, termIdToSlug) {
+  const termsRegex = /INSERT INTO `wp_terms` \([^)]+\) VALUES\n([\s\S]*?);/g
+  const termsMatches = [...sqlContent.matchAll(termsRegex)]
+
+  for (const match of termsMatches) {
+    const block = match[1]
+    for (const fields of extractRows(block)) {
+      if (fields.length < 3) continue
+      const termId = stripQuotes(fields[0])
+      const slug = stripQuotes(fields[2])
+      if (termId && slug) {
+        termIdToSlug.set(termId, slug)
+      }
+    }
+  }
+}
+
+function extractRelationships(sqlContent, postTagTermTaxonomyIds) {
+  const postIdToTermTaxonomyIds = new Map()
+
+  const relRegex = /INSERT INTO `wp_term_relationships` \([^)]+\) VALUES\n([\s\S]*?);/g
+  const relMatches = [...sqlContent.matchAll(relRegex)]
+
+  for (const match of relMatches) {
+    const block = match[1]
+    for (const fields of extractRows(block)) {
+      if (fields.length < 2) continue
+      const objectId = stripQuotes(fields[0])
+      const termTaxonomyId = stripQuotes(fields[1])
+      if (postTagTermTaxonomyIds.has(termTaxonomyId)) {
+        const existing = postIdToTermTaxonomyIds.get(objectId) || []
+        existing.push(termTaxonomyId)
+        postIdToTermTaxonomyIds.set(objectId, existing)
+      }
+    }
+  }
+
+  return postIdToTermTaxonomyIds
+}
+
+async function syncArticleTags(prisma, articleId, tags) {
+  const existing = await prisma.articleTag.findMany({
+    where: { articleId },
+    select: { tagId: true }
+  })
+  const existingTagIds = existing.map(e => e.tagId)
+
+  const dbTags = await prisma.tag.findMany({
+    where: { slug: { in: tags.map(t => t.slug) } }
+  })
+  const dbTagIds = new Set(dbTags.map(t => t.id))
+  const dbTagSlugs = new Set(dbTags.map(t => t.slug))
+
+  for (const tag of tags) {
+    if (!dbTagSlugs.has(tag.slug)) {
+      const created = await prisma.tag.create({ data: { name: tag.name, slug: tag.slug } })
+      dbTagIds.add(created.id)
+    }
+  }
+
+  const targetTagIds = new Set(dbTagIds)
+  const tagsToRemove = existingTagIds.filter(id => !targetTagIds.has(id))
+  if (tagsToRemove.length) {
+    await prisma.articleTag.deleteMany({
+      where: { articleId, tagId: { in: tagsToRemove } }
+    })
+  }
+
+  const tagsToAdd = [...targetTagIds].filter(id => !existingTagIds.includes(id))
+  for (const tagId of tagsToAdd) {
+    await prisma.articleTag.create({ data: { articleId, tagId } })
+  }
 }
 
 main().catch((error) => {
