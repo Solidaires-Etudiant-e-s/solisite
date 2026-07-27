@@ -43,7 +43,7 @@ export interface CmsHomePageContent {
   ctaLabel: string
   ctaHref: string
   ctaTrailingIcon: string
- 
+
 }
 
 export interface CmsArticlesPageContent {
@@ -118,6 +118,7 @@ export interface CmsSyndicat {
   addresses: CmsSyndicatAddress[]
   socials: CmsSocialLink[]
   content: string
+  enabled: boolean
   updatedAt: string
 }
 
@@ -146,6 +147,13 @@ export interface CmsArticle {
   coverImage: string
   publishedAt: string
   updatedAt: string
+  tags: CmsTag[]
+}
+
+export interface CmsTag {
+  id: number
+  name: string
+  slug: string
 }
 
 export interface CmsGuide {
@@ -156,6 +164,7 @@ export interface CmsGuide {
   content: string
   coverImage: string
   pdfFile: string
+  archived: boolean
   publishedAt: string
   updatedAt: string
 }
@@ -372,7 +381,8 @@ export function createEmptyArticle(): CmsArticle {
     content: '',
     coverImage: '/hero.jpg',
     publishedAt: '',
-    updatedAt: ''
+    updatedAt: '',
+    tags: []
   }
 }
 
@@ -385,6 +395,7 @@ export function createEmptyGuide(): CmsGuide {
     content: '',
     coverImage: '/hero.jpg',
     pdfFile: '',
+    archived: false,
     publishedAt: '',
     updatedAt: ''
   }
@@ -400,6 +411,7 @@ export function createEmptySyndicat(): CmsSyndicat {
     addresses: [],
     socials: [],
     content: '',
+    enabled: true,
     updatedAt: ''
   }
 }

@@ -21,7 +21,7 @@ defineProps<{
   articles: CmsArticle[]
   guides: CmsGuide[]
   syndicats: CmsSyndicat[]
-  activeSection: 'pages' | 'articles' | 'guides' | 'syndicats' | 'site-settings'
+  activeSection: 'pages' | 'articles' | 'guides' | 'syndicats' | 'site-settings' | 'manage-syndicats'
   articlePreview: CmsArticle
   guidePreview: CmsGuide
   canManageHistory: boolean
@@ -93,6 +93,10 @@ const emit = defineEmits<{
     :selected-revision="selectedRevision"
     @toggle-history="emit('toggleHistory')"
     @save-guide="emit('saveGuide')"
+  />
+
+  <CmsManageSyndicats
+    v-else-if="activeSection === 'manage-syndicats'"
   />
 
   <UDashboardPanel

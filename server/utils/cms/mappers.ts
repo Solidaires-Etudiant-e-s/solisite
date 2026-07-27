@@ -1,13 +1,11 @@
-import { normalizeSyndicatAddresses, type CmsArticle, type CmsGuide, type CmsPage, type CmsSiteSettings, type CmsSocialLink, type CmsSyndicat, type CmsSyndicatAddress } from '~~/lib/cms'
-import type { ArticleRecord, GuideRecord, PageRecord, SiteSettingsRecord, SyndicatRecord } from './types'
+import { normalizeSyndicatAddresses, type CmsArticle, type CmsGuide, type CmsPage, type CmsSiteSettings, type CmsSocialLink, type CmsSyndicat, type CmsSyndicatAddress, type CmsTag } from '~~/lib/cms'
+import type { ArticleRecord, ArticleTagRecord, GuideRecord, PageRecord, SiteSettingsRecord, SyndicatRecord, TagRecord } from './types'
 import { parsePageContent } from './content'
 
 function parseSocials(raw: string | null | undefined, fallback: Array<Partial<CmsSocialLink>> = []) {
-  let socials: CmsSocialLink[] = []
-
   try {
     const parsed = JSON.parse(raw || '[]') as unknown
-    socials = Array.isArray(parsed)
+    const socials = Array.isArray(parsed)
       ? parsed
           .filter((item): item is Partial<CmsSocialLink> => Boolean(item && typeof item === 'object'))
           .map(item => ({
@@ -16,12 +14,12 @@ function parseSocials(raw: string | null | undefined, fallback: Array<Partial<Cm
             icon: typeof item.icon === 'string' ? item.icon : ''
           }))
       : []
-  } catch {
-    socials = []
-  }
 
-  if (socials.length) {
-    return socials
+    if (socials.length) {
+      return socials
+    }
+  } catch {
+    // ignore parse errors
   }
 
   return fallback
@@ -34,18 +32,25 @@ function parseSocials(raw: string | null | undefined, fallback: Array<Partial<Cm
 }
 
 function parseSyndicatAddresses(raw: string | null | undefined) {
-  let addresses: CmsSyndicatAddress[] = []
-
   try {
     const parsed = JSON.parse(raw || '[]') as unknown
-    addresses = Array.isArray(parsed)
-      ? normalizeSyndicatAddresses(parsed as CmsSyndicatAddress[])
-      : []
+
+    if (Array.isArray(parsed)) {
+      return normalizeSyndicatAddresses(parsed as CmsSyndicatAddress[])
+    }
   } catch {
-    addresses = []
+    // ignore parse errors
   }
 
-  return addresses
+  return []
+}
+
+function toTag(record: TagRecord): CmsTag {
+  return {
+    id: record.id,
+    name: record.name,
+    slug: record.slug
+  }
 }
 
 export function toPage(record: PageRecord): CmsPage {
@@ -63,7 +68,7 @@ export function toPage(record: PageRecord): CmsPage {
   }
 }
 
-export function toArticle(record: ArticleRecord): CmsArticle {
+export function toArticle(record: ArticleRecord, tags?: TagRecord[]): CmsArticle {
   return {
     id: record.id,
     slug: record.slug,
@@ -72,7 +77,8 @@ export function toArticle(record: ArticleRecord): CmsArticle {
     content: record.content,
     coverImage: record.coverImage,
     publishedAt: record.publishedAt,
-    updatedAt: record.updatedAt
+    updatedAt: record.updatedAt,
+    tags: (tags ?? []).map(toTag)
   }
 }
 
@@ -85,6 +91,7 @@ export function toGuide(record: GuideRecord): CmsGuide {
     content: record.content,
     coverImage: record.coverImage,
     pdfFile: record.pdfFile,
+    archived: record.archived,
     publishedAt: record.publishedAt,
     updatedAt: record.updatedAt
   }
@@ -102,6 +109,7 @@ export function toSyndicat(record: SyndicatRecord): CmsSyndicat {
     addresses,
     socials: parseSocials(record.socialsJson),
     content: record.content,
+    enabled: record.enabled,
     updatedAt: record.updatedAt
   }
 }

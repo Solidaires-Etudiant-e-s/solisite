@@ -40,7 +40,6 @@ provideCmsPageLiveEditor(article.value)
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-
           <CmsArticleSettingsPopover v-model:article="article" />
 
           <UButton

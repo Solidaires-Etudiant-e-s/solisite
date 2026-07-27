@@ -1,7 +1,6 @@
 import type { SitemapUrlInput } from '#sitemap/types'
-import { defineSitemapEventHandler } from '#imports'
 
-export default defineSitemapEventHandler(async () => {
+export default defineEventHandler(async () => {
   const client = await useCmsDatabase()
   const articles = await client.article.findMany({})
 

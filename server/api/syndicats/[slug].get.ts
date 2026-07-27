@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   const slug = requireRouteParam(event, 'slug', 'Missing syndicat slug.')
   const syndicat = await getSyndicatBySlug(slug)
 
-  if (!syndicat) {
+  if (!syndicat || !syndicat.enabled) {
     notFound(`Syndicat "${slug}" not found.`)
   }
 

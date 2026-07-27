@@ -14,6 +14,7 @@ const emit = defineEmits<{
   'createArticle': []
   'createGuide': []
   'createSyndicat': []
+  'manageSyndicats': []
 }>()
 </script>
 
@@ -71,21 +72,20 @@ const emit = defineEmits<{
           />
         </template>
 
-        <template #[`syndicats-trailing`]="{ active, ui }">
+        <template #[`syndicats-trailing`]="{ ui }">
           <UButton
-            icon="mingcute:plus-line"
+            icon="mingcute:settings-3-line"
             color="neutral"
             variant="ghost"
             size="xs"
             square
-            :loading="props.creatingSyndicat"
             class="-my-1"
-            @click.stop="emit('createSyndicat')"
+            @click.stop="$emit('manageSyndicats')"
           />
           <UIcon
             :name="appConfig.ui.icons.chevronDown"
             data-slot="linkTrailingIcon"
-            :class="ui.linkTrailingIcon({ active })"
+            :class="ui.linkTrailingIcon({ class: '' })"
           />
         </template>
       </UNavigationMenu>

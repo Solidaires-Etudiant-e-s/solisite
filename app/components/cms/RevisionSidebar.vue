@@ -3,7 +3,7 @@ import { formatFrenchDateTime } from '~/utils/cmsUi'
 import type { CmsRevision } from '~~/lib/cms'
 
 const props = defineProps<{
-  activeSection: 'pages' | 'articles' | 'guides' | 'syndicats' | 'site-settings'
+  activeSection: 'pages' | 'articles' | 'guides' | 'syndicats' | 'site-settings' | 'manage-syndicats'
   currentDraftIsDirty: boolean
   historyLoading: boolean
   revisions: CmsRevision[]

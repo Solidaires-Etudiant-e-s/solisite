@@ -288,8 +288,6 @@ const partnersModel = computed({
       </template>
     </UPageSection>
 
-
-
     <UPageSection
       id="partners"
       :ui="compactSectionUi"

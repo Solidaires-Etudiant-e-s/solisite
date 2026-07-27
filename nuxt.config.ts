@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process'
+import { resolve } from 'node:path'
 
 const gitCommitShort = process.env.NUXT_PUBLIC_GIT_COMMIT_SHORT
   || process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7)
@@ -105,6 +106,8 @@ export default defineNuxtConfig({
   },
 
   image: {
+    provider: 'ipx',
+    dir: resolve(process.cwd(), 'public'),
     format: ['webp']
   },
 

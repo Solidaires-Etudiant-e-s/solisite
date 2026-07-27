@@ -1,5 +1,18 @@
 <script setup lang="ts">
-const { data, refresh } = await useFetch<CmsBootstrap>('/api/cms/bootstrap')
+const toast = useToast()
+const { data, error, refresh } = await useFetch<CmsBootstrap>('/api/cms/bootstrap')
+
+if (error.value) {
+  if (import.meta.client) {
+    onMounted(() => {
+      toast.add({ title: error.value?.statusMessage || 'Accès non autorisé', color: 'error' })
+      setTimeout(() => navigateTo('/'), 2500)
+    })
+  } else {
+    navigateTo('/')
+  }
+}
+
 const {
   activeSection,
   articleDraft,
@@ -19,6 +32,7 @@ const {
   historyLoading,
   historyOpen,
   isAdmin,
+  manageSyndicats,
   navigationItems,
   guideDraft,
   guidePreview,
@@ -52,7 +66,9 @@ const {
   toggleHistory
 } = useCmsAdmin(data)
 
-await refresh()
+if (!error.value) {
+  await refresh()
+}
 
 function handleBeforeUnload(event: BeforeUnloadEvent) {
   if (!currentDraftIsDirty.value) {
@@ -90,7 +106,10 @@ useHead({
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-default">
+  <div
+    v-if="!error"
+    class="flex min-h-screen bg-default"
+  >
     <UDashboardGroup class="flex-1">
       <CmsSidebar
         v-if="showSidebar"
@@ -103,6 +122,7 @@ useHead({
         @create-article="createArticleRecord"
         @create-guide="createGuideRecord"
         @create-syndicat="createSyndicatRecord"
+        @manage-syndicats="manageSyndicats"
       />
 
       <div class="flex min-w-0 flex-1 gap-0 bg-default">

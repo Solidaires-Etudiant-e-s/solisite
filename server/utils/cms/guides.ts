@@ -18,7 +18,14 @@ export async function listGuides(database?: CmsDatabaseClient) {
     ]
   }) as GuideRecord[]
 
-  return records.map(toGuide)
+  const guides = records.map(toGuide)
+
+  return guides.sort((a, b) => {
+    if (a.archived !== b.archived) {
+      return a.archived ? 1 : -1
+    }
+    return 0
+  })
 }
 
 export async function getGuideById(id: number, database?: CmsDatabaseClient) {
@@ -67,10 +74,11 @@ export async function createGuide() {
       data: {
         slug,
         title,
-        excerpt: 'Rédige un court résumé pour l’affichage dans la liste des guides.',
+        excerpt: 'Rédige un court résumé pour l\'affichage dans la liste des guides.',
         content: '<p>Commence à écrire ici.</p>',
         coverImage: '/hero.jpg',
         pdfFile: '',
+        archived: false,
         publishedAt: timestamp,
         updatedAt: timestamp
       }
@@ -103,6 +111,7 @@ async function normalizeGuideUpdate(current: CmsGuide, input: Partial<CmsGuide>,
     content: input.content ?? current.content,
     coverImage: input.coverImage ?? current.coverImage,
     pdfFile: input.pdfFile ?? current.pdfFile,
+    archived: input.archived ?? current.archived,
     publishedAt: input.publishedAt ?? current.publishedAt,
     updatedAt: nowIso()
   }
@@ -127,6 +136,7 @@ export async function updateGuide(id: number, input: Partial<CmsGuide>, options:
         content: updated.content,
         coverImage: updated.coverImage,
         pdfFile: updated.pdfFile,
+        archived: updated.archived,
         publishedAt: updated.publishedAt,
         updatedAt: updated.updatedAt
       }

@@ -1,13 +1,76 @@
 import type { Prisma } from '@prisma/client'
-import type { CmsArticle } from '~~/lib/cms'
+import type { CmsArticle, CmsTag } from '~~/lib/cms'
 import { createArticleRevision } from './revisions'
-import type { ArticleRecord } from './types'
+import type { ArticleRecord, ArticleTagRecord, TagRecord } from './types'
 import { runInCmsTransaction, useCmsDatabase } from './database'
 import { notFound } from './http'
 import { toArticle } from './mappers'
-import { nowIso, resolveUniqueSlug } from './shared'
+import { nowIso, resolveUniqueSlug, slugify } from './shared'
 
 type CmsDatabaseClient = Prisma.TransactionClient | Awaited<ReturnType<typeof useCmsDatabase>>
+
+function normalizeTags(tags: CmsTag[] | null | undefined): { name: string; slug: string }[] {
+  if (!tags) {
+    return []
+  }
+
+  return tags
+    .filter(tag => tag.name.trim() || tag.slug.trim())
+    .map(tag => ({
+      name: tag.name.trim(),
+      slug: slugify(tag.name.trim() || tag.slug.trim())
+    }))
+    .filter(tag => tag.name && tag.slug)
+}
+
+async function syncArticleTags(
+  articleId: number,
+  inputTags: CmsTag[] | null | undefined,
+  database: CmsDatabaseClient
+) {
+  const normalized = normalizeTags(inputTags)
+
+  const existing = await database.articleTag.findMany({
+    where: { articleId },
+    select: { tagId: true }
+  })
+
+  const existingTagIds = existing.map(e => e.tagId)
+  const newTagSlugs = normalized.map(t => t.slug)
+
+  const matchingTags = await database.tag.findMany({
+    where: { slug: { in: newTagSlugs } }
+  })
+
+  const matchedTagIds = matchingTags.map(t => t.id)
+  const tagsToCreate = normalized.filter(t => !matchingTags.some(mt => mt.slug === t.slug))
+
+  for (const tag of tagsToCreate) {
+    const created = await database.tag.create({
+      data: { name: tag.name, slug: tag.slug }
+    })
+    matchedTagIds.push(created.id)
+  }
+
+  const tagsToRemove = existingTagIds.filter(id => !matchedTagIds.includes(id))
+
+  if (tagsToRemove.length) {
+    await database.articleTag.deleteMany({
+      where: {
+        articleId,
+        tagId: { in: tagsToRemove }
+      }
+    })
+  }
+
+  const tagsToAdd = matchedTagIds.filter(id => !existingTagIds.includes(id))
+
+  for (const tagId of tagsToAdd) {
+    await database.articleTag.create({
+      data: { articleId, tagId }
+    })
+  }
+}
 
 export async function listArticles(database?: CmsDatabaseClient) {
   const client = database ?? await useCmsDatabase()
@@ -15,28 +78,31 @@ export async function listArticles(database?: CmsDatabaseClient) {
     orderBy: [
       { publishedAt: 'desc' },
       { id: 'desc' }
-    ]
-  }) as ArticleRecord[]
+    ],
+    include: { articleTags: { include: { tag: true } } }
+  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }> })[]
 
-  return records.map(toArticle)
+  return records.map(record => toArticle(record, record.articleTags.map(at => at.tag)))
 }
 
 export async function getArticleById(id: number, database?: CmsDatabaseClient) {
   const client = database ?? await useCmsDatabase()
   const record = await client.article.findUnique({
-    where: { id }
-  }) as ArticleRecord | null
+    where: { id },
+    include: { articleTags: { include: { tag: true } } }
+  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }> }) | null
 
-  return record ? toArticle(record) : null
+  return record ? toArticle(record, record.articleTags.map(at => at.tag)) : null
 }
 
 export async function getArticleBySlug(slug: string, database?: CmsDatabaseClient) {
   const client = database ?? await useCmsDatabase()
   const record = await client.article.findUnique({
-    where: { slug }
-  }) as ArticleRecord | null
+    where: { slug },
+    include: { articleTags: { include: { tag: true } } }
+  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }> }) | null
 
-  return record ? toArticle(record) : null
+  return record ? toArticle(record, record.articleTags.map(at => at.tag)) : null
 }
 
 async function getUniqueArticleSlug(baseTitle: string, currentId?: number, database?: CmsDatabaseClient) {
@@ -57,7 +123,7 @@ async function getUniqueArticleSlug(baseTitle: string, currentId?: number, datab
   )
 }
 
-export async function createArticle() {
+export async function createArticle(tags?: CmsTag[]) {
   return await runInCmsTransaction(async (database) => {
     const timestamp = nowIso()
     const title = `Nouvel article ${new Date().toLocaleDateString('fr-FR')}`
@@ -67,7 +133,7 @@ export async function createArticle() {
       data: {
         slug,
         title,
-        excerpt: 'Rédige un court résumé pour l’affichage dans la liste des articles.',
+        excerpt: 'Rédige un court résumé pour l\'affichage dans la liste des articles.',
         content: '<p>Commence à écrire ici.</p>',
         coverImage: '/hero.jpg',
         publishedAt: timestamp,
@@ -81,7 +147,17 @@ export async function createArticle() {
       notFound(`Article "${created.id}" not found.`)
     }
 
-    return article
+    if (tags && tags.length > 0) {
+      await syncArticleTags(created.id, tags, database)
+    }
+
+    const savedArticle = await getArticleById(created.id, database)
+
+    if (!savedArticle) {
+      notFound(`Article "${created.id}" not found.`)
+    }
+
+    return savedArticle
   })
 }
 
@@ -102,7 +178,8 @@ async function normalizeArticleUpdate(current: CmsArticle, input: Partial<CmsArt
     content: input.content ?? current.content,
     coverImage: input.coverImage ?? current.coverImage,
     publishedAt: input.publishedAt ?? current.publishedAt,
-    updatedAt: nowIso()
+    updatedAt: nowIso(),
+    tags: input.tags ?? current.tags
   }
 }
 
@@ -128,6 +205,10 @@ export async function updateArticle(id: number, input: Partial<CmsArticle>, opti
         updatedAt: updated.updatedAt
       }
     })
+
+    if (input.tags !== undefined) {
+      await syncArticleTags(id, input.tags, database)
+    }
 
     const savedArticle = await getArticleById(id, database)
 

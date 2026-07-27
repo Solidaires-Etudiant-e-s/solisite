@@ -11,8 +11,9 @@ const targetIdPrefix = computed(() => `article:${props.article.id || 'draft'}`)
 const publishedLabel = computed(() => formatFrenchDate(props.article.publishedAt))
 const title = computed(() => props.article.title || 'Article sans titre')
 const excerpt = computed(() => props.article.excerpt || 'Ajoute un extrait pour résumer le contenu de cet article.')
-const content = computed(() => props.article.content || '<p>Commence à écrire pour prévisualiser l’article.</p>')
+const content = computed(() => props.article.content || '<p>Commence à écrire pour prévisualiser cet article.</p>')
 const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
+const tags = computed(() => props.article.tags ?? [])
 </script>
 
 <template>
@@ -30,6 +31,17 @@ const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
         >
           {{ publishedLabel }}
         </CmsEditableNode>
+
+        <div v-if="tags.length" class="flex flex-wrap gap-2">
+          <UBadge
+            v-for="tag in tags"
+            :key="tag.slug"
+            color="neutral"
+            variant="subtle"
+          >
+            {{ tag.name }}
+          </UBadge>
+        </div>
 
         <CmsEditableNode
           tag="h1"
@@ -61,12 +73,13 @@ const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
           }])"
         >
           <div class="overflow-hidden rounded-2xl border border-default bg-muted">
-            <img
+            <NuxtImg
               :src="coverImage"
               :alt="title"
               class="h-96 w-full object-cover"
               preload
-            >
+              format="webp"
+            />
           </div>
         </CmsEditableNode>
 

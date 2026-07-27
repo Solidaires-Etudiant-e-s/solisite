@@ -2,7 +2,7 @@ import type { Ref } from 'vue'
 import { cloneCmsValue, createEmptyArticle, createEmptyGuide, createEmptyPage, createEmptySiteSettings, createEmptySyndicat, slugify } from '~~/lib/cms'
 import type { CmsArticle, CmsBootstrap, CmsGuide, CmsPage, CmsRevision, CmsRevisionEntityType, CmsSiteSettings, CmsSyndicat } from '~~/lib/cms'
 
-type CmsAdminSection = 'pages' | 'articles' | 'guides' | 'syndicats' | 'site-settings'
+type CmsAdminSection = 'pages' | 'articles' | 'guides' | 'syndicats' | 'site-settings' | 'manage-syndicats'
 
 export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   const activeSection = ref<CmsAdminSection>('pages')
@@ -72,7 +72,12 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   }
 
   function sortGuides(items: CmsGuide[]) {
-    return [...items].sort((left, right) => right.publishedAt.localeCompare(left.publishedAt) || right.id - left.id)
+    return [...items].sort((left, right) => {
+      if (left.archived !== right.archived) {
+        return left.archived ? 1 : -1
+      }
+      return right.publishedAt.localeCompare(left.publishedAt) || right.id - left.id
+    })
   }
 
   function sortSyndicats(items: CmsSyndicat[]) {
@@ -842,6 +847,10 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     }
   }
 
+  function manageSyndicats() {
+    activeSection.value = 'manage-syndicats'
+  }
+
   return {
     activeSection,
     articleDirty,
@@ -864,6 +873,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     historyLoading,
     historyOpen,
     isAdmin,
+    manageSyndicats,
     navigationItems,
     pageDirty,
     pageDraft,

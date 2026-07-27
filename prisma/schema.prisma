@@ -30,8 +30,28 @@ model Article {
   coverImage  String @default("/hero.jpg") @map("cover_image") @db.VarChar(512)
   publishedAt String @map("published_at") @db.VarChar(64)
   updatedAt   String @map("updated_at") @db.VarChar(64)
+  articleTags ArticleTag[]
 
   @@map("articles")
+}
+
+model Tag {
+  id    Int         @id @default(autoincrement())
+  name  String      @db.VarChar(255)
+  slug  String      @unique @db.VarChar(191)
+  articleTags ArticleTag[]
+
+  @@map("tags")
+}
+
+model ArticleTag {
+  articleId Int @map("article_id")
+  tagId     Int @map("tag_id")
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@map("article_tags")
 }
 
 model Guide {
@@ -42,6 +62,7 @@ model Guide {
   content     String @db.LongText
   coverImage  String @default("/hero.jpg") @map("cover_image") @db.VarChar(512)
   pdfFile     String @default("") @map("pdf_file") @db.VarChar(512)
+  archived    Boolean @default(false)
   publishedAt String @map("published_at") @db.VarChar(64)
   updatedAt   String @map("updated_at") @db.VarChar(64)
 
@@ -57,9 +78,23 @@ model Syndicat {
   addressesJson String @map("addresses_json") @db.LongText
   socialsJson String @map("socials_json") @db.LongText
   content     String @db.LongText
+  enabled     Boolean @default(true)
   updatedAt   String @map("updated_at") @db.VarChar(64)
 
+  authLinks SyndicatAuth[]
+
   @@map("syndicats")
+}
+
+model SyndicatAuth {
+  id         Int      @id @default(autoincrement())
+  syndicatId Int      @map("syndicat_id")
+  ldapUid    String   @unique @map("ldap_uid") @db.VarChar(191)
+  createdAt  String   @default("") @map("created_at") @db.VarChar(64)
+  syndicat   Syndicat @relation(fields: [syndicatId], references: [id], onDelete: Cascade)
+
+  @@index([syndicatId], map: "syndicat_auth_syndicat_idx")
+  @@map("syndicat_auth")
 }
 
 model SiteSettings {

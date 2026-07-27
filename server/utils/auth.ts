@@ -2,9 +2,9 @@ import { Client } from 'ldapts'
 import type { H3Event } from 'h3'
 import { createError } from 'h3'
 import type { CmsAuthenticatedUser } from '~~/lib/cms'
-import { slugify } from '~~/lib/cms'
-import { getSyndicatById, listSyndicats } from './cms/syndicats'
+import { getSyndicatById } from './cms/syndicats'
 import { getRevisionById } from './cms/revisions'
+import { useCmsDatabase } from './cms/database'
 
 const USER_DN = 'ou=users,dc=yunohost,dc=org'
 const GROUPS_DN = 'ou=groups,dc=yunohost,dc=org'
@@ -49,20 +49,6 @@ function matchesGroup(value: unknown, expected: string) {
   }
 
   return typeof value === 'string' && value === expected
-}
-
-function normalizeIdentity(value: string) {
-  const trimmed = value.trim().toLocaleLowerCase('fr')
-
-  if (!trimmed) {
-    return ''
-  }
-
-  return trimmed
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
 }
 
 function getYunohostUserName(event: H3Event, fallbackName: string) {
@@ -129,30 +115,31 @@ export async function resolveCmsAccess(event: H3Event): Promise<CmsAccessContext
     }
   }
 
-  const identity = normalizeIdentity(getYunohostUserName(event, user.name))
-  const syndicats = await listSyndicats()
-  const syndicat = syndicats.find((entry) => {
-    const candidates = [
-      entry.slug,
-      entry.name,
-      entry.city,
-      slugify(entry.name),
-      slugify(entry.city)
-    ]
+  const ldapUid = getYunohostUserName(event, user.name)
 
-    return candidates.some(candidate => normalizeIdentity(candidate || '') === identity)
+  const database = await useCmsDatabase()
+  const authLink = await database.syndicatAuth.findUnique({
+    where: { ldapUid },
+    include: { syndicat: { select: { id: true, enabled: true } } }
   })
 
-  if (!syndicat) {
+  if (!authLink) {
     throw createError({
       statusCode: 403,
-      statusMessage: `No syndicat page matches YunoHost user "${getYunohostUserName(event, user.name)}".`
+      statusMessage: `Aucun syndicat lié à l'utilisateur Intranet "${ldapUid}". Contactez un administrateur.`
+    })
+  }
+
+  if (!authLink.syndicat.enabled) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'Votre syndicat a été désactivé. Contactez un administrateur.'
     })
   }
 
   return {
     user,
-    managedSyndicatId: syndicat.id
+    managedSyndicatId: authLink.syndicat.id
   }
 }
 

@@ -172,6 +172,17 @@ try {
   `)
 
   await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS syndicat_auth (
+      id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      syndicat_id INTEGER NOT NULL,
+      ldap_uid VARCHAR(191) NOT NULL UNIQUE,
+      created_at VARCHAR(64) NOT NULL DEFAULT '',
+      INDEX syndicat_auth_syndicat_idx (syndicat_id),
+      FOREIGN KEY (syndicat_id) REFERENCES syndicats(id) ON DELETE CASCADE
+    )
+  `)
+
+  await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS site_settings (
       id INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
       union_name VARCHAR(255) NOT NULL DEFAULT '',
@@ -209,14 +220,35 @@ try {
   await ensureColumn('guides', 'content', 'LONGTEXT NOT NULL')
   await ensureColumn('guides', 'cover_image', 'VARCHAR(512) NOT NULL DEFAULT \'/hero.jpg\'')
   await ensureColumn('guides', 'pdf_file', 'VARCHAR(512) NOT NULL DEFAULT \'\'')
+  await ensureColumn('guides', 'archived', 'BOOLEAN NOT NULL DEFAULT FALSE')
   await ensureColumn('syndicats', 'addresses_json', 'LONGTEXT NOT NULL')
   await ensureColumn('syndicats', 'socials_json', 'LONGTEXT NOT NULL')
   await ensureColumn('syndicats', 'content', 'LONGTEXT NOT NULL')
+  await ensureColumn('syndicats', 'enabled', 'BOOLEAN NOT NULL DEFAULT TRUE')
   await ensureColumn('site_settings', 'union_name', 'VARCHAR(255) NOT NULL DEFAULT \'\'')
   await ensureColumn('site_settings', 'site_description', 'TEXT NOT NULL')
   await ensureColumn('site_settings', 'contact_email', 'VARCHAR(255) NOT NULL DEFAULT \'\'')
   await ensureColumn('site_settings', 'contact_phone', 'VARCHAR(64) NOT NULL DEFAULT \'\'')
   await ensureColumn('site_settings', 'socials_json', 'LONGTEXT NOT NULL')
+
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS tags (
+      id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      slug VARCHAR(191) NOT NULL UNIQUE
+    )
+  `)
+
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS article_tags (
+      article_id INTEGER NOT NULL,
+      tag_id INTEGER NOT NULL,
+      PRIMARY KEY (article_id, tag_id),
+      INDEX article_tags_tag_id_fk (tag_id),
+      FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE,
+      FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+    )
+  `)
 
   const hasLegacyAddressColumn = await columnExists('syndicats', 'address')
   const hasLegacyLatitudeColumn = await columnExists('syndicats', 'latitude')

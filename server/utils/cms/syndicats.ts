@@ -141,6 +141,7 @@ async function normalizeSyndicatUpdate(
     addresses: normalizeSyndicatAddresses(input.addresses, current.addresses),
     socials: normalizeSocialLinks(input.socials, current.socials),
     content: input.content ?? current.content,
+    enabled: input.enabled ?? current.enabled,
     updatedAt: nowIso()
   }
 }
@@ -166,6 +167,7 @@ export async function updateSyndicat(id: number, input: Partial<CmsSyndicat>, op
         addressesJson: JSON.stringify(updated.addresses),
         socialsJson: JSON.stringify(updated.socials),
         content: updated.content,
+        enabled: updated.enabled,
         updatedAt: updated.updatedAt
       }
     })

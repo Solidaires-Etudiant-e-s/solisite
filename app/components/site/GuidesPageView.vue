@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { formatFrenchDate } from '~/utils/cmsUi'
-
 const props = defineProps<{
   page: CmsPage
   guides: CmsGuide[]
@@ -8,7 +6,7 @@ const props = defineProps<{
   totalPages: number
 }>()
 
-const editor = useCmsPageLiveEditor()
+const _editor = useCmsPageLiveEditor()
 const route = useRoute()
 const content = computed(() => props.page.content as CmsGuidesPageContent)
 
@@ -48,34 +46,12 @@ function pageQuery(page: number) {
           v-if="guides.length"
           class="grid gap-8 md:grid-cols-2 xl:grid-cols-3"
         >
-          <UPageCard
+          <CmsGuideSummaryCard
             v-for="guide in guides"
             :key="guide.id"
-            :title="guide.title"
-            :description="guide.excerpt"
-            :to="editor ? undefined : `/guides/${guide.slug}`"
-            class="overflow-hidden"
-          >
-            <template #leading>
-              <NuxtImg
-                :src="guide.coverImage || '/hero.jpg'"
-                :alt="guide.title"
-                format="webp"
-                class="mb-4 h-52 w-full object-cover"
-              />
-            </template>
-
-            <template #footer>
-              <div class="flex items-center justify-between gap-3">
-                <span class="text-sm text-muted">{{ formatFrenchDate(guide.publishedAt) }}</span>
-                <UIcon
-                  v-if="guide.pdfFile"
-                  name="mingcute:file-pdf-line"
-                  class="text-lg text-primary"
-                />
-              </div>
-            </template>
-          </UPageCard>
+            :guide="guide"
+            :immersive="true"
+          />
         </div>
 
         <p

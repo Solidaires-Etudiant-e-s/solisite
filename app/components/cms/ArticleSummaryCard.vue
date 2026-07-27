@@ -9,23 +9,6 @@ const props = defineProps<{
 const editor = useCmsPageLiveEditor()
 const publishedLabel = computed(() => formatFrenchDate(props.article.publishedAt))
 const articleHref = computed(() => `/articles/${props.article.slug}`)
-
-function openArticle() {
-  if (editor) {
-    return
-  }
-
-  return navigateTo(articleHref.value)
-}
-
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key !== 'Enter' && event.key !== ' ') {
-    return
-  }
-
-  event.preventDefault()
-  void openArticle()
-}
 </script>
 
 <template>
@@ -62,6 +45,15 @@ function handleKeydown(event: KeyboardEvent) {
         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <div class="absolute inset-x-0 bottom-0 flex h-full flex-col justify-end gap-4 p-6">
           <UBadge
+            v-for="tag in article.tags"
+            :key="tag.slug"
+            color="neutral"
+            variant="solid"
+            class="w-fit border border-default/70 bg-default/90 text-highlighted backdrop-blur-sm"
+          >
+            {{ tag.name }}
+          </UBadge>
+          <UBadge
             color="neutral"
             variant="solid"
             class="w-fit border border-default/70 bg-default/90 text-highlighted backdrop-blur-sm"
@@ -89,6 +81,14 @@ function handleKeydown(event: KeyboardEvent) {
         />
 
         <div class="flex items-center gap-3">
+          <UBadge
+            v-for="tag in article.tags"
+            :key="tag.slug"
+            color="neutral"
+            variant="subtle"
+          >
+            {{ tag.name }}
+          </UBadge>
           <UBadge
             color="neutral"
             variant="subtle"

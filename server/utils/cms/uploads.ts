@@ -60,6 +60,14 @@ function getRandomFilename(extension: string) {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}${extension}`
 }
 
+export function getUploadsRoot() {
+  const publicDir = process.env.NODE_ENV === 'development'
+    ? resolve(process.cwd(), 'public')
+    : resolve(process.cwd(), '.output/public')
+
+  return resolve(publicDir, 'uploads')
+}
+
 function getMultipartFile(event: H3Event): Promise<UploadPart> {
   return readMultipartFormData(event).then((files) => {
     const file = files?.find(part => part.name === 'file')
@@ -87,10 +95,17 @@ function getMultipartFile(event: H3Event): Promise<UploadPart> {
 }
 
 async function writeUpload(directory: string, filename: string, data: Uint8Array) {
-  const uploadsDir = resolve(process.cwd(), `public/uploads/${directory}`)
+  // Nitro serves production assets from .output/public, which is also IPX's
+  // filesystem root. Keep a source copy so a later VPS build preserves it.
+  const uploadDirs = new Set([
+    resolve(getUploadsRoot(), directory),
+    resolve(process.cwd(), 'public/uploads', directory)
+  ])
 
-  await mkdir(uploadsDir, { recursive: true })
-  await writeFile(join(uploadsDir, filename), data)
+  for (const uploadsDir of uploadDirs) {
+    await mkdir(uploadsDir, { recursive: true })
+    await writeFile(join(uploadsDir, filename), data)
+  }
 
   return {
     path: `/uploads/${directory}/${filename}`
