@@ -154,6 +154,7 @@ export interface CmsTag {
   id: number
   name: string
   slug: string
+  icon: string
 }
 
 export interface CmsGuide {

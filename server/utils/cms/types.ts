@@ -14,5 +14,6 @@ export type ArticleRecord = PrismaArticle
 export type ArticleTagRecord = PrismaArticleTag
 export type GuideRecord = PrismaGuide
 export type TagRecord = PrismaTag
+export type SyndicatRecord = PrismaSyndicat
 export type SiteSettingsRecord = PrismaSiteSettings
 export type RevisionRecord = PrismaCmsRevisionRecord

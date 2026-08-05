@@ -1,5 +1,5 @@
 import { normalizeSyndicatAddresses, type CmsArticle, type CmsGuide, type CmsPage, type CmsSiteSettings, type CmsSocialLink, type CmsSyndicat, type CmsSyndicatAddress, type CmsTag } from '~~/lib/cms'
-import type { ArticleRecord, ArticleTagRecord, GuideRecord, PageRecord, SiteSettingsRecord, SyndicatRecord, TagRecord } from './types'
+import type { ArticleRecord, GuideRecord, PageRecord, SiteSettingsRecord, SyndicatRecord, TagRecord } from './types'
 import { parsePageContent } from './content'
 
 function parseSocials(raw: string | null | undefined, fallback: Array<Partial<CmsSocialLink>> = []) {
@@ -49,7 +49,8 @@ function toTag(record: TagRecord): CmsTag {
   return {
     id: record.id,
     name: record.name,
-    slug: record.slug
+    slug: record.slug,
+    icon: record.icon
   }
 }
 

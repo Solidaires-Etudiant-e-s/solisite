@@ -9,7 +9,7 @@ import { nowIso, resolveUniqueSlug, slugify } from './shared'
 
 type CmsDatabaseClient = Prisma.TransactionClient | Awaited<ReturnType<typeof useCmsDatabase>>
 
-function normalizeTags(tags: CmsTag[] | null | undefined): { name: string; slug: string }[] {
+function normalizeTags(tags: CmsTag[] | null | undefined): { name: string, slug: string }[] {
   if (!tags) {
     return []
   }

@@ -39,6 +39,7 @@ model Tag {
   id    Int         @id @default(autoincrement())
   name  String      @db.VarChar(255)
   slug  String      @unique @db.VarChar(191)
+  icon  String      @default("") @db.VarChar(255)
   articleTags ArticleTag[]
 
   @@map("tags")

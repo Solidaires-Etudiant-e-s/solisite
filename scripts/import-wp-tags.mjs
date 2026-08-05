@@ -96,10 +96,10 @@ function stripQuotes(value) {
   if (value === undefined || value === null) return null
   const str = String(value).trim()
   if (str === 'NULL') return null
-  if (str.startsWith("'") && str.endsWith("'")) {
+  if (str.startsWith('\'') && str.endsWith('\'')) {
     let inner = str.slice(1, -1)
     inner = inner.replace(/\\\\/g, '\\')
-    inner = inner.replace(/\\'/g, "'")
+    inner = inner.replace(/\\'/g, '\'')
     return inner
   }
   return str
@@ -113,10 +113,26 @@ function splitFields(raw) {
 
   for (let i = 0; i < raw.length; i++) {
     const char = raw[i]
-    if (escapeNext) { current += char; escapeNext = false; continue }
-    if (char === '\\') { escapeNext = true; current += char; continue }
-    if (char === "'") { inString = !inString; current += char; continue }
-    if (char === ',' && !inString) { fields.push(current); current = ''; continue }
+    if (escapeNext) {
+      current += char
+      escapeNext = false
+      continue
+    }
+    if (char === '\\') {
+      escapeNext = true
+      current += char
+      continue
+    }
+    if (char === '\'') {
+      inString = !inString
+      current += char
+      continue
+    }
+    if (char === ',' && !inString) {
+      fields.push(current)
+      current = ''
+      continue
+    }
     current += char
   }
   fields.push(current)
@@ -132,9 +148,21 @@ function extractRows(block) {
 
   for (let i = 0; i < block.length; i++) {
     const char = block[i]
-    if (escapeNext) { current += char; escapeNext = false; continue }
-    if (char === '\\') { escapeNext = true; current += char; continue }
-    if (char === "'") { inString = !inString; current += char; continue }
+    if (escapeNext) {
+      current += char
+      escapeNext = false
+      continue
+    }
+    if (char === '\\') {
+      escapeNext = true
+      current += char
+      continue
+    }
+    if (char === '\'') {
+      inString = !inString
+      current += char
+      continue
+    }
     if (!inString) {
       if (char === '(') {
         if (parenDepth === 0) current = ''
@@ -207,10 +235,9 @@ function extractPosts(sqlContent) {
     for (const fields of extractRows(block)) {
       if (fields.length < 22) continue
       const postType = stripQuotes(fields[20])
-      const postStatus = stripQuotes(fields[7])
       const postName = stripQuotes(fields[11])
       const postId = stripQuotes(fields[0])
-      if (postType === 'post' && postStatus === 'publish' && postName && postId) {
+      if (postType === 'post' && postName && postId) {
         postSlugToId.set(postName, postId)
       }
     }

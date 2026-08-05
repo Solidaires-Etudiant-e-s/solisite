@@ -43,5 +43,6 @@ export type {
   CmsSocialLink,
   CmsSyndicatAddress,
   CmsSyndicat,
-  CmsSyndicatsPageContent
+  CmsSyndicatsPageContent,
+  CmsTag
 } from '~~/lib/cms'

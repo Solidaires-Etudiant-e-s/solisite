@@ -32,7 +32,10 @@ const tags = computed(() => props.article.tags ?? [])
           {{ publishedLabel }}
         </CmsEditableNode>
 
-        <div v-if="tags.length" class="flex flex-wrap gap-2">
+        <div
+          v-if="tags.length"
+          class="flex flex-wrap gap-2"
+        >
           <UBadge
             v-for="tag in tags"
             :key="tag.slug"

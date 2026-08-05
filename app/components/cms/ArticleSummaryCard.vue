@@ -9,6 +9,17 @@ const props = defineProps<{
 const editor = useCmsPageLiveEditor()
 const publishedLabel = computed(() => formatFrenchDate(props.article.publishedAt))
 const articleHref = computed(() => `/articles/${props.article.slug}`)
+
+function openArticle() {
+  navigateTo(articleHref.value)
+}
+
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    openArticle()
+  }
+}
 </script>
 
 <template>
@@ -47,10 +58,15 @@ const articleHref = computed(() => `/articles/${props.article.slug}`)
           <UBadge
             v-for="tag in article.tags"
             :key="tag.slug"
-            color="neutral"
+            color="primary"
             variant="solid"
-            class="w-fit border border-default/70 bg-default/90 text-highlighted backdrop-blur-sm"
+            class="w-fit flex items-center gap-1.5"
           >
+            <UIcon
+              v-if="tag.icon"
+              :name="tag.icon"
+              class="h-3 w-3"
+            />
             {{ tag.name }}
           </UBadge>
           <UBadge
@@ -84,9 +100,15 @@ const articleHref = computed(() => `/articles/${props.article.slug}`)
           <UBadge
             v-for="tag in article.tags"
             :key="tag.slug"
-            color="neutral"
-            variant="subtle"
+            color="primary"
+            variant="soft"
+            class="flex items-center gap-1.5"
           >
+            <UIcon
+              v-if="tag.icon"
+              :name="tag.icon"
+              class="h-3 w-3"
+            />
             {{ tag.name }}
           </UBadge>
           <UBadge

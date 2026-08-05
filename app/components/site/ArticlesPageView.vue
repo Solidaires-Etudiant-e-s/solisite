@@ -1,12 +1,16 @@
 <script setup lang="ts">
 const search = defineModel<string>('search')
+const selectedTag = defineModel<string | null>('selected-tag')
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   page: CmsPage
   articles: CmsArticle[]
   currentPage: number
   totalPages: number
-}>()
+  allTags?: CmsTag[]
+}>(), {
+  allTags: () => []
+})
 
 const editor = useCmsPageLiveEditor()
 const route = useRoute()
@@ -21,16 +25,24 @@ const pageNumbers = computed(() => {
 })
 
 function pageQuery(page: number) {
+  const query = { ...route.query }
   if (page <= 1) {
-    const query = { ...route.query }
     delete query.page
-    return query
+  } else {
+    query.page = String(page)
   }
+  return query
+}
 
-  return {
-    ...route.query,
-    page: String(page)
+function tagQuery(tagSlug: string | null) {
+  const query = { ...route.query }
+  delete query.page
+  if (tagSlug) {
+    query.tag = tagSlug
+  } else {
+    delete query.tag
   }
+  return query
 }
 </script>
 
@@ -50,6 +62,33 @@ function pageQuery(page: number) {
           placeholder="Rechercher..."
           class="w-full mb-4"
         />
+
+        <div class="flex flex-wrap gap-2 mb-4">
+          <UButton
+            :to="{ query: tagQuery(null) }"
+            :variant="!selectedTag ? 'solid' : 'outline'"
+            :color="!selectedTag ? 'primary' : 'neutral'"
+            class="whitespace-nowrap"
+          >
+            Tout
+          </UButton>
+          <UButton
+            v-for="tag in allTags"
+            :key="tag.slug"
+            :to="{ query: tagQuery(tag.slug) }"
+            :variant="selectedTag === tag.slug ? 'solid' : 'outline'"
+            :color="selectedTag === tag.slug ? 'primary' : 'neutral'"
+            class="whitespace-nowrap flex items-center gap-1.5"
+          >
+            <UIcon
+              v-if="tag.icon"
+              :name="tag.icon"
+              class="h-4 w-4"
+            />
+            {{ tag.name }}
+          </UButton>
+        </div>
+
         <div
           v-if="articles.length"
           class="grid gap-8 md:grid-cols-2 xl:grid-cols-3"
@@ -91,7 +130,7 @@ function pageQuery(page: number) {
               color="neutral"
               :disabled="currentPage === 1"
             >
-              Precedente
+              Précédente
             </UButton>
 
             <UButton

@@ -14,7 +14,7 @@ function addTag() {
   if (!value) return
   if (!article.value.tags) article.value.tags = []
   if (!article.value.tags.some(t => t.slug === slugify(value))) {
-    article.value.tags.push({ id: 0, name: value, slug: slugify(value) })
+    article.value.tags.push({ id: 0, name: value, slug: slugify(value), icon: '' })
   }
   newTag.value = ''
 }
@@ -62,7 +62,10 @@ function removeTag(tag: { slug: string }) {
               @click="removeTag(tag)"
             >
               {{ tag.name }}
-              <UIcon name="mingcute:close-line" class="ml-1 h-3 w-3" />
+              <UIcon
+                name="mingcute:close-line"
+                class="ml-1 h-3 w-3"
+              />
             </UBadge>
           </div>
         </UFormField>

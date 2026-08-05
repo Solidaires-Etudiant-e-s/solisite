@@ -56,7 +56,7 @@ function parseValuesBlock(block) {
         continue
       }
 
-      if (char === "'") {
+      if (char === '\'') {
         inString = !inString
         continue
       }
@@ -81,8 +81,8 @@ function getValue(row, index) {
   const val = row[index]
   if (val === undefined || val === null) return null
   if (val === 'NULL') return null
-  if (val.startsWith("'") && val.endsWith("'")) {
-    return val.slice(1, -1).replace(/\\\\/g, '\\').replace(/\\'/g, "'")
+  if (val.startsWith('\'') && val.endsWith('\'')) {
+    return val.slice(1, -1).replace(/\\\\/g, '\\').replace(/\\'/g, '\'')
   }
   return val
 }
