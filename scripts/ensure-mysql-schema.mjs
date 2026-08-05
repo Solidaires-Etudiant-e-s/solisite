@@ -235,9 +235,12 @@ try {
     CREATE TABLE IF NOT EXISTS tags (
       id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
-      slug VARCHAR(191) NOT NULL UNIQUE
+      slug VARCHAR(191) NOT NULL UNIQUE,
+      icon VARCHAR(255) NOT NULL DEFAULT ''
     )
   `)
+
+  await ensureColumn('tags', 'icon', 'VARCHAR(255) NOT NULL DEFAULT \'\'')
 
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS article_tags (
