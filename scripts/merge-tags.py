@@ -31,17 +31,18 @@ def q(s):
     return "'" + s.replace("'", "''") + "'"
 
 # ── The 10 target categories ──
+# name -> (slug, icon)
 TARGETS = {
-    "Communiqués":              "communiques",
-    "Enseignement supérieur":   "enseignement-superieur",
-    "Mobilisation":             "mobilisation",
-    "Précarité":                "precarite",
-    "Antiracisme":              "antiracisme",
-    "Antifascisme":             "antifascisme",
-    "International":            "international",
-    "Répression":               "repression",
-    "Syndicalisme":             "syndicalisme",
-    "Droits":                   "droits",
+    "Communiqués":              ("communiques",              "mingcute:announcement-fill"),
+    "Enseignement supérieur":   ("enseignement-superieur",   "mingcute:school-fill"),
+    "Mobilisation":             ("mobilisation",             "mingcute:flag-2-fill"),
+    "Précarité":                ("precarite",                "mingcute:wallet-3-fill"),
+    "Antiracisme":              ("antiracisme",              "mingcute:heart-fill"),
+    "Antifascisme":             ("antifascisme",             "mingcute:safe-shield-2-fill"),
+    "International":            ("international",            "mingcute:globe-fill"),
+    "Répression":               ("repression",               "mingcute:fingerprint-2-fill"),
+    "Syndicalisme":             ("syndicalisme",             "mingcute:group-2-fill"),
+    "Droits":                   ("droits",                   "mingcute:scale-fill"),
 }
 
 # ── Map: old tag name (lowercase) -> target category name ──
@@ -268,13 +269,18 @@ for r in rows:
 
 # ── Step 2: Create target tags if they don't exist ──
 target_ids = {}
-for cat_name, cat_slug in TARGETS.items():
+for cat_name, (cat_slug, cat_icon) in TARGETS.items():
     existing = tag_by_name_lower.get(cat_name.lower())
     if existing:
         target_ids[cat_name] = existing
+        old_name = tag_by_id.get(existing, ("", ""))[0]
+        if old_name != cat_name:
+            db_exec(f"UPDATE tags SET name={q(cat_name)} WHERE id={existing};")
+            print(f"  Target '{cat_name}' normalized name (id={existing})")
+        db_exec(f"UPDATE tags SET icon={q(cat_icon)} WHERE id={existing};")
         print(f"  Target '{cat_name}' already exists (id={existing})")
     else:
-        db_exec(f"INSERT INTO tags (name, slug) VALUES ({q(cat_name)}, {q(cat_slug)});")
+        db_exec(f"INSERT INTO tags (name, slug, icon) VALUES ({q(cat_name)}, {q(cat_slug)}, {q(cat_icon)});")
         rows2 = db_query(f"SELECT id FROM tags WHERE slug = {q(cat_slug)};")
         if rows2:
             target_ids[cat_name] = rows2[0]

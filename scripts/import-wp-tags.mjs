@@ -48,7 +48,7 @@ async function main() {
   const cmsArticles = await prisma.article.findMany({
     select: { slug: true, id: true }
   })
-  const cmsBySlug = new Map(cmsArticles.map(a => [a.slug, a]))
+  const cmsBySlug = new Map(cmsArticles.map(a => [a.slug.normalize('NFC'), a]))
   console.log(`Found ${cmsArticles.length} CMS articles`)
 
   let matched = 0
@@ -68,7 +68,7 @@ async function main() {
 
     if (tagSlugs.size === 0) continue
 
-    const article = cmsBySlug.get(wpSlug)
+    const article = cmsBySlug.get(normalizeWpSlug(wpSlug))
     if (!article) continue
 
     const dbTags = [...tagSlugs].map(s => tags.get(s))
@@ -103,6 +103,14 @@ function stripQuotes(value) {
     return inner
   }
   return str
+}
+
+function normalizeWpSlug(slug) {
+  try {
+    return decodeURIComponent(slug).normalize('NFC')
+  } catch {
+    return slug.normalize('NFC')
+  }
 }
 
 function splitFields(raw) {
@@ -187,16 +195,70 @@ function extractRows(block) {
   return rows
 }
 
+function extractInsertBlocks(sqlContent, tableName) {
+  const blocks = []
+  const startMarker = `INSERT INTO \`${tableName}\` (`
+  let searchFrom = 0
+
+  while (true) {
+    const startIdx = sqlContent.indexOf(startMarker, searchFrom)
+    if (startIdx === -1) break
+
+    const valuesIdx = sqlContent.indexOf(') VALUES', startIdx)
+    if (valuesIdx === -1) break
+
+    const blockStart = valuesIdx + ') VALUES'.length
+    let i = blockStart
+    while (i < sqlContent.length && /\s/.test(sqlContent[i])) i++
+
+    let inString = false
+    let escapeNext = false
+    let parenDepth = 0
+    let endIdx = -1
+
+    for (; i < sqlContent.length; i++) {
+      const char = sqlContent[i]
+      if (escapeNext) {
+        escapeNext = false
+        continue
+      }
+      if (char === '\\') {
+        escapeNext = true
+        continue
+      }
+      if (char === "'") {
+        inString = !inString
+        continue
+      }
+      if (inString) continue
+      if (char === '(') {
+        parenDepth++
+        continue
+      }
+      if (char === ')') {
+        parenDepth--
+        continue
+      }
+      if (char === ';' && parenDepth === 0) {
+        endIdx = i
+        break
+      }
+    }
+
+    if (endIdx === -1) break
+    blocks.push(sqlContent.slice(blockStart, endIdx))
+    searchFrom = endIdx + 1
+  }
+
+  return blocks
+}
+
 function extractTags(sqlContent) {
   const tags = new Map()
 
-  const taxonomyRegex = /INSERT INTO `wp_term_taxonomy` \([^)]+\) VALUES\n([\s\S]*?);/g
-  const taxonomyMatches = [...sqlContent.matchAll(taxonomyRegex)]
-
   const postTagTermTaxonomyIds = new Set()
 
-  for (const match of taxonomyMatches) {
-    const block = match[1]
+  for (const block of extractInsertBlocks(sqlContent, 'wp_term_taxonomy')) {
     for (const fields of extractRows(block)) {
       if (fields.length < 3) continue
       const taxonomy = stripQuotes(fields[2])
@@ -206,11 +268,7 @@ function extractTags(sqlContent) {
     }
   }
 
-  const termsRegex = /INSERT INTO `wp_terms` \([^)]+\) VALUES\n([\s\S]*?);/g
-  const termsMatches = [...sqlContent.matchAll(termsRegex)]
-
-  for (const match of termsMatches) {
-    const block = match[1]
+  for (const block of extractInsertBlocks(sqlContent, 'wp_terms')) {
     for (const fields of extractRows(block)) {
       if (fields.length < 3) continue
       const name = stripQuotes(fields[1])
@@ -227,17 +285,14 @@ function extractTags(sqlContent) {
 function extractPosts(sqlContent) {
   const postSlugToId = new Map()
 
-  const postsRegex = /INSERT INTO `wp_posts` \([^)]+\) VALUES\n([\s\S]*?);/g
-  const postsMatches = [...sqlContent.matchAll(postsRegex)]
-
-  for (const match of postsMatches) {
-    const block = match[1]
+  for (const block of extractInsertBlocks(sqlContent, 'wp_posts')) {
     for (const fields of extractRows(block)) {
       if (fields.length < 22) continue
       const postType = stripQuotes(fields[20])
+      const postStatus = stripQuotes(fields[7])
       const postName = stripQuotes(fields[11])
       const postId = stripQuotes(fields[0])
-      if (postType === 'post' && postName && postId) {
+      if (postType === 'post' && postStatus === 'publish' && postName && postId) {
         postSlugToId.set(postName, postId)
       }
     }
@@ -250,11 +305,7 @@ function extractTaxonomy(sqlContent) {
   const postTagTermTaxonomyIds = new Set()
   const termTaxonomyIdToTermId = new Map()
 
-  const taxonomyRegex = /INSERT INTO `wp_term_taxonomy` \([^)]+\) VALUES\n([\s\S]*?);/g
-  const taxonomyMatches = [...sqlContent.matchAll(taxonomyRegex)]
-
-  for (const match of taxonomyMatches) {
-    const block = match[1]
+  for (const block of extractInsertBlocks(sqlContent, 'wp_term_taxonomy')) {
     for (const fields of extractRows(block)) {
       if (fields.length < 3) continue
       const taxonomy = stripQuotes(fields[2])
@@ -272,11 +323,7 @@ function extractTaxonomy(sqlContent) {
 }
 
 function extractTerms(sqlContent, termIdToSlug) {
-  const termsRegex = /INSERT INTO `wp_terms` \([^)]+\) VALUES\n([\s\S]*?);/g
-  const termsMatches = [...sqlContent.matchAll(termsRegex)]
-
-  for (const match of termsMatches) {
-    const block = match[1]
+  for (const block of extractInsertBlocks(sqlContent, 'wp_terms')) {
     for (const fields of extractRows(block)) {
       if (fields.length < 3) continue
       const termId = stripQuotes(fields[0])
@@ -291,11 +338,7 @@ function extractTerms(sqlContent, termIdToSlug) {
 function extractRelationships(sqlContent, postTagTermTaxonomyIds) {
   const postIdToTermTaxonomyIds = new Map()
 
-  const relRegex = /INSERT INTO `wp_term_relationships` \([^)]+\) VALUES\n([\s\S]*?);/g
-  const relMatches = [...sqlContent.matchAll(relRegex)]
-
-  for (const match of relMatches) {
-    const block = match[1]
+  for (const block of extractInsertBlocks(sqlContent, 'wp_term_relationships')) {
     for (const fields of extractRows(block)) {
       if (fields.length < 2) continue
       const objectId = stripQuotes(fields[0])

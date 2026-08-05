@@ -15,63 +15,141 @@ if (!existsSync(WP_SQL_PATH)) {
 
 const sqlContent = readFileSync(WP_SQL_PATH, 'utf-8')
 
-function parseTableData(tableName) {
-  const regex = new RegExp(
-    `INSERT INTO \`${tableName}\` \\([^)]+\\) VALUES\\n([\\s\\S]*?);`,
-    'g'
-  )
-  const matches = []
-  let match
+function extractInsertBlocks(tableName) {
+  const blocks = []
+  const startMarker = `INSERT INTO \`${tableName}\` (`
+  let searchFrom = 0
 
-  while ((match = regex.exec(sqlContent)) !== null) {
-    matches.push(match[1])
-  }
+  while (true) {
+    const startIdx = sqlContent.indexOf(startMarker, searchFrom)
+    if (startIdx === -1) break
 
-  return matches
-}
+    const valuesIdx = sqlContent.indexOf(') VALUES', startIdx)
+    if (valuesIdx === -1) break
 
-function parseValuesBlock(block) {
-  const rows = []
-  const valueRegex = /\(([^)]+)\)/g
-  let rowMatch
+    const blockStart = valuesIdx + ') VALUES'.length
+    let i = blockStart
+    while (i < sqlContent.length && /\s/.test(sqlContent[i])) i++
 
-  while ((rowMatch = valueRegex.exec(block)) !== null) {
-    const raw = rowMatch[1]
-    const fields = []
-    let current = ''
     let inString = false
     let escapeNext = false
+    let parenDepth = 0
+    let endIdx = -1
 
-    for (let i = 0; i < raw.length; i++) {
-      const char = raw[i]
-
+    for (; i < sqlContent.length; i++) {
+      const char = sqlContent[i]
       if (escapeNext) {
-        current += char
         escapeNext = false
         continue
       }
-
       if (char === '\\') {
         escapeNext = true
         continue
       }
-
-      if (char === '\'') {
+      if (char === "'") {
         inString = !inString
         continue
       }
-
-      if (char === ',' && !inString) {
-        fields.push(current.trim())
-        current = ''
+      if (inString) continue
+      if (char === '(') {
+        parenDepth++
         continue
       }
-
-      current += char
+      if (char === ')') {
+        parenDepth--
+        continue
+      }
+      if (char === ';' && parenDepth === 0) {
+        endIdx = i
+        break
+      }
     }
 
-    fields.push(current.trim())
-    rows.push(fields)
+    if (endIdx === -1) break
+    blocks.push(sqlContent.slice(blockStart, endIdx))
+    searchFrom = endIdx + 1
+  }
+
+  return blocks
+}
+
+function parseTableData(tableName) {
+  return extractInsertBlocks(tableName)
+}
+
+function parseValuesBlock(block) {
+  const rows = []
+  let current = ''
+  let inString = false
+  let escapeNext = false
+  let parenDepth = 0
+
+  for (let i = 0; i < block.length; i++) {
+    const char = block[i]
+    if (escapeNext) {
+      current += char
+      escapeNext = false
+      continue
+    }
+    if (char === '\\') {
+      escapeNext = true
+      current += char
+      continue
+    }
+    if (char === '\'') {
+      inString = !inString
+      current += char
+      continue
+    }
+    if (!inString) {
+      if (char === '(') {
+        if (parenDepth === 0) current = ''
+        parenDepth++
+        if (parenDepth > 1) current += char
+        continue
+      }
+      if (char === ')') {
+        parenDepth--
+        if (parenDepth === 0) {
+          const fields = []
+          let field = ''
+          let fInString = false
+          let fEscapeNext = false
+
+          for (let j = 0; j < current.length; j++) {
+            const fChar = current[j]
+            if (fEscapeNext) {
+              field += fChar
+              fEscapeNext = false
+              continue
+            }
+            if (fChar === '\\') {
+              fEscapeNext = true
+              field += fChar
+              continue
+            }
+            if (fChar === '\'') {
+              fInString = !fInString
+              field += fChar
+              continue
+            }
+            if (fChar === ',' && !fInString) {
+              fields.push(field.trim())
+              field = ''
+              continue
+            }
+            field += fChar
+          }
+          fields.push(field.trim())
+          rows.push(fields)
+          current = ''
+          continue
+        }
+        current += char
+        continue
+      }
+    }
+    current += char
   }
 
   return rows
