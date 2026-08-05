@@ -33,16 +33,16 @@ def q(s):
 # ── The 10 target categories ──
 # name -> (slug, icon)
 TARGETS = {
-    "Communiqués":              ("communiques",              "mingcute:announcement-fill"),
-    "Enseignement supérieur":   ("enseignement-superieur",   "mingcute:school-fill"),
-    "Mobilisation":             ("mobilisation",             "mingcute:flag-2-fill"),
-    "Précarité":                ("precarite",                "mingcute:wallet-3-fill"),
-    "Antiracisme":              ("antiracisme",              "mingcute:heart-fill"),
-    "Antifascisme":             ("antifascisme",             "mingcute:safe-shield-2-fill"),
-    "International":            ("international",            "mingcute:globe-fill"),
-    "Répression":               ("repression",               "mingcute:fingerprint-2-fill"),
-    "Syndicalisme":             ("syndicalisme",             "mingcute:group-2-fill"),
-    "Droits":                   ("droits",                   "mingcute:scale-fill"),
+    "Communiqués":              ("communiques",              "mingcute:announcement-line"),
+    "Enseignement supérieur":   ("enseignement-superieur",   "mingcute:school-line"),
+    "Mobilisation":             ("mobilisation",             "mingcute:flag-2-line"),
+    "Précarité":                ("precarite",                "mingcute:wallet-3-line"),
+    "Antiracisme":              ("antiracisme",              "lucide:hand-fist"),
+    "Antifascisme":             ("antifascisme",             "mingcute:safe-shield-2-line"),
+    "International":            ("international",            "mingcute:globe-line"),
+    "Répression":               ("repression",               "mingcute:fingerprint-2-line"),
+    "Syndicalisme":             ("syndicalisme",             "mingcute:group-2-line"),
+    "Droits":                   ("droits",                   "mingcute:scale-line"),
 }
 
 # ── Map: old tag name (lowercase) -> target category name ──
@@ -273,10 +273,13 @@ for cat_name, (cat_slug, cat_icon) in TARGETS.items():
     existing = tag_by_name_lower.get(cat_name.lower())
     if existing:
         target_ids[cat_name] = existing
-        old_name = tag_by_id.get(existing, ("", ""))[0]
+        old_name, old_slug = tag_by_id.get(existing, ("", ""))
         if old_name != cat_name:
             db_exec(f"UPDATE tags SET name={q(cat_name)} WHERE id={existing};")
             print(f"  Target '{cat_name}' normalized name (id={existing})")
+        if old_slug != cat_slug:
+            db_exec(f"UPDATE tags SET slug={q(cat_slug)} WHERE id={existing};")
+            print(f"  Target '{cat_name}' normalized slug {old_slug} -> {cat_slug} (id={existing})")
         db_exec(f"UPDATE tags SET icon={q(cat_icon)} WHERE id={existing};")
         print(f"  Target '{cat_name}' already exists (id={existing})")
     else:
