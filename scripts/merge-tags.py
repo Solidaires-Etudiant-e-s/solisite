@@ -2,9 +2,13 @@ import os
 import subprocess
 import sys
 
+DB_HOST = os.environ.get("DB_HOST", "127.0.0.1")
+DB_PORT = os.environ.get("DB_PORT", "3306")
+DB_USER = os.environ.get("DB_USER", "root")
+DB_NAME = os.environ.get("DB_NAME", "devsolisite")
 DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
-DB = ["mysql", "-h", "127.0.0.1", "-P", "3306", "-u", "root",
-      f"-p{DB_PASSWORD}" if DB_PASSWORD else "-p", "devsolisite"]
+DB = ["mysql", "-h", DB_HOST, "-P", DB_PORT, "-u", DB_USER,
+      f"-p{DB_PASSWORD}" if DB_PASSWORD else "-p", DB_NAME]
 
 def db_query(sql, fetch=True):
     args = DB + ["-N", "-e", sql]
