@@ -119,7 +119,10 @@ export default defineNuxtConfig({
     sources: [
       '/api/__sitemap__/articles',
       '/api/__sitemap__/guides'
-    ]
+    ],
+    defaults: {
+      lastmod: new Date().toISOString()
+    }
   },
 
   umami: {

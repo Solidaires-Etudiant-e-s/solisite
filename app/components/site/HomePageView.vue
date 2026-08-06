@@ -6,7 +6,7 @@ import { createStableItemKeyResolver } from '~/utils/cmsUi'
 
 const props = defineProps<{
   page: CmsPage
-  articles: CmsArticle[]
+  articles: CmsArticleSummary[]
   siteSettings: CmsSiteSettings
 }>()
 
@@ -64,6 +64,7 @@ const partnersModel = computed({
             <NuxtImg
               src="/hero/hero-home.png"
               alt=""
+              aria-hidden="true"
               class="h-full w-full object-cover"
               loading="eager"
               decoding="async"

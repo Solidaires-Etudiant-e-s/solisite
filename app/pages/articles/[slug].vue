@@ -47,24 +47,22 @@ useJsonld(() => ({
   'author': {
     '@type': 'WorkersUnion',
     'name': 'Solidaires Étudiant-e-s',
-    'url': 'https://www.solidaires-etudiant-e-s.org'
+    'url': siteUrl.value
   },
   'publisher': {
     '@type': 'WorkersUnion',
     'name': 'Solidaires Étudiant-e-s',
     'logo': {
       '@type': 'ImageObject',
-      'url': 'https://solidaires-etudiant-e-s.org/logo.png'
+      'url': `${siteUrl.value}/logo.png`
     }
   },
   'image': {
     '@type': 'ImageObject',
-    'url': article.value.coverImage,
-    'width': '1200',
-    'height': '630'
+    'url': socialImage.value
   },
   // 'keywords': 'étudiants, revendications, gouvernement', todo
-  'articleBody': article.value.content,
+  'articleBody': stripHtml(article.value.content),
   'inLanguage': 'fr'
 }))
 </script>

@@ -4,7 +4,7 @@ const selectedTag = defineModel<string | null>('selected-tag')
 
 const props = withDefaults(defineProps<{
   page: CmsPage
-  articles: CmsArticle[]
+  articles: CmsArticleSummary[]
   currentPage: number
   totalPages: number
   allTags?: CmsTag[]

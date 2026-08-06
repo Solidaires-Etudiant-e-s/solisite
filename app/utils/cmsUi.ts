@@ -9,11 +9,6 @@ export const cmsRichTextToolbarItems: EditorToolbarItem[][] = [[
       icon: 'mingcute:paragraph-line',
       kind: 'paragraph'
     }, {
-      label: 'Titre 1',
-      icon: 'mingcute:heading-1-line',
-      kind: 'heading',
-      level: 1
-    }, {
       label: 'Titre 2',
       icon: 'mingcute:heading-2-line',
       kind: 'heading',
@@ -130,6 +125,12 @@ export function toLinkTarget(href: string) {
 
 export function toLinkTo(href: string) {
   return href.startsWith('/') ? href : undefined
+}
+
+export function demoteHeadingLevels(html: string) {
+  return html
+    .replace(/<h1(?=\s|>)/gi, '<h2')
+    .replace(/<\/h1>/gi, '</h2>')
 }
 
 export function toLinkHref(href: string) {

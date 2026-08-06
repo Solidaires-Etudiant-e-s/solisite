@@ -28,12 +28,14 @@ export {
 
 export type {
   CmsArticle,
+  CmsArticleSummary,
   CmsArticlesPageContent,
   CmsBootstrap,
   CmsFeature,
   CmsHeroButton,
   CmsHomePageContent,
   CmsGuide,
+  CmsGuideSummary,
   CmsGuidesPageContent,
   CmsPage,
   CmsPageContent,

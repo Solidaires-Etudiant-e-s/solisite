@@ -1,5 +1,5 @@
-import { listArticles } from '~~/server/utils/cms/articles'
+import { listArticleSummaries } from '~~/server/utils/cms/articles'
 
 export default defineEventHandler(async () => {
-  return await listArticles()
+  return await listArticleSummaries()
 })

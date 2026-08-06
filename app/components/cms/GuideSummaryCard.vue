@@ -2,7 +2,7 @@
 import { formatFrenchDate } from '~/utils/cmsUi'
 
 const props = defineProps<{
-  guide: CmsGuide
+  guide: CmsGuideSummary
   immersive?: boolean
 }>()
 

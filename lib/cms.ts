@@ -170,6 +170,9 @@ export interface CmsGuide {
   updatedAt: string
 }
 
+export type CmsArticleSummary = Omit<CmsArticle, 'content'>
+export type CmsGuideSummary = Omit<CmsGuide, 'content'>
+
 export interface CmsSiteSettings {
   unionName: string
   siteDescription: string

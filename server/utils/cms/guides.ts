@@ -4,7 +4,7 @@ import { createGuideRevision } from './revisions'
 import type { GuideRecord } from './types'
 import { runInCmsTransaction, useCmsDatabase } from './database'
 import { notFound } from './http'
-import { toGuide } from './mappers'
+import { toGuide, toGuideSummary } from './mappers'
 import { nowIso, resolveUniqueSlug } from './shared'
 
 type CmsDatabaseClient = Prisma.TransactionClient | Awaited<ReturnType<typeof useCmsDatabase>>
@@ -26,6 +26,18 @@ export async function listGuides(database?: CmsDatabaseClient) {
     }
     return 0
   })
+}
+
+export async function listGuideSummaries(database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const records = await client.guide.findMany({
+    orderBy: [
+      { publishedAt: 'desc' },
+      { id: 'desc' }
+    ]
+  }) as GuideRecord[]
+
+  return records.map(toGuideSummary)
 }
 
 export async function getGuideById(id: number, database?: CmsDatabaseClient) {

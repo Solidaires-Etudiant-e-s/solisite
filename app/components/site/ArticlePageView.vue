@@ -1,17 +1,22 @@
 <script setup lang="ts">
 /* eslint-disable vue/no-v-html */
 import { createEditableTarget, createFieldTarget, createHtmlTarget } from '~/utils/cmsEditor'
-import { formatFrenchDate } from '~/utils/cmsUi'
+import { demoteHeadingLevels, formatFrenchDate } from '~/utils/cmsUi'
 
 const props = defineProps<{
   article: CmsArticle
 }>()
 
+const editor = useCmsPageLiveEditor()
 const targetIdPrefix = computed(() => `article:${props.article.id || 'draft'}`)
 const publishedLabel = computed(() => formatFrenchDate(props.article.publishedAt))
 const title = computed(() => props.article.title || 'Article sans titre')
 const excerpt = computed(() => props.article.excerpt || 'Ajoute un extrait pour résumer le contenu de cet article.')
-const content = computed(() => props.article.content || '<p>Commence à écrire pour prévisualiser cet article.</p>')
+const content = computed(() => {
+  const body = props.article.content || '<p>Commence à écrire pour prévisualiser cet article.</p>'
+
+  return editor ? body : demoteHeadingLevels(body)
+})
 const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
 const tags = computed(() => props.article.tags ?? [])
 </script>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{
   page: CmsPage
-  guides: CmsGuide[]
+  guides: CmsGuideSummary[]
   currentPage: number
   totalPages: number
 }>()

@@ -2,24 +2,13 @@
 import { formatFrenchDate } from '~/utils/cmsUi'
 
 const props = defineProps<{
-  article: CmsArticle
+  article: CmsArticleSummary
   immersive?: boolean
 }>()
 
 const editor = useCmsPageLiveEditor()
 const publishedLabel = computed(() => formatFrenchDate(props.article.publishedAt))
 const articleHref = computed(() => `/articles/${props.article.slug}`)
-
-function openArticle() {
-  navigateTo(articleHref.value)
-}
-
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault()
-    openArticle()
-  }
-}
 </script>
 
 <template>
@@ -28,16 +17,12 @@ function handleKeydown(event: KeyboardEvent) {
     class="border border-default bg-elevated"
     :class="[
       props.immersive ? 'h-[28rem] overflow-hidden' : 'h-full',
-      !editor && props.immersive ? 'cursor-pointer transition-opacity hover:opacity-90' : ''
+      !editor && props.immersive ? 'transition-opacity hover:opacity-90' : ''
     ]"
-    :role="!editor && props.immersive ? 'link' : undefined"
-    :tabindex="!editor && props.immersive ? 0 : undefined"
-    @click="props.immersive ? openArticle() : undefined"
-    @keydown="props.immersive ? handleKeydown($event) : undefined"
   >
     <component
-      :is="editor || props.immersive ? 'div' : 'NuxtLink'"
-      :to="editor || props.immersive ? undefined : articleHref"
+      :is="editor ? 'div' : 'NuxtLink'"
+      :to="editor ? undefined : articleHref"
       class="block h-full"
     >
       <div

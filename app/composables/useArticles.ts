@@ -1,8 +1,8 @@
 export function useArticles() {
   const nuxtApp = useNuxtApp()
-  const sharedArticles = useNuxtData<CmsArticle[]>('articles')
+  const sharedArticles = useNuxtData<CmsArticleSummary[]>('articles')
 
-  return useAsyncData<CmsArticle[]>(
+  return useAsyncData<CmsArticleSummary[]>(
     'articles',
     () => $fetch('/api/articles'),
     {

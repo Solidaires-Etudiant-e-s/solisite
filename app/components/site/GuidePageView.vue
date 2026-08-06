@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /* eslint-disable vue/no-v-html */
 import { createEditableTarget, createFieldTarget, createHtmlTarget } from '~/utils/cmsEditor'
-import { formatFrenchDate } from '~/utils/cmsUi'
+import { demoteHeadingLevels, formatFrenchDate } from '~/utils/cmsUi'
 
 const props = defineProps<{
   guide: CmsGuide
@@ -12,7 +12,11 @@ const targetIdPrefix = computed(() => `guide:${props.guide.id || 'draft'}`)
 const publishedLabel = computed(() => formatFrenchDate(props.guide.publishedAt))
 const title = computed(() => props.guide.title || 'Guide sans titre')
 const excerpt = computed(() => props.guide.excerpt || 'Ajoute un extrait pour résumer le contenu de ce guide.')
-const content = computed(() => props.guide.content || '<p>Commence à écrire pour prévisualiser le guide.</p>')
+const content = computed(() => {
+  const body = props.guide.content || '<p>Commence à écrire pour prévisualiser le guide.</p>'
+
+  return editor ? body : demoteHeadingLevels(body)
+})
 const coverImage = computed(() => props.guide.coverImage || '/hero.jpg')
 const pdfFile = computed(() => props.guide.pdfFile || '')
 </script>

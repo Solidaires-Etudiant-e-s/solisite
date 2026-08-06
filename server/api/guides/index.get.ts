@@ -1,5 +1,5 @@
-import { listGuides } from '~~/server/utils/cms/guides'
+import { listGuideSummaries } from '~~/server/utils/cms/guides'
 
 export default defineEventHandler(async () => {
-  return await listGuides()
+  return await listGuideSummaries()
 })

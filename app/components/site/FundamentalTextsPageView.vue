@@ -2,6 +2,7 @@
 /* eslint-disable vue/no-v-html */
 import type { AccordionItem } from '@nuxt/ui'
 import { createEditableTarget, createHtmlTarget, createListItemTarget, createListTarget } from '~/utils/cmsEditor'
+import { demoteHeadingLevels } from '~/utils/cmsUi'
 import type { CmsFundamentalText, CmsFundamentalTextsPageContent } from '~~/lib/cms'
 
 const props = defineProps<{
@@ -31,7 +32,9 @@ function textIndex(item: AccordionItem) {
 }
 
 function fallbackBody(text: CmsFundamentalText | null | undefined) {
-  return text?.body || '<p>Ajoute le contenu de ce texte depuis l’administration.</p>'
+  const body = text?.body || '<p>Ajoute le contenu de ce texte depuis l’administration.</p>'
+
+  return editor ? body : demoteHeadingLevels(body)
 }
 </script>
 

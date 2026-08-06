@@ -1,7 +1,7 @@
 export function useGuides() {
-  const sharedGuides = useNuxtData<CmsGuide[]>('guides')
+  const sharedGuides = useNuxtData<CmsGuideSummary[]>('guides')
 
-  return useAsyncData<CmsGuide[]>(
+  return useAsyncData<CmsGuideSummary[]>(
     'guides',
     () => $fetch('/api/guides'),
     {

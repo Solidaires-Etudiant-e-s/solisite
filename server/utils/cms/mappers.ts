@@ -1,4 +1,4 @@
-import { normalizeSyndicatAddresses, type CmsArticle, type CmsGuide, type CmsPage, type CmsSiteSettings, type CmsSocialLink, type CmsSyndicat, type CmsSyndicatAddress, type CmsTag } from '~~/lib/cms'
+import { normalizeSyndicatAddresses, type CmsArticle, type CmsArticleSummary, type CmsGuide, type CmsGuideSummary, type CmsPage, type CmsSiteSettings, type CmsSocialLink, type CmsSyndicat, type CmsSyndicatAddress, type CmsTag } from '~~/lib/cms'
 import type { ArticleRecord, GuideRecord, PageRecord, SiteSettingsRecord, SyndicatRecord, TagRecord } from './types'
 import { parsePageContent } from './content'
 
@@ -96,6 +96,16 @@ export function toGuide(record: GuideRecord): CmsGuide {
     publishedAt: record.publishedAt,
     updatedAt: record.updatedAt
   }
+}
+
+export function toArticleSummary(record: ArticleRecord, tags?: TagRecord[]): CmsArticleSummary {
+  const { content: _content, ...summary } = toArticle(record, tags)
+  return summary
+}
+
+export function toGuideSummary(record: GuideRecord): CmsGuideSummary {
+  const { content: _content, ...summary } = toGuide(record)
+  return summary
 }
 
 export function toSyndicat(record: SyndicatRecord): CmsSyndicat {

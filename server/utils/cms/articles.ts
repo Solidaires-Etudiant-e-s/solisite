@@ -4,7 +4,7 @@ import { createArticleRevision } from './revisions'
 import type { ArticleRecord, ArticleTagRecord, TagRecord } from './types'
 import { runInCmsTransaction, useCmsDatabase } from './database'
 import { notFound } from './http'
-import { toArticle } from './mappers'
+import { toArticle, toArticleSummary } from './mappers'
 import { nowIso, resolveUniqueSlug, slugify } from './shared'
 
 type CmsDatabaseClient = Prisma.TransactionClient | Awaited<ReturnType<typeof useCmsDatabase>>
@@ -83,6 +83,19 @@ export async function listArticles(database?: CmsDatabaseClient) {
   }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }> })[]
 
   return records.map(record => toArticle(record, record.articleTags.map(at => at.tag)))
+}
+
+export async function listArticleSummaries(database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const records = await client.article.findMany({
+    orderBy: [
+      { publishedAt: 'desc' },
+      { id: 'desc' }
+    ],
+    include: { articleTags: { include: { tag: true } } }
+  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }> })[]
+
+  return records.map(record => toArticleSummary(record, record.articleTags.map(at => at.tag)))
 }
 
 export async function getArticleById(id: number, database?: CmsDatabaseClient) {
