@@ -12,7 +12,6 @@ const props = withDefaults(defineProps<{
   allTags: () => []
 })
 
-const editor = useCmsPageLiveEditor()
 const route = useRoute()
 const content = computed(() => props.page.content as CmsArticlesPageContent)
 
@@ -96,7 +95,6 @@ function tagQuery(tagSlug: string | null) {
           <CmsArticleSummaryCard
             v-for="article in articles"
             :key="article.id"
-            :to="editor ? undefined : `/articles/${article.slug}`"
             class="overflow-hidden"
             :article="article"
             :immersive="true"

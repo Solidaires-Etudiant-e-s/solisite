@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NuxtLink } from '#components'
 import { formatFrenchDate } from '~/utils/cmsUi'
 
 const props = defineProps<{
@@ -41,7 +42,7 @@ function handleKeydown(event: KeyboardEvent) {
     @keydown="props.immersive ? handleKeydown($event) : undefined"
   >
     <component
-      :is="editor || props.immersive ? 'div' : 'NuxtLink'"
+      :is="editor || props.immersive ? 'div' : NuxtLink"
       :to="editor || props.immersive ? undefined : guideHref"
       class="block h-full"
     >

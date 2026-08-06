@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NuxtLink } from '#components'
 import { formatFrenchDate } from '~/utils/cmsUi'
 
 const props = defineProps<{
@@ -21,7 +22,7 @@ const articleHref = computed(() => `/articles/${props.article.slug}`)
     ]"
   >
     <component
-      :is="editor ? 'div' : 'NuxtLink'"
+      :is="editor ? 'div' : NuxtLink"
       :to="editor ? undefined : articleHref"
       class="block h-full"
     >
