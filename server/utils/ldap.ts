@@ -3,8 +3,11 @@ import { Client } from 'ldapts'
 const USER_DN = 'ou=users,dc=yunohost,dc=org'
 const GROUP_DN = 'cn=syndicats,ou=groups,dc=yunohost,dc=org'
 const LDAP_URL = process.env.LDAP_URL || 'ldap://127.0.0.1:10389'
-const ADMIN_BIND_DN = process.env.LDAP_ADMIN_BIND_DN || `uid=admin,${USER_DN}`
-const ADMIN_BIND_PASSWORD = process.env.LDAP_ADMIN_BIND_PASSWORD
+
+export interface LdapBindCredentials {
+  bindDn: string
+  bindPassword: string
+}
 
 export interface LdapSyndicat {
   uid: string
@@ -29,14 +32,14 @@ function toString(value: unknown): string {
   return String(value)
 }
 
-async function createAdminClient(): Promise<Client> {
+async function createBoundClient(bindDn: string, bindPassword: string): Promise<Client> {
   const client = new Client({
     url: LDAP_URL,
     timeout: 10000,
     connectTimeout: 10000
   })
 
-  await client.bind(ADMIN_BIND_DN, ADMIN_BIND_PASSWORD)
+  await client.bind(bindDn, bindPassword)
   return client
 }
 
@@ -45,8 +48,8 @@ function parseMemberUid(memberDn: string): string {
   return uidPart.replace(/^uid=/i, '').trim()
 }
 
-export async function fetchAllSyndicatsFromLdap(): Promise<LdapSyndicat[]> {
-  const client = await createAdminClient()
+export async function fetchAllSyndicatsFromLdap(bindCredentials: LdapBindCredentials): Promise<LdapSyndicat[]> {
+  const client = await createBoundClient(bindCredentials.bindDn, bindCredentials.bindPassword)
 
   try {
     const groupResult = await client.search(GROUP_DN, {
@@ -106,12 +109,12 @@ export async function fetchAllSyndicatsFromLdap(): Promise<LdapSyndicat[]> {
   }
 }
 
-export async function getSyndicatUsersFromLdap(): Promise<LdapSyndicat[]> {
-  return fetchAllSyndicatsFromLdap()
+export async function getSyndicatUsersFromLdap(bindCredentials: LdapBindCredentials): Promise<LdapSyndicat[]> {
+  return fetchAllSyndicatsFromLdap(bindCredentials)
 }
 
-export async function fetchLdapUser(uid: string): Promise<LdapSyndicat | null> {
-  const client = await createAdminClient()
+export async function fetchLdapUser(uid: string, bindCredentials: LdapBindCredentials): Promise<LdapSyndicat | null> {
+  const client = await createBoundClient(bindCredentials.bindDn, bindCredentials.bindPassword)
 
   try {
     const userResult = await client.search(`uid=${uid},${USER_DN}`, {

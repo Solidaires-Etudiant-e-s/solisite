@@ -1,4 +1,4 @@
-import { requireAdminAccess } from '~~/server/utils/auth'
+import { requireAdminAccess, getLdapBindCredentials } from '~~/server/utils/auth'
 import { listSyndicats } from '~~/server/utils/cms/syndicats'
 import { getSyndicatUsersFromLdap } from '~~/server/utils/ldap'
 import { useCmsDatabase } from '~~/server/utils/cms/database'
@@ -6,6 +6,7 @@ import { useCmsDatabase } from '~~/server/utils/cms/database'
 export default defineEventHandler(async (event) => {
   await requireAdminAccess(event)
 
+  const bindCredentials = getLdapBindCredentials(event)
   const database = await useCmsDatabase()
   const cmsSyndicats = await listSyndicats(database)
 
@@ -20,8 +21,9 @@ export default defineEventHandler(async (event) => {
   let ldapUsers: Awaited<ReturnType<typeof getSyndicatUsersFromLdap>> = []
 
   try {
-    ldapUsers = await getSyndicatUsersFromLdap()
-  } catch {
+    ldapUsers = await getSyndicatUsersFromLdap(bindCredentials)
+  } catch (error) {
+    console.error('[admin/syndicats] LDAP fetch failed:', error)
     // LDAP not reachable (e.g. local dev) — gracefully return no Intranet data
   }
 

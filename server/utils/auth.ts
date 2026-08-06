@@ -43,6 +43,23 @@ function getAuthorizationToken(event: H3Event) {
   return token
 }
 
+export function getLdapBindCredentials(event: H3Event): { bindDn: string, bindPassword: string } {
+  const token = getAuthorizationToken(event)
+  const [uid, password] = Buffer.from(token, 'base64').toString().split(':')
+
+  if (!uid || !password) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Invalid authorization token.'
+    })
+  }
+
+  return {
+    bindDn: `uid=${uid},${USER_DN}`,
+    bindPassword: password
+  }
+}
+
 function matchesGroup(value: unknown, expected: string) {
   if (Array.isArray(value)) {
     return value.includes(expected)

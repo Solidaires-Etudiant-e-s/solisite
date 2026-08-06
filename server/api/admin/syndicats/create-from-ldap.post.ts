@@ -1,10 +1,12 @@
-import { requireAdminAccess } from '~~/server/utils/auth'
+import { requireAdminAccess, getLdapBindCredentials } from '~~/server/utils/auth'
 import { createSyndicat, updateSyndicat } from '~~/server/utils/cms/syndicats'
 import { fetchLdapUser } from '~~/server/utils/ldap'
 import { useCmsDatabase } from '~~/server/utils/cms/database'
 
 export default defineEventHandler(async (event) => {
   await requireAdminAccess(event)
+
+  const bindCredentials = getLdapBindCredentials(event)
 
   const body = await readBody<{ ldapUid: string }>(event)
   const { ldapUid } = body
@@ -16,7 +18,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const ldapUser = await fetchLdapUser(ldapUid)
+  const ldapUser = await fetchLdapUser(ldapUid, bindCredentials)
 
   if (!ldapUser) {
     throw createError({
