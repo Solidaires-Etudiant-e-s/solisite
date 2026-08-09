@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "npm run prisma:generate && nuxt build",
+    "deploy": "bash scripts/deploy.sh",
     "db:push": "prisma db push",
     "db:sync": "node scripts/ensure-mysql-schema.mjs",
     "dev": "npm run db:sync && nuxt dev",
