@@ -180,6 +180,7 @@ async function importSyndicats() {
         addressesJson: jsonArrayValue(row.addresses_json),
         socialsJson: jsonArrayValue(row.socials_json),
         content: stringValue(row.content),
+        logo: stringValue(row.logo),
         updatedAt: stringValue(row.updated_at)
       },
       create: {
@@ -191,6 +192,7 @@ async function importSyndicats() {
         addressesJson: jsonArrayValue(row.addresses_json),
         socialsJson: jsonArrayValue(row.socials_json),
         content: stringValue(row.content),
+        logo: stringValue(row.logo),
         updatedAt: stringValue(row.updated_at)
       }
     })

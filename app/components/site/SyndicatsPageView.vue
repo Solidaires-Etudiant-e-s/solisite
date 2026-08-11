@@ -171,7 +171,13 @@ watch(filteredSyndicats, (syndicats) => {
                   <p class="font-medium text-highlighted">
                     {{ syndicat.city || 'Ville à préciser' }}
                   </p>
-                  <p class="mt-1 text-sm text-toned">
+                  <p class="mt-1 flex items-center text-sm text-toned">
+                    <NuxtImg
+                      v-if="syndicat.logo"
+                      :src="syndicat.logo"
+                      :alt="formatSyndicatDisplayName(syndicat.name, props.unionName)"
+                      class="mr-2 h-5 w-5 rounded object-cover"
+                    />
                     {{ formatSyndicatDisplayName(syndicat.name, props.unionName) }}
                   </p>
                 </button>

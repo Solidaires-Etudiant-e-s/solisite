@@ -105,6 +105,7 @@ export async function createSyndicat() {
         addressesJson: '[]',
         socialsJson: '[]',
         content: '<p>Commence à écrire ici.</p>',
+        logo: '',
         updatedAt: timestamp
       }
     })
@@ -141,6 +142,7 @@ async function normalizeSyndicatUpdate(
     addresses: normalizeSyndicatAddresses(input.addresses, current.addresses),
     socials: normalizeSocialLinks(input.socials, current.socials),
     content: input.content ?? current.content,
+    logo: (input.logo ?? current.logo).trim(),
     enabled: input.enabled ?? current.enabled,
     updatedAt: nowIso()
   }
@@ -167,6 +169,7 @@ export async function updateSyndicat(id: number, input: Partial<CmsSyndicat>, op
         addressesJson: JSON.stringify(updated.addresses),
         socialsJson: JSON.stringify(updated.socials),
         content: updated.content,
+        logo: updated.logo,
         enabled: updated.enabled,
         updatedAt: updated.updatedAt
       }

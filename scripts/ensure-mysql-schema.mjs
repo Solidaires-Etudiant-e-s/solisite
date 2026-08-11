@@ -167,6 +167,7 @@ try {
       addresses_json LONGTEXT NOT NULL,
       socials_json LONGTEXT NOT NULL,
       content LONGTEXT NOT NULL,
+      logo VARCHAR(512) NOT NULL DEFAULT '',
       updated_at VARCHAR(64) NOT NULL
     )
   `)
@@ -224,6 +225,7 @@ try {
   await ensureColumn('syndicats', 'addresses_json', 'LONGTEXT NOT NULL')
   await ensureColumn('syndicats', 'socials_json', 'LONGTEXT NOT NULL')
   await ensureColumn('syndicats', 'content', 'LONGTEXT NOT NULL')
+  await ensureColumn('syndicats', 'logo', 'VARCHAR(512) NOT NULL DEFAULT \'\'')
   await ensureColumn('syndicats', 'enabled', 'BOOLEAN NOT NULL DEFAULT TRUE')
   await ensureColumn('site_settings', 'union_name', 'VARCHAR(255) NOT NULL DEFAULT \'\'')
   await ensureColumn('site_settings', 'site_description', 'TEXT NOT NULL')

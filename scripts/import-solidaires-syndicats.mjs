@@ -139,6 +139,7 @@ try {
           addressesJson: '[]',
           socialsJson: '[]',
           content: '<p>Commence à écrire ici.</p>',
+          logo: '',
           updatedAt: new Date().toISOString()
         }
       })

@@ -79,6 +79,7 @@ model Syndicat {
   addressesJson String @map("addresses_json") @db.LongText
   socialsJson String @map("socials_json") @db.LongText
   content     String @db.LongText
+  logo        String   @default("") @map("logo") @db.VarChar(512)
   enabled     Boolean @default(true)
   updatedAt   String @map("updated_at") @db.VarChar(64)
 

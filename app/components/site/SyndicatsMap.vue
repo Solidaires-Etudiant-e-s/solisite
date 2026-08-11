@@ -146,6 +146,12 @@ watch(() => props.activeSyndicatSlug, async (slug) => {
               {{ entry.syndicat.city || 'Ville à préciser' }}
             </p>
             <h3 class="m-0 text-[1.05rem] leading-snug text-highlighted">
+              <NuxtImg
+                v-if="entry.syndicat.logo"
+                :src="entry.syndicat.logo"
+                :alt="formatSyndicatDisplayName(entry.syndicat.name, props.unionName)"
+                class="mr-2 inline-block h-7 w-7 rounded object-cover align-text-bottom"
+              />
               {{ formatSyndicatDisplayName(entry.syndicat.name, props.unionName) }}
             </h3>
 

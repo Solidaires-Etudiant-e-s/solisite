@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /* eslint-disable vue/no-v-html */
 import { VueDraggable } from 'vue-draggable-plus'
-import { createEditableTarget, createHtmlTarget, createListItemTarget, createListTarget } from '~/utils/cmsEditor'
+import { createEditableTarget, createFieldTarget, createHtmlTarget, createListItemTarget, createListTarget } from '~/utils/cmsEditor'
 import { cmsTouchDragOptions } from '~/utils/cmsDrag'
 import { toLinkTarget } from '~/utils/cmsUi'
 import { formatSyndicatDisplayName, resolveSyndicatAddresses } from '~~/lib/cms'
@@ -14,6 +14,7 @@ const props = defineProps<{
 const editor = useCmsPageLiveEditor()
 const targetIdPrefix = computed(() => `syndicat:${props.syndicat.id || 'draft'}`)
 const displayName = computed(() => formatSyndicatDisplayName(props.syndicat.name || 'Syndicat local', props.unionName))
+const logoUploadEndpoint = computed(() => props.syndicat.id ? `/api/cms/uploads/syndicat-logo?syndicatId=${props.syndicat.id}` : '')
 const addresses = computed(() => resolveSyndicatAddresses(props.syndicat))
 const showCitySubtitle = computed(() => {
   const city = props.syndicat.city?.trim()
@@ -37,13 +38,33 @@ const hasContactLinks = computed(() => Boolean(props.syndicat.email || props.syn
           Syndicat local
         </p>
 
-        <CmsEditableNode
-          tag="h1"
-          class="mt-4 max-w-4xl text-5xl font-black text-highlighted"
-          :target="createEditableTarget(`${targetIdPrefix}:name`, 'name', 'Nom du syndicat')"
-        >
-          {{ displayName }}
-        </CmsEditableNode>
+        <div class="flex items-center gap-3">
+          <CmsEditableNode
+            v-if="syndicat.logo || editor"
+            tag="div"
+            :target="createFieldTarget(`${targetIdPrefix}:logo`, '', 'Logo du syndicat', [{
+              key: 'logo',
+              label: 'Logo du syndicat',
+              kind: 'image',
+              uploadEndpoint: logoUploadEndpoint || undefined
+            }])"
+          >
+            <NuxtImg
+              v-if="syndicat.logo"
+              :src="syndicat.logo"
+              :alt="displayName"
+              class="h-12 w-12 rounded-md object-cover"
+            />
+          </CmsEditableNode>
+
+          <CmsEditableNode
+            tag="h1"
+            class="mt-1 max-w-4xl text-5xl font-black text-highlighted"
+            :target="createEditableTarget(`${targetIdPrefix}:name`, 'name', 'Nom du syndicat')"
+          >
+            {{ displayName }}
+          </CmsEditableNode>
+        </div>
 
         <CmsEditableNode
           v-if="showCitySubtitle || editor"

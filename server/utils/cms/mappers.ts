@@ -120,6 +120,7 @@ export function toSyndicat(record: SyndicatRecord): CmsSyndicat {
     addresses,
     socials: parseSocials(record.socialsJson),
     content: record.content,
+    logo: record.logo,
     enabled: record.enabled,
     updatedAt: record.updatedAt
   }

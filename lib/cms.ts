@@ -118,6 +118,7 @@ export interface CmsSyndicat {
   addresses: CmsSyndicatAddress[]
   socials: CmsSocialLink[]
   content: string
+  logo: string
   enabled: boolean
   updatedAt: string
 }
@@ -415,6 +416,7 @@ export function createEmptySyndicat(): CmsSyndicat {
     addresses: [],
     socials: [],
     content: '',
+    logo: '',
     enabled: true,
     updatedAt: ''
   }

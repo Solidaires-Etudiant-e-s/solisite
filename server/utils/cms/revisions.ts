@@ -275,6 +275,7 @@ async function restoreSyndicatSnapshot(snapshot: CmsSyndicat, revisionId: number
       addressesJson: JSON.stringify(addresses),
       socialsJson: JSON.stringify(socials),
       content: snapshot.content,
+      logo: snapshot.logo,
       updatedAt
     }
   })

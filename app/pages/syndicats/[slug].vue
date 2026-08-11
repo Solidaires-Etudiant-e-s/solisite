@@ -17,15 +17,16 @@ const pageTitle = computed(() => formatSyndicatDisplayName(syndicat.value.name, 
 const siteUrl = computed(() => resolveSiteUrl(runtimeConfig.public.siteUrl))
 const primaryAddress = computed(() => getPrimarySyndicatAddress(resolveSyndicatAddresses(syndicat.value)))
 const seoDescription = computed(() => truncateText(firstNonEmpty(
+  stripHtml(syndicat.value.content),
   syndicat.value.city && primaryAddress.value?.address
     ? `${pageTitle.value} est le syndicat local de ${unionName.value || 'Solidaires Étudiant·es'} à ${syndicat.value.city}. Adresse: ${primaryAddress.value.address}.`
     : syndicat.value.city
       ? `${pageTitle.value} est le syndicat local de ${unionName.value || 'Solidaires Étudiant·es'} à ${syndicat.value.city}.`
       : '',
-  stripHtml(syndicat.value.content),
   syndicat.value.city
 )))
 const socialImage = computed(() => resolveSeoImage({
+  image: syndicat.value.logo || undefined,
   fallbackImage: '/hero.jpg',
   siteUrl: siteUrl.value
 }))
@@ -40,6 +41,18 @@ useSeoMeta({
   twitterDescription: seoDescription,
   twitterImage: socialImage
 })
+
+useHead(() => ({
+  link: [{
+    rel: 'icon',
+    type: 'image/png',
+    sizes: '128x128',
+    href: syndicat.value.logo || '/logo.png'
+  }, {
+    rel: 'apple-touch-icon',
+    href: syndicat.value.logo || '/logo.png'
+  }]
+}))
 </script>
 
 <template>
