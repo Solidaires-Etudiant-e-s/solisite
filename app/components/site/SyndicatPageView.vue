@@ -15,6 +15,7 @@ const editor = useCmsPageLiveEditor()
 const targetIdPrefix = computed(() => `syndicat:${props.syndicat.id || 'draft'}`)
 const displayName = computed(() => formatSyndicatDisplayName(props.syndicat.name || 'Syndicat local', props.unionName))
 const logoUploadEndpoint = computed(() => props.syndicat.id ? `/api/cms/uploads/syndicat-logo?syndicatId=${props.syndicat.id}` : '')
+const resolvedLogo = computed(() => props.syndicat.logo || '/logo.png')
 const addresses = computed(() => resolveSyndicatAddresses(props.syndicat))
 const showCitySubtitle = computed(() => {
   const city = props.syndicat.city?.trim()
@@ -40,7 +41,6 @@ const hasContactLinks = computed(() => Boolean(props.syndicat.email || props.syn
 
         <div class="flex items-center gap-3">
           <CmsEditableNode
-            v-if="syndicat.logo || editor"
             tag="div"
             :target="createFieldTarget(`${targetIdPrefix}:logo`, '', 'Logo du syndicat', [{
               key: 'logo',
@@ -50,8 +50,7 @@ const hasContactLinks = computed(() => Boolean(props.syndicat.email || props.syn
             }])"
           >
             <NuxtImg
-              v-if="syndicat.logo"
-              :src="syndicat.logo"
+              :src="resolvedLogo"
               :alt="displayName"
               class="h-12 w-12 rounded-md object-cover"
             />
