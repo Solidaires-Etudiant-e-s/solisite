@@ -175,7 +175,7 @@ watch(filteredSyndicats, (syndicats) => {
                     <NuxtImg
                       :src="syndicat.logo || '/logo.png'"
                       :alt="formatSyndicatDisplayName(syndicat.name, props.unionName)"
-                      class="mr-2 h-5 w-5 rounded object-cover"
+                      class="mr-2 h-6 w-6 rounded object-cover"
                     />
                     {{ formatSyndicatDisplayName(syndicat.name, props.unionName) }}
                   </p>

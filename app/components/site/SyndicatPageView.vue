@@ -52,7 +52,7 @@ const hasContactLinks = computed(() => Boolean(props.syndicat.email || props.syn
             <NuxtImg
               :src="resolvedLogo"
               :alt="displayName"
-              class="h-12 w-12 rounded-md object-cover"
+              class="h-16 w-16 rounded-md object-cover"
             />
           </CmsEditableNode>
 

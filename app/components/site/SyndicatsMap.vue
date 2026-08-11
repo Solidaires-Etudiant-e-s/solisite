@@ -149,7 +149,7 @@ watch(() => props.activeSyndicatSlug, async (slug) => {
               <NuxtImg
                 :src="entry.syndicat.logo || '/logo.png'"
                 :alt="formatSyndicatDisplayName(entry.syndicat.name, props.unionName)"
-                class="mr-2 inline-block h-7 w-7 rounded object-cover align-text-bottom"
+                class="mr-2 inline-block h-9 w-9 rounded object-cover align-text-bottom"
               />
               {{ formatSyndicatDisplayName(entry.syndicat.name, props.unionName) }}
             </h3>
