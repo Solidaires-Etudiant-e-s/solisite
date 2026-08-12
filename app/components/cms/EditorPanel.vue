@@ -36,6 +36,7 @@ defineProps<{
   savingSiteSettings: boolean
   savingSyndicat: boolean
   deletingArticle: boolean
+  deletingGuide: boolean
   deletingSyndicat: boolean
 }>()
 
@@ -46,6 +47,7 @@ const emit = defineEmits<{
   saveArticle: []
   deleteArticle: []
   saveGuide: []
+  deleteGuide: []
   saveSiteSettings: []
   saveSyndicat: []
   deleteSyndicat: []
@@ -90,9 +92,11 @@ const emit = defineEmits<{
     :history-open="historyOpen"
     :preview-guide="guidePreview"
     :saving="savingGuide"
+    :deleting="deletingGuide"
     :selected-revision="selectedRevision"
     @toggle-history="emit('toggleHistory')"
     @save-guide="emit('saveGuide')"
+    @delete-guide="emit('deleteGuide')"
   />
 
   <CmsManageSyndicats

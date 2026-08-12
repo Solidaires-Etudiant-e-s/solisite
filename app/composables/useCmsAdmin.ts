@@ -13,6 +13,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   const savingGuide = ref(false)
   const savingSyndicat = ref(false)
   const deletingArticle = ref(false)
+  const deletingGuide = ref(false)
   const deletingSyndicat = ref(false)
   const savingSiteSettings = ref(false)
   const creatingArticle = ref(false)
@@ -736,6 +737,45 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     }
   }
 
+  async function deleteGuide() {
+    if (!isAdmin.value || !guideDraft.id) {
+      return
+    }
+
+    if (!window.confirm('Supprimer ce guide ? Cette action est définitive.')) {
+      return
+    }
+
+    deletingGuide.value = true
+
+    try {
+      await $fetch(`/api/cms/guides/${guideDraft.id}`, {
+        method: 'DELETE'
+      })
+
+      guides.value = guides.value.filter(guide => guide.id !== guideDraft.id)
+      const nextGuide = guides.value[0] || null
+
+      if (nextGuide) {
+        selectedGuideId.value = nextGuide.id
+        applyGuideDraft(nextGuide)
+      } else {
+        selectedGuideId.value = null
+        applyGuideDraft(createEmptyGuide())
+      }
+
+      selectedRevisionId.value = null
+      await loadRevisions()
+      toast.add({
+        title: 'Guide supprimé',
+        color: 'success',
+        icon: 'mingcute:check-circle-line'
+      })
+    } finally {
+      deletingGuide.value = false
+    }
+  }
+
   async function deleteSyndicat() {
     if (!syndicatDraft.id) {
       return
@@ -893,8 +933,10 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     savingSiteSettings,
     savingSyndicat,
     deleteArticle,
+    deleteGuide,
     deleteSyndicat,
     deletingArticle,
+    deletingGuide,
     deletingSyndicat,
     selectedRevision,
     selectedRevisionId,

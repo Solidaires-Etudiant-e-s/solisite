@@ -76,6 +76,22 @@ async function getUniqueGuideSlug(baseTitle: string, currentId?: number, databas
   )
 }
 
+export async function deleteGuide(id: number) {
+  return await runInCmsTransaction(async (database) => {
+    const current = await getGuideById(id, database)
+
+    if (!current) {
+      notFound(`Guide "${id}" not found.`)
+    }
+
+    await database.guide.delete({
+      where: { id }
+    })
+
+    return { id }
+  })
+}
+
 export async function createGuide() {
   return await runInCmsTransaction(async (database) => {
     const timestamp = nowIso()

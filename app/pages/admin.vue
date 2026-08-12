@@ -25,6 +25,7 @@ const {
   creatingGuide,
   creatingSyndicat,
   deletingArticle,
+  deletingGuide,
   deletingSyndicat,
   currentDraftIsDirty,
   expandedGroups,
@@ -49,6 +50,7 @@ const {
   saveSiteSettings,
   saveSyndicat,
   deleteArticle,
+  deleteGuide,
   deleteSyndicat,
   savingArticle,
   savingGuide,
@@ -150,6 +152,7 @@ useHead({
           :saving-site-settings="savingSiteSettings"
           :saving-syndicat="savingSyndicat"
           :deleting-article="deletingArticle"
+          :deleting-guide="deletingGuide"
           :deleting-syndicat="deletingSyndicat"
           @toggle-history="toggleHistory"
           @save-page="savePage"
@@ -157,6 +160,7 @@ useHead({
           @save-article="saveArticle"
           @delete-article="deleteArticle"
           @save-guide="saveGuide"
+          @delete-guide="deleteGuide"
           @save-site-settings="saveSiteSettings"
           @save-syndicat="saveSyndicat"
           @delete-syndicat="deleteSyndicat"

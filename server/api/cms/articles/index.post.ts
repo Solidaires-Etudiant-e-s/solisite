@@ -7,5 +7,5 @@ export default defineEventHandler(async (event) => {
   await requireAdminAccess(event)
   const body = await readTypedBody<Partial<CmsArticle>>(event)
 
-  return await createArticle(body.tags)
+  return await createArticle(body?.tags)
 })

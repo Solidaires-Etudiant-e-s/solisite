@@ -10,12 +10,14 @@ const { canManageHistory, historyOpen, previewGuide, saving, selectedRevision } 
   historyOpen: boolean
   previewGuide: CmsGuide
   saving: boolean
+  deleting: boolean
   selectedRevision: CmsRevision | null
 }>()
 
 const emit = defineEmits<{
   toggleHistory: []
   saveGuide: []
+  deleteGuide: []
 }>()
 
 provideCmsPageLiveEditor(guide.value)
@@ -50,10 +52,20 @@ provideCmsPageLiveEditor(guide.value)
           />
 
           <UButton
+            label="Supprimer"
+            color="error"
+            variant="outline"
+            icon="mingcute:delete-line"
+            :loading="deleting"
+            :disabled="!guide.id || saving"
+            @click="emit('deleteGuide')"
+          />
+
+          <UButton
             label="Enregistrer le guide"
             color="primary"
             :loading="saving"
-            :disabled="!guide.id"
+            :disabled="!guide.id || deleting"
             @click="emit('saveGuide')"
           />
         </div>
