@@ -174,6 +174,27 @@ export interface CmsGuide {
 export type CmsArticleSummary = Omit<CmsArticle, 'content'>
 export type CmsGuideSummary = Omit<CmsGuide, 'content'>
 
+export interface CmsInstagramPost {
+  id: string
+  shortcode: string
+  permalink: string
+  imageUrl: string
+  alt: string
+  caption: string
+  likes: number
+  comments: number
+  takenAt: string
+  isVideo: boolean
+}
+
+export interface CmsInstagramFeed {
+  username: string
+  profileName: string
+  profilePictureUrl: string
+  followers: number
+  posts: CmsInstagramPost[]
+}
+
 export interface CmsSiteSettings {
   unionName: string
   siteDescription: string

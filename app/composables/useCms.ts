@@ -37,6 +37,8 @@ export type {
   CmsGuide,
   CmsGuideSummary,
   CmsGuidesPageContent,
+  CmsInstagramFeed,
+  CmsInstagramPost,
   CmsPage,
   CmsPageContent,
   CmsPageSlug,

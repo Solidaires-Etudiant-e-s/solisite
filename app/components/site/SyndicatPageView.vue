@@ -3,7 +3,7 @@
 import { VueDraggable } from 'vue-draggable-plus'
 import { createEditableTarget, createFieldTarget, createHtmlTarget, createListItemTarget, createListTarget } from '~/utils/cmsEditor'
 import { cmsTouchDragOptions } from '~/utils/cmsDrag'
-import { toLinkTarget } from '~/utils/cmsUi'
+import { getInstagramUsername, toLinkTarget } from '~/utils/cmsUi'
 import { formatSyndicatDisplayName, resolveSyndicatAddresses } from '~~/lib/cms'
 
 const props = defineProps<{
@@ -29,6 +29,10 @@ const showCitySubtitle = computed(() => {
 })
 
 const hasContactLinks = computed(() => Boolean(props.syndicat.email || props.syndicat.socials.some(social => social.href)))
+const instagramUsername = computed(() => {
+  const instagram = (props.syndicat.socials || []).find(social => /instagram/i.test(social.label || social.href || ''))
+  return instagram ? getInstagramUsername(instagram.href) : ''
+})
 </script>
 
 <template>
@@ -78,186 +82,194 @@ const hasContactLinks = computed(() => Boolean(props.syndicat.email || props.syn
 
     <UPageBody class="!mt-0 !space-y-0">
       <div class="public-container grid items-start gap-8 pt-4 pb-10 sm:pt-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
-        <UCard class="self-start">
-          <div class="space-y-5">
-            <div>
-              <p class="text-sm font-medium text-muted">
-                Ville
-              </p>
-              <CmsEditableNode
-                tag="p"
-                class="mt-1 text-base text-highlighted"
-                :target="createEditableTarget(`${targetIdPrefix}:city`, 'city', 'Ville')"
-              >
-                {{ syndicat.city || 'À préciser' }}
-              </CmsEditableNode>
-            </div>
-
-            <div>
-              <p class="text-sm font-medium text-muted">
-                Contacts
-              </p>
-
-              <div class="mt-3 flex flex-col gap-2">
+        <div class="self-start space-y-8">
+          <UCard class="self-start">
+            <div class="space-y-5">
+              <div>
+                <p class="text-sm font-medium text-muted">
+                  Ville
+                </p>
                 <CmsEditableNode
-                  v-if="syndicat.email || editor"
-                  tag="div"
-                  :target="createEditableTarget(`${targetIdPrefix}:email`, 'email', 'E-mail')"
+                  tag="p"
+                  class="mt-1 text-base text-highlighted"
+                  :target="createEditableTarget(`${targetIdPrefix}:city`, 'city', 'Ville')"
                 >
-                  <UButton
-                    label="Mail"
-                    :href="editor ? undefined : (syndicat.email ? `mailto:${syndicat.email}` : undefined)"
-                    color="neutral"
-                    variant="outline"
-                    icon="mingcute:mail-line"
-                    trailing
-                    block
-                  />
+                  {{ syndicat.city || 'À préciser' }}
                 </CmsEditableNode>
+              </div>
 
-                <VueDraggable
-                  v-if="editor"
-                  :model-value="syndicat.socials"
-                  v-bind="cmsTouchDragOptions"
-                  tag="div"
-                  class="flex flex-col gap-2"
-                  :animation="180"
-                  ghost-class="opacity-60"
-                  chosen-class="scale-[1.02]"
-                  @update:model-value="editor.updateField('socials', $event)"
-                  @start="editor.closeTarget()"
-                >
+              <div>
+                <p class="text-sm font-medium text-muted">
+                  Contacts
+                </p>
+
+                <div class="mt-3 flex flex-col gap-2">
                   <CmsEditableNode
-                    v-for="(social, index) in syndicat.socials"
-                    :key="index"
+                    v-if="syndicat.email || editor"
                     tag="div"
-                    :target="createListItemTarget(targetIdPrefix, 'social', index, 'socials', 'Lien social')"
+                    :target="createEditableTarget(`${targetIdPrefix}:email`, 'email', 'E-mail')"
                   >
                     <UButton
+                      label="Mail"
+                      :href="editor ? undefined : (syndicat.email ? `mailto:${syndicat.email}` : undefined)"
+                      color="neutral"
+                      variant="outline"
+                      icon="mingcute:mail-line"
+                      trailing
+                      block
+                    />
+                  </CmsEditableNode>
+
+                  <VueDraggable
+                    v-if="editor"
+                    :model-value="syndicat.socials"
+                    v-bind="cmsTouchDragOptions"
+                    tag="div"
+                    class="flex flex-col gap-2"
+                    :animation="180"
+                    ghost-class="opacity-60"
+                    chosen-class="scale-[1.02]"
+                    @update:model-value="editor.updateField('socials', $event)"
+                    @start="editor.closeTarget()"
+                  >
+                    <CmsEditableNode
+                      v-for="(social, index) in syndicat.socials"
+                      :key="index"
+                      tag="div"
+                      :target="createListItemTarget(targetIdPrefix, 'social', index, 'socials', 'Lien social')"
+                    >
+                      <UButton
+                        :label="social.label || social.href || `Lien ${index + 1}`"
+                        color="neutral"
+                        variant="outline"
+                        :icon="social.icon || 'mingcute:link-line'"
+                        trailing
+                        block
+                      />
+                    </CmsEditableNode>
+                  </VueDraggable>
+
+                  <template v-else>
+                    <UButton
+                      v-for="(social, index) in syndicat.socials"
+                      :key="index"
                       :label="social.label || social.href || `Lien ${index + 1}`"
+                      :href="social.href"
+                      :target="toLinkTarget(social.href || '')"
                       color="neutral"
                       variant="outline"
                       :icon="social.icon || 'mingcute:link-line'"
                       trailing
                       block
                     />
-                  </CmsEditableNode>
-                </VueDraggable>
+                  </template>
 
-                <template v-else>
-                  <UButton
-                    v-for="(social, index) in syndicat.socials"
-                    :key="index"
-                    :label="social.label || social.href || `Lien ${index + 1}`"
-                    :href="social.href"
-                    :target="toLinkTarget(social.href || '')"
-                    color="neutral"
-                    variant="outline"
-                    :icon="social.icon || 'mingcute:link-line'"
-                    trailing
-                    block
-                  />
-                </template>
-
-                <CmsEditableNode
-                  v-if="editor"
-                  tag="div"
-                  :target="createListTarget(targetIdPrefix, 'social', 'socials', 'Réseaux sociaux')"
-                >
-                  <UButton
-                    label="Ajouter un lien"
-                    icon="mingcute:plus-line"
-                    color="neutral"
-                    variant="outline"
-                    block
-                  />
-                </CmsEditableNode>
-
-                <p
-                  v-else-if="!hasContactLinks"
-                  class="text-sm text-muted"
-                >
-                  Aucun contact renseigné.
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <p class="text-sm font-medium text-muted">
-                Adresses
-              </p>
-
-              <div class="mt-3 space-y-3">
-                <VueDraggable
-                  v-if="editor"
-                  :model-value="syndicat.addresses || []"
-                  v-bind="cmsTouchDragOptions"
-                  tag="div"
-                  class="space-y-3"
-                  :animation="180"
-                  ghost-class="opacity-60"
-                  chosen-class="scale-[1.02]"
-                  @update:model-value="editor.updateField('addresses', $event)"
-                  @start="editor.closeTarget()"
-                >
                   <CmsEditableNode
-                    v-for="(address, index) in syndicat.addresses || []"
-                    :key="index"
+                    v-if="editor"
                     tag="div"
-                    class="rounded-xl border border-default px-3 py-2"
-                    :target="createListItemTarget(targetIdPrefix, 'address', index, 'addresses', 'Adresse')"
+                    :target="createListTarget(targetIdPrefix, 'social', 'socials', 'Réseaux sociaux')"
                   >
-                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
-                      {{ address.label || `Adresse ${index + 1}` }}
-                    </p>
-                    <p class="mt-1 whitespace-pre-line text-sm leading-6 text-toned">
-                      {{ address.address || 'Choisis une adresse via l’autocomplétion.' }}
-                    </p>
+                    <UButton
+                      label="Ajouter un lien"
+                      icon="mingcute:plus-line"
+                      color="neutral"
+                      variant="outline"
+                      block
+                    />
                   </CmsEditableNode>
-                </VueDraggable>
 
-                <template v-else-if="addresses.length">
-                  <div
-                    v-for="(address, index) in addresses"
-                    :key="`${address.label}-${index}`"
-                    class="rounded-xl border border-default px-3 py-2"
+                  <p
+                    v-else-if="!hasContactLinks"
+                    class="text-sm text-muted"
                   >
-                    <p
-                      v-if="address.label"
-                      class="text-xs font-semibold uppercase tracking-[0.16em] text-muted"
-                    >
-                      {{ address.label }}
-                    </p>
-                    <p class="whitespace-pre-line text-sm leading-6 text-toned">
-                      {{ address.address }}
-                    </p>
-                  </div>
-                </template>
+                    Aucun contact renseigné.
+                  </p>
+                </div>
+              </div>
 
-                <CmsEditableNode
-                  v-if="editor"
-                  tag="div"
-                  :target="createListTarget(targetIdPrefix, 'address', 'addresses', 'Adresses')"
-                >
-                  <UButton
-                    label="Ajouter une adresse"
-                    icon="mingcute:plus-line"
-                    color="neutral"
-                    variant="outline"
-                    block
-                  />
-                </CmsEditableNode>
-
-                <p
-                  v-else-if="!addresses.length"
-                  class="text-sm text-muted"
-                >
-                  Adresse à préciser
+              <div>
+                <p class="text-sm font-medium text-muted">
+                  Adresses
                 </p>
+
+                <div class="mt-3 space-y-3">
+                  <VueDraggable
+                    v-if="editor"
+                    :model-value="syndicat.addresses || []"
+                    v-bind="cmsTouchDragOptions"
+                    tag="div"
+                    class="space-y-3"
+                    :animation="180"
+                    ghost-class="opacity-60"
+                    chosen-class="scale-[1.02]"
+                    @update:model-value="editor.updateField('addresses', $event)"
+                    @start="editor.closeTarget()"
+                  >
+                    <CmsEditableNode
+                      v-for="(address, index) in syndicat.addresses || []"
+                      :key="index"
+                      tag="div"
+                      class="rounded-xl border border-default px-3 py-2"
+                      :target="createListItemTarget(targetIdPrefix, 'address', index, 'addresses', 'Adresse')"
+                    >
+                      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+                        {{ address.label || `Adresse ${index + 1}` }}
+                      </p>
+                      <p class="mt-1 whitespace-pre-line text-sm leading-6 text-toned">
+                        {{ address.address || 'Choisis une adresse via l’autocomplétion.' }}
+                      </p>
+                    </CmsEditableNode>
+                  </VueDraggable>
+
+                  <template v-else-if="addresses.length">
+                    <div
+                      v-for="(address, index) in addresses"
+                      :key="`${address.label}-${index}`"
+                      class="rounded-xl border border-default px-3 py-2"
+                    >
+                      <p
+                        v-if="address.label"
+                        class="text-xs font-semibold uppercase tracking-[0.16em] text-muted"
+                      >
+                        {{ address.label }}
+                      </p>
+                      <p class="whitespace-pre-line text-sm leading-6 text-toned">
+                        {{ address.address }}
+                      </p>
+                    </div>
+                  </template>
+
+                  <CmsEditableNode
+                    v-if="editor"
+                    tag="div"
+                    :target="createListTarget(targetIdPrefix, 'address', 'addresses', 'Adresses')"
+                  >
+                    <UButton
+                      label="Ajouter une adresse"
+                      icon="mingcute:plus-line"
+                      color="neutral"
+                      variant="outline"
+                      block
+                    />
+                  </CmsEditableNode>
+
+                  <p
+                    v-else-if="!addresses.length"
+                    class="text-sm text-muted"
+                  >
+                    Adresse à préciser
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        </UCard>
+          </UCard>
+
+          <SiteInstagramFeed
+            v-if="instagramUsername"
+            :username="instagramUsername"
+            :columns="2"
+          />
+        </div>
 
         <div class="space-y-6">
           <CmsEditableNode

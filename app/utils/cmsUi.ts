@@ -119,6 +119,17 @@ export function isExternalHref(href: string) {
   return /^https?:\/\//.test(href)
 }
 
+export function getInstagramUsername(href: string) {
+  const match = (href || '').trim().match(/(?:instagram\.com|instagr\.am)\/([^/?#]+)/i)
+  const username = match?.[1]
+
+  if (!username) {
+    return ''
+  }
+
+  return username.replace(/^@/, '')
+}
+
 export function toLinkTarget(href: string) {
   return isExternalHref(href) ? '_blank' : undefined
 }

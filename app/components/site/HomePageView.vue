@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { VueDraggable } from 'vue-draggable-plus'
+import { useMediaQuery } from '@vueuse/core'
 import { createEditableTarget, createListItemTarget, createListTarget } from '~/utils/cmsEditor'
 import { cmsTouchDragOptions } from '~/utils/cmsDrag'
-import { createStableItemKeyResolver } from '~/utils/cmsUi'
+import { createStableItemKeyResolver, getInstagramUsername } from '~/utils/cmsUi'
 
 const props = defineProps<{
   page: CmsPage
@@ -15,7 +16,13 @@ const content = computed(() => props.page.content as CmsHomePageContent)
 const featuredArticles = computed(() => props.articles.slice(0, 6))
 const heroButtons = computed(() => content.value.heroButtons || [])
 const socials = computed(() => (props.siteSettings.socials || []).filter(social => social.href))
+const instagramUsername = computed(() => {
+  const instagram = (props.siteSettings.socials || []).find(social => /instagram/i.test(social.label || social.href || ''))
+  return instagram ? getInstagramUsername(instagram.href) : ''
+})
 const getItemKey = createStableItemKeyResolver()
+const isMobile = useMediaQuery('(max-width: 639px)')
+const heroButtonSize = computed(() => isMobile.value ? 'lg' : 'xl')
 const compactSectionUi = {
   container: 'px-3 py-10 sm:px-4 sm:py-14 lg:px-5 lg:py-16 gap-6 sm:gap-10',
   body: 'mt-6 sm:mt-10'
@@ -45,7 +52,8 @@ const partnersModel = computed({
   <div>
     <UPageHero
       class="dark"
-      :ui="{ root: 'sm:h-192 flex items-center', title: 'sm:!text-8xl' }"
+      orientation="horizontal"
+      :ui="{ root: 'sm:h-192 flex items-center', container: 'px-6 sm:px-8 gap-6 sm:gap-y-12 py-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-center', title: 'sm:!text-8xl', description: 'max-w-2xl' }"
     >
       <template #top>
         <div
@@ -130,7 +138,7 @@ const partnersModel = computed({
                 :label="button.label || 'Bouton sans titre'"
                 :icon="button.variant === 'secondary' ? button.icon || undefined : undefined"
                 :trailing-icon="button.variant === 'primary' ? button.icon || undefined : undefined"
-                size="xl"
+                :size="heroButtonSize"
                 :color="button.variant === 'secondary' ? 'neutral' : 'primary'"
                 :variant="button.variant === 'secondary' ? 'subtle' : 'solid'"
                 :to="undefined"
@@ -161,13 +169,22 @@ const partnersModel = computed({
             :label="button.label || 'Bouton sans titre'"
             :icon="button.variant === 'secondary' ? button.icon || undefined : undefined"
             :trailing-icon="button.variant === 'primary' ? button.icon || undefined : undefined"
-            size="xl"
+            :size="heroButtonSize"
             :color="button.variant === 'secondary' ? 'neutral' : 'primary'"
             :variant="button.variant === 'secondary' ? 'subtle' : 'solid'"
             :to="button.href"
             :class="button.variant === 'primary' ? 'text-inverted' : 'outline-none'"
           />
         </template>
+      </template>
+
+      <template #default>
+        <div
+          v-if="instagramUsername"
+          class="mt-10 lg:mt-0"
+        >
+          <SiteInstagramFeed :username="instagramUsername" />
+        </div>
       </template>
     </UPageHero>
 
