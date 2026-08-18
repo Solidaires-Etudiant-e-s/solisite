@@ -2,6 +2,17 @@
 const toast = useToast()
 const { data, error, refresh } = await useFetch<CmsBootstrap>('/api/cms/bootstrap')
 
+if (!error.value && import.meta.client) {
+  onMounted(() => {
+    const user = data.value?.auth.user
+
+    if (user) {
+      umIdentify({ account: user.name, role: user.role })
+      umTrackEvent('login', { account: user.name, role: user.role })
+    }
+  })
+}
+
 if (error.value) {
   if (import.meta.client) {
     onMounted(() => {

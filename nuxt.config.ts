@@ -126,7 +126,7 @@ export default defineNuxtConfig({
   },
 
   umami: {
-    id: process.env.UMANI,
+    id: process.env.UMAMI,
     host: 'https://umami.solidaires-etudiant-e-s.org',
     autoTrack: true,
     ignoreLocalhost: true
