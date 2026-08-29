@@ -169,6 +169,16 @@ useHead({
   }, {
     rel: 'apple-touch-icon',
     href: '/logo.png'
+  }, {
+    rel: 'alternate',
+    type: 'application/rss+xml',
+    title: 'Flux RSS des articles',
+    href: '/rss/articles.xml'
+  }, {
+    rel: 'alternate',
+    type: 'application/rss+xml',
+    title: 'Flux RSS des guides',
+    href: '/rss/guides.xml'
   }],
   titleTemplate: (titleChunk) => {
     const cleanSiteName = siteName.value

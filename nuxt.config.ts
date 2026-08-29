@@ -74,6 +74,34 @@ export default defineNuxtConfig({
         'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600'
       }
     },
+    '/rss/articles.xml': {
+      isr: 600,
+      headers: {
+        'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600',
+        'Content-Type': 'application/rss+xml; charset=utf-8'
+      }
+    },
+    '/rss/guides.xml': {
+      isr: 600,
+      headers: {
+        'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600',
+        'Content-Type': 'application/rss+xml; charset=utf-8'
+      }
+    },
+    '/articles/rss.xml': {
+      isr: 600,
+      headers: {
+        'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600',
+        'Content-Type': 'application/rss+xml; charset=utf-8'
+      }
+    },
+    '/guides/rss.xml': {
+      isr: 600,
+      headers: {
+        'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600',
+        'Content-Type': 'application/rss+xml; charset=utf-8'
+      }
+    },
     '/': {
       isr: 150,
       headers: {
