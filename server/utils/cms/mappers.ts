@@ -132,6 +132,7 @@ export function toSiteSettings(record: SiteSettingsRecord): CmsSiteSettings {
     siteDescription: record.siteDescription,
     contactEmail: record.contactEmail,
     contactPhone: record.contactPhone,
+    reportUrl: record.reportUrl,
     address: record.address,
     socials: parseSocials(record.socialsJson),
     updatedAt: record.updatedAt

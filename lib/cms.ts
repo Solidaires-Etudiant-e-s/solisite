@@ -200,6 +200,7 @@ export interface CmsSiteSettings {
   siteDescription: string
   contactEmail: string
   contactPhone: string
+  reportUrl: string
   address: string
   socials: CmsSocialLink[]
   updatedAt: string
@@ -547,6 +548,7 @@ export function createEmptySiteSettings(): CmsSiteSettings {
     siteDescription: '',
     contactEmail: '',
     contactPhone: '',
+    reportUrl: '',
     address: '',
     socials: [],
     updatedAt: ''
@@ -559,6 +561,7 @@ export function createDefaultSiteSettings(): CmsSiteSettings {
     siteDescription: 'Syndicats de luttes, militant pour une université gratuite, ouverte à tous·tes, de qualité, émancipatrice et autogérée.',
     contactEmail: 'contact@solidaires-etudiant-e-s.org',
     contactPhone: '+33686802445',
+    reportUrl: 'https://framaforms.org/formulaire-de-signalement-vssoppression-sesl-1788696868',
     address: '',
     socials: [
       {

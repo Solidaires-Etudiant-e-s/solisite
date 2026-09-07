@@ -105,6 +105,7 @@ model SiteSettings {
   siteDescription String @map("site_description") @db.Text
   contactEmail    String @default("") @map("contact_email") @db.VarChar(255)
   contactPhone    String @default("") @map("contact_phone") @db.VarChar(64)
+  reportUrl       String @default("") @map("report_url") @db.VarChar(512)
   address         String @db.Text
   socialsJson     String @map("socials_json") @db.LongText
   updatedAt       String @map("updated_at") @db.VarChar(64)

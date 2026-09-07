@@ -190,6 +190,7 @@ try {
       site_description TEXT NOT NULL,
       contact_email VARCHAR(255) NOT NULL DEFAULT '',
       contact_phone VARCHAR(64) NOT NULL DEFAULT '',
+      report_url VARCHAR(512) NOT NULL DEFAULT '',
       address TEXT NOT NULL,
       socials_json LONGTEXT NOT NULL,
       updated_at VARCHAR(64) NOT NULL
@@ -231,6 +232,7 @@ try {
   await ensureColumn('site_settings', 'site_description', 'TEXT NOT NULL')
   await ensureColumn('site_settings', 'contact_email', 'VARCHAR(255) NOT NULL DEFAULT \'\'')
   await ensureColumn('site_settings', 'contact_phone', 'VARCHAR(64) NOT NULL DEFAULT \'\'')
+  await ensureColumn('site_settings', 'report_url', 'VARCHAR(512) NOT NULL DEFAULT \'\'')
   await ensureColumn('site_settings', 'socials_json', 'LONGTEXT NOT NULL')
 
   await prisma.$executeRawUnsafe(`

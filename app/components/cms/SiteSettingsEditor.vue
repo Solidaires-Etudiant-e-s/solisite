@@ -38,6 +38,16 @@ function removeSocial(index: number) {
         </UFormField>
       </div>
 
+      <UFormField
+        label="Lien de signalement"
+        description="URL du formulaire de signalement affiché dans le pied de page (bouton « Contacter la cellule de veille »)."
+      >
+        <UInput
+          v-model="siteSettings.reportUrl"
+          placeholder="https://…"
+        />
+      </UFormField>
+
       <UFormField label="Adresse">
         <UTextarea
           v-model="siteSettings.address"

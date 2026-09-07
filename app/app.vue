@@ -341,10 +341,13 @@ useSeoMeta({
 
         <div class="flex shrink-0 flex-col items-center md:items-end">
           <UButton
+            v-if="siteSettings.reportUrl"
             label="Contacter la cellule de veille"
             icon="mingcute:lifebuoy-line"
             color="primary"
-            to="mailto:sf@solidaires-etudiant-e-s.org"
+            :to="siteSettings.reportUrl"
+            target="_blank"
+            rel="noopener noreferrer"
           />
         </div>
       </div>

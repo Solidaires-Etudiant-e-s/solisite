@@ -38,6 +38,7 @@ function normalizeSiteSettingsUpdate(current: CmsSiteSettings, input: Partial<Cm
     siteDescription: (input.siteDescription ?? current.siteDescription).trim(),
     contactEmail: (input.contactEmail ?? current.contactEmail).trim(),
     contactPhone: (input.contactPhone ?? current.contactPhone).trim(),
+    reportUrl: (input.reportUrl ?? current.reportUrl).trim(),
     address: (input.address ?? current.address).trim(),
     socials: normalizeSocialLinks(input.socials, current.socials),
     updatedAt: nowIso()
@@ -56,6 +57,7 @@ export async function updateSiteSettings(input: Partial<CmsSiteSettings>, option
         siteDescription: updated.siteDescription,
         contactEmail: updated.contactEmail,
         contactPhone: updated.contactPhone,
+        reportUrl: updated.reportUrl,
         address: updated.address,
         socialsJson: JSON.stringify(updated.socials),
         updatedAt: updated.updatedAt
@@ -66,6 +68,7 @@ export async function updateSiteSettings(input: Partial<CmsSiteSettings>, option
         siteDescription: updated.siteDescription,
         contactEmail: updated.contactEmail,
         contactPhone: updated.contactPhone,
+        reportUrl: updated.reportUrl,
         address: updated.address,
         socialsJson: JSON.stringify(updated.socials),
         updatedAt: updated.updatedAt

@@ -110,6 +110,7 @@ async function seedSiteSettings(database: CmsDatabaseClient) {
       siteDescription: defaultSiteSettings.siteDescription,
       contactEmail: defaultSiteSettings.contactEmail,
       contactPhone: defaultSiteSettings.contactPhone,
+      reportUrl: defaultSiteSettings.reportUrl,
       address: defaultSiteSettings.address,
       socialsJson: JSON.stringify(defaultSiteSettings.socials),
       updatedAt: nowIso()
