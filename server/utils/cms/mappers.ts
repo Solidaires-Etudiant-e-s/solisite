@@ -69,7 +69,7 @@ export function toPage(record: PageRecord): CmsPage {
   }
 }
 
-export function toArticle(record: ArticleRecord, tags?: TagRecord[]): CmsArticle {
+export function toArticle(record: ArticleRecord, tags?: TagRecord[], syndicat?: SyndicatRecord | null): CmsArticle {
   return {
     id: record.id,
     slug: record.slug,
@@ -80,6 +80,9 @@ export function toArticle(record: ArticleRecord, tags?: TagRecord[]): CmsArticle
     publishedAt: record.publishedAt,
     updatedAt: record.updatedAt,
     syndicatId: record.syndicatId ?? null,
+    syndicat: syndicat
+      ? { id: syndicat.id, slug: syndicat.slug, name: syndicat.name, city: syndicat.city }
+      : null,
     tags: (tags ?? []).map(toTag)
   }
 }
@@ -99,8 +102,8 @@ export function toGuide(record: GuideRecord): CmsGuide {
   }
 }
 
-export function toArticleSummary(record: ArticleRecord, tags?: TagRecord[]): CmsArticleSummary {
-  const { content: _content, ...summary } = toArticle(record, tags)
+export function toArticleSummary(record: ArticleRecord, tags?: TagRecord[], syndicat?: SyndicatRecord | null): CmsArticleSummary {
+  const { content: _content, ...summary } = toArticle(record, tags, syndicat)
   return summary
 }
 

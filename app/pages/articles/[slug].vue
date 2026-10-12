@@ -14,6 +14,10 @@ const article = computed(() => requireCmsData(articleData.value, 'Article introu
 const siteSettings = computed(() => resolveSiteSettings(siteSettingsData.value))
 const siteUrl = computed(() => resolveSiteUrl(runtimeConfig.public.siteUrl))
 const siteName = computed(() => siteSettings.value.unionName || 'Solidaires Étudiant·es')
+const authorName = computed(() => formatArticleSyndicatLabel(article.value.syndicat, siteName.value) || 'Solidaires Étudiant-e-s')
+const authorUrl = computed(() => article.value.syndicat
+  ? `${siteUrl.value}/syndicats/${article.value.syndicat.slug}`
+  : siteUrl.value)
 const seoDescription = computed(() => truncateText(firstNonEmpty(
   article.value.excerpt,
   stripHtml(article.value.content)
@@ -46,8 +50,8 @@ useJsonld(() => ({
   'dateModified': article.value.updatedAt,
   'author': {
     '@type': 'WorkersUnion',
-    'name': 'Solidaires Étudiant-e-s',
-    'url': siteUrl.value
+    'name': authorName.value,
+    'url': authorUrl.value
   },
   'publisher': {
     '@type': 'WorkersUnion',
@@ -68,5 +72,8 @@ useJsonld(() => ({
 </script>
 
 <template>
-  <SiteArticlePageView :article="article" />
+  <SiteArticlePageView
+    :article="article"
+    :union-name="siteName"
+  />
 </template>

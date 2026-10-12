@@ -139,6 +139,13 @@ export interface CmsPage {
   updatedAt: string
 }
 
+export interface CmsArticleSyndicat {
+  id: number
+  slug: string
+  name: string
+  city: string
+}
+
 export interface CmsArticle {
   id: number
   slug: string
@@ -149,6 +156,7 @@ export interface CmsArticle {
   publishedAt: string
   updatedAt: string
   syndicatId: number | null
+  syndicat: CmsArticleSyndicat | null
   tags: CmsTag[]
 }
 
@@ -411,6 +419,7 @@ export function createEmptyArticle(): CmsArticle {
     publishedAt: '',
     updatedAt: '',
     syndicatId: null,
+    syndicat: null,
     tags: []
   }
 }

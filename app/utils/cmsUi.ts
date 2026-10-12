@@ -1,4 +1,5 @@
 import type { EditorToolbarItem } from '@nuxt/ui'
+import { formatSyndicatDisplayName, normalizeSyndicatName } from '~~/lib/cms'
 
 export const cmsRichTextToolbarItems: EditorToolbarItem[][] = [[
   {
@@ -117,6 +118,27 @@ export function formatFrenchDateTime(value: string) {
 
 export function isExternalHref(href: string) {
   return /^https?:\/\//.test(href)
+}
+
+export function formatArticleSyndicatLabel(
+  syndicat: { name?: string, city?: string } | null | undefined,
+  unionName?: string
+) {
+  if (!syndicat) {
+    return ''
+  }
+
+  const city = (syndicat.city || '').trim()
+  const displayName = formatSyndicatDisplayName(syndicat.name || '', unionName)
+  const localName = normalizeSyndicatName(syndicat.name || '')
+
+  // Append the city only when it adds information beyond the displayed name
+  // (i.e. the city isn't already part of the local name).
+  if (city && city.localeCompare(localName, 'fr', { sensitivity: 'base' }) !== 0) {
+    return `${displayName} — ${city}`
+  }
+
+  return displayName
 }
 
 export function getInstagramUsername(href: string) {

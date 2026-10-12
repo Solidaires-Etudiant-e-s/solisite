@@ -120,5 +120,6 @@ if (import.meta.client) {
     :current-page="currentPage"
     :total-pages="totalPages"
     :all-tags="allTags"
+    :union-name="siteName"
   />
 </template>

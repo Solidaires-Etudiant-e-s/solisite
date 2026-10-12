@@ -162,14 +162,15 @@ async function restoreArticleSnapshot(snapshot: CmsArticle, revisionId: number, 
   })
 
   const restoredRecord = await database.article.findUnique({
-    where: { id: snapshot.id }
-  }) as ArticleRecord | null
+    where: { id: snapshot.id },
+    include: { syndicat: true }
+  }) as (ArticleRecord & { syndicat: SyndicatRecord | null }) | null
 
   if (!restoredRecord) {
     notFound(`Article "${snapshot.id}" not found.`)
   }
 
-  const entity = toArticle(restoredRecord)
+  const entity = toArticle(restoredRecord, undefined, restoredRecord.syndicat)
   await createArticleRevision(entity, 'restore', revisionId, database)
 
   return {

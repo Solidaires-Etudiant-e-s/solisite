@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { NuxtLink } from '#components'
-import { formatFrenchDate } from '~/utils/cmsUi'
+import { formatArticleSyndicatLabel, formatFrenchDate } from '~/utils/cmsUi'
 
 const props = defineProps<{
   article: CmsArticleSummary
   immersive?: boolean
+  unionName?: string
 }>()
 
 const editor = useCmsPageLiveEditor()
 const publishedLabel = computed(() => formatFrenchDate(props.article.publishedAt))
 const articleHref = computed(() => `/articles/${props.article.slug}`)
+const syndicatLabel = computed(() => formatArticleSyndicatLabel(props.article.syndicat, props.unionName))
+const syndicatHref = computed(() => props.article.syndicat ? `/syndicats/${props.article.syndicat.slug}` : '')
 </script>
 
 <template>
@@ -17,14 +20,14 @@ const articleHref = computed(() => `/articles/${props.article.slug}`)
     :is="props.immersive ? 'div' : 'UCard'"
     class="border border-default bg-elevated"
     :class="[
-      props.immersive ? 'h-[28rem] overflow-hidden' : 'h-full',
+      props.immersive ? 'relative h-[28rem] overflow-hidden' : 'flex h-full flex-col',
       !editor && props.immersive ? 'transition-opacity hover:opacity-90' : ''
     ]"
   >
     <component
       :is="editor ? 'div' : NuxtLink"
       :to="editor ? undefined : articleHref"
-      class="block h-full"
+      :class="props.immersive ? 'block h-full' : 'flex-1'"
     >
       <div
         v-if="props.immersive"
@@ -114,6 +117,17 @@ const articleHref = computed(() => `/articles/${props.article.slug}`)
           </p>
         </div>
       </div>
+    </component>
+
+    <component
+      :is="editor ? 'span' : NuxtLink"
+      v-if="syndicatLabel"
+      :to="editor ? undefined : syndicatHref"
+      :class="props.immersive
+        ? 'absolute left-4 top-4 z-10 flex w-fit items-center gap-1.5 rounded-full border border-default/70 bg-default/90 px-3 py-1 text-sm font-medium text-highlighted shadow-sm backdrop-blur-sm hover:text-primary'
+        : 'border-t border-default px-1 pt-3 text-sm text-toned hover:text-primary'"
+    >
+      Publié par <span class="font-medium">{{ syndicatLabel }}</span>
     </component>
   </component>
 </template>

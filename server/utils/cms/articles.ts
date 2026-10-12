@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client'
 import type { CmsArticle, CmsTag } from '~~/lib/cms'
 import { createArticleRevision } from './revisions'
-import type { ArticleRecord, ArticleTagRecord, TagRecord } from './types'
+import type { ArticleRecord, ArticleTagRecord, SyndicatRecord, TagRecord } from './types'
 import { runInCmsTransaction, useCmsDatabase } from './database'
 import { notFound } from './http'
 import { toArticle, toArticleSummary } from './mappers'
@@ -79,10 +79,10 @@ export async function listArticles(database?: CmsDatabaseClient) {
       { publishedAt: 'desc' },
       { id: 'desc' }
     ],
-    include: { articleTags: { include: { tag: true } } }
-  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }> })[]
+    include: { articleTags: { include: { tag: true } }, syndicat: true }
+  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }>, syndicat: SyndicatRecord | null })[]
 
-  return records.map(record => toArticle(record, record.articleTags.map(at => at.tag)))
+  return records.map(record => toArticle(record, record.articleTags.map(at => at.tag), record.syndicat))
 }
 
 export async function listArticleSummaries(database?: CmsDatabaseClient) {
@@ -92,10 +92,10 @@ export async function listArticleSummaries(database?: CmsDatabaseClient) {
       { publishedAt: 'desc' },
       { id: 'desc' }
     ],
-    include: { articleTags: { include: { tag: true } } }
-  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }> })[]
+    include: { articleTags: { include: { tag: true } }, syndicat: true }
+  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }>, syndicat: SyndicatRecord | null })[]
 
-  return records.map(record => toArticleSummary(record, record.articleTags.map(at => at.tag)))
+  return records.map(record => toArticleSummary(record, record.articleTags.map(at => at.tag), record.syndicat))
 }
 
 export async function listArticlesBySyndicat(syndicatId: number, database?: CmsDatabaseClient) {
@@ -106,10 +106,10 @@ export async function listArticlesBySyndicat(syndicatId: number, database?: CmsD
       { publishedAt: 'desc' },
       { id: 'desc' }
     ],
-    include: { articleTags: { include: { tag: true } } }
-  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }> })[]
+    include: { articleTags: { include: { tag: true } }, syndicat: true }
+  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }>, syndicat: SyndicatRecord | null })[]
 
-  return records.map(record => toArticle(record, record.articleTags.map(at => at.tag)))
+  return records.map(record => toArticle(record, record.articleTags.map(at => at.tag), record.syndicat))
 }
 
 export async function listArticleSummariesBySyndicat(syndicatId: number, database?: CmsDatabaseClient) {
@@ -120,30 +120,30 @@ export async function listArticleSummariesBySyndicat(syndicatId: number, databas
       { publishedAt: 'desc' },
       { id: 'desc' }
     ],
-    include: { articleTags: { include: { tag: true } } }
-  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }> })[]
+    include: { articleTags: { include: { tag: true } }, syndicat: true }
+  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }>, syndicat: SyndicatRecord | null })[]
 
-  return records.map(record => toArticleSummary(record, record.articleTags.map(at => at.tag)))
+  return records.map(record => toArticleSummary(record, record.articleTags.map(at => at.tag), record.syndicat))
 }
 
 export async function getArticleById(id: number, database?: CmsDatabaseClient) {
   const client = database ?? await useCmsDatabase()
   const record = await client.article.findUnique({
     where: { id },
-    include: { articleTags: { include: { tag: true } } }
-  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }> }) | null
+    include: { articleTags: { include: { tag: true } }, syndicat: true }
+  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }>, syndicat: SyndicatRecord | null }) | null
 
-  return record ? toArticle(record, record.articleTags.map(at => at.tag)) : null
+  return record ? toArticle(record, record.articleTags.map(at => at.tag), record.syndicat) : null
 }
 
 export async function getArticleBySlug(slug: string, database?: CmsDatabaseClient) {
   const client = database ?? await useCmsDatabase()
   const record = await client.article.findUnique({
     where: { slug },
-    include: { articleTags: { include: { tag: true } } }
-  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }> }) | null
+    include: { articleTags: { include: { tag: true } }, syndicat: true }
+  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }>, syndicat: SyndicatRecord | null }) | null
 
-  return record ? toArticle(record, record.articleTags.map(at => at.tag)) : null
+  return record ? toArticle(record, record.articleTags.map(at => at.tag), record.syndicat) : null
 }
 
 async function getUniqueArticleSlug(baseTitle: string, currentId?: number, database?: CmsDatabaseClient) {

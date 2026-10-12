@@ -1,10 +1,11 @@
 <script setup lang="ts">
 /* eslint-disable vue/no-v-html */
 import { createEditableTarget, createFieldTarget, createHtmlTarget } from '~/utils/cmsEditor'
-import { demoteHeadingLevels, formatFrenchDate } from '~/utils/cmsUi'
+import { demoteHeadingLevels, formatArticleSyndicatLabel, formatFrenchDate } from '~/utils/cmsUi'
 
 const props = defineProps<{
   article: CmsArticle
+  unionName?: string
 }>()
 
 const editor = useCmsPageLiveEditor()
@@ -19,6 +20,7 @@ const content = computed(() => {
 })
 const coverImage = computed(() => props.article.coverImage || '/hero.jpg')
 const tags = computed(() => props.article.tags ?? [])
+const syndicatLabel = computed(() => formatArticleSyndicatLabel(props.article.syndicat, props.unionName))
 </script>
 
 <template>
@@ -36,6 +38,19 @@ const tags = computed(() => props.article.tags ?? [])
         >
           {{ publishedLabel }}
         </CmsEditableNode>
+
+        <p
+          v-if="syndicatLabel"
+          class="text-sm text-toned"
+        >
+          Publié par
+          <NuxtLink
+            :to="`/syndicats/${props.article.syndicat!.slug}`"
+            class="font-medium text-primary hover:underline"
+          >
+            {{ syndicatLabel }}
+          </NuxtLink>
+        </p>
 
         <div
           v-if="tags.length"

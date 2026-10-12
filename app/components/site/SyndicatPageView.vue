@@ -305,6 +305,7 @@ const instagramUsername = computed(() => {
             :key="article.id"
             class="overflow-hidden"
             :article="article"
+            :union-name="unionName"
           />
         </div>
       </div>

@@ -8,6 +8,7 @@ const props = withDefaults(defineProps<{
   currentPage: number
   totalPages: number
   allTags?: CmsTag[]
+  unionName?: string
 }>(), {
   allTags: () => []
 })
@@ -97,6 +98,7 @@ function tagQuery(tagSlug: string | null) {
             :key="article.id"
             class="overflow-hidden"
             :article="article"
+            :union-name="props.unionName"
             :immersive="true"
           />
         </div>
