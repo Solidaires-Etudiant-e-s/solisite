@@ -306,6 +306,7 @@ const instagramUsername = computed(() => {
             class="overflow-hidden"
             :article="article"
             :union-name="unionName"
+            :show-syndicat-byline="false"
           />
         </div>
       </div>

@@ -2,11 +2,14 @@
 import { NuxtLink } from '#components'
 import { formatArticleSyndicatLabel, formatFrenchDate } from '~/utils/cmsUi'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   article: CmsArticleSummary
   immersive?: boolean
   unionName?: string
-}>()
+  showSyndicatByline?: boolean
+}>(), {
+  showSyndicatByline: true
+})
 
 const editor = useCmsPageLiveEditor()
 const publishedLabel = computed(() => formatFrenchDate(props.article.publishedAt))
@@ -121,10 +124,10 @@ const syndicatHref = computed(() => props.article.syndicat ? `/syndicats/${props
 
     <component
       :is="editor ? 'span' : NuxtLink"
-      v-if="syndicatLabel"
+      v-if="syndicatLabel && showSyndicatByline"
       :to="editor ? undefined : syndicatHref"
       :class="props.immersive
-        ? 'absolute left-4 top-4 z-10 flex w-fit items-center gap-1.5 rounded-full border border-default/70 bg-default/90 px-3 py-1 text-sm font-medium text-highlighted shadow-sm backdrop-blur-sm hover:text-primary'
+        ? 'absolute left-4 top-4 z-10 flex w-fit items-center gap-1.5 rounded border border-default/70 bg-default/90 px-3 py-1 text-sm font-medium text-highlighted shadow-sm backdrop-blur-sm hover:text-primary'
         : 'border-t border-default px-1 pt-3 text-sm text-toned hover:text-primary'"
     >
       Publié par <span class="font-medium">{{ syndicatLabel }}</span>
