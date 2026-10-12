@@ -139,7 +139,8 @@ try {
       content LONGTEXT NOT NULL,
       cover_image VARCHAR(512) NOT NULL DEFAULT '/hero.jpg',
       published_at VARCHAR(64) NOT NULL,
-      updated_at VARCHAR(64) NOT NULL
+      updated_at VARCHAR(64) NOT NULL,
+      syndicat_id INTEGER
     )
   `)
 
@@ -218,6 +219,8 @@ try {
   await ensureColumn('articles', 'excerpt', 'TEXT NOT NULL')
   await ensureColumn('articles', 'content', 'LONGTEXT NOT NULL')
   await ensureColumn('articles', 'cover_image', 'VARCHAR(512) NOT NULL DEFAULT \'/hero.jpg\'')
+  await ensureColumn('articles', 'syndicat_id', 'INTEGER')
+  await ensureIndex('articles', 'articles_syndicat_idx', '(syndicat_id)')
   await ensureColumn('guides', 'excerpt', 'TEXT NOT NULL')
   await ensureColumn('guides', 'content', 'LONGTEXT NOT NULL')
   await ensureColumn('guides', 'cover_image', 'VARCHAR(512) NOT NULL DEFAULT \'/hero.jpg\'')

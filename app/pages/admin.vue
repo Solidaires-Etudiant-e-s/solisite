@@ -131,6 +131,7 @@ useHead({
         :creating-article="creatingArticle"
         :creating-guide="creatingGuide"
         :creating-syndicat="creatingSyndicat"
+        :is-admin="isAdmin"
         @update:expanded-groups="expandedGroups = $event"
         @create-article="createArticleRecord"
         @create-guide="createGuideRecord"

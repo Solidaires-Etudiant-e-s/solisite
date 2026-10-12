@@ -148,6 +148,7 @@ export interface CmsArticle {
   coverImage: string
   publishedAt: string
   updatedAt: string
+  syndicatId: number | null
   tags: CmsTag[]
 }
 
@@ -409,6 +410,7 @@ export function createEmptyArticle(): CmsArticle {
     coverImage: '/hero.jpg',
     publishedAt: '',
     updatedAt: '',
+    syndicatId: null,
     tags: []
   }
 }

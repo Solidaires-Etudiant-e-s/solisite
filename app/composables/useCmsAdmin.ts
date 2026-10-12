@@ -31,7 +31,8 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   const userRole = computed(() => data.value?.auth.user.role ?? 'admin')
   const managedSyndicatId = computed(() => data.value?.auth.managedSyndicatId ?? null)
   const isAdmin = computed(() => userRole.value === 'admin')
-  const showSidebar = computed(() => isAdmin.value)
+  const showSidebar = computed(() => isAdmin.value || userRole.value === 'syndicat')
+  const canPublishArticles = computed(() => isAdmin.value || managedSyndicatId.value !== null)
 
   const pages = ref<CmsPage[]>([])
   const articles = ref<CmsArticle[]>([])
@@ -185,9 +186,17 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
       return true
     }
 
-    return activeSection.value === 'syndicats'
-      && managedSyndicatId.value !== null
-      && selectedSyndicatId.value === managedSyndicatId.value
+    if (activeSection.value === 'syndicats') {
+      return managedSyndicatId.value !== null
+        && selectedSyndicatId.value === managedSyndicatId.value
+    }
+
+    if (activeSection.value === 'articles') {
+      return managedSyndicatId.value !== null
+        && selectedArticle.value?.syndicatId === managedSyndicatId.value
+    }
+
+    return false
   })
   const selectedRevision = computed(() => revisions.value.find(revision => revision.id === selectedRevisionId.value) || null)
   const pageDirty = computed(() => JSON.stringify(pageDraft) !== JSON.stringify(selectedPage.value))
@@ -326,37 +335,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     return homepage ? [homepage, ...otherPages] : otherPages
   })
 
-  const navigationItems = computed(() => [{
-    label: 'Paramètres du site',
-    icon: 'mingcute:settings-2-line',
-    value: 'site-settings',
-    active: activeSection.value === 'site-settings',
-    onSelect: () => {
-      activeSection.value = 'site-settings'
-    }
-  }, {
-    label: 'Pages',
-    icon: 'mingcute:doc-line',
-    value: 'pages',
-    type: 'trigger' as const,
-    defaultOpen: true,
-    children: orderedPages.value.map(page => ({
-      label: page.name,
-      icon: page.slug === 'home'
-        ? 'mingcute:home-2-line'
-        : page.slug === 'syndicats'
-          ? 'mingcute:map-line'
-          : page.slug === 'guides'
-            ? 'mingcute:book-2-line'
-            : 'mingcute:file-line',
-      value: `page:${page.slug}`,
-      active: activeSection.value === 'pages' && selectedPageSlug.value === page.slug,
-      onSelect: () => {
-        activeSection.value = 'pages'
-        selectedPageSlug.value = page.slug
-      }
-    }))
-  }, {
+  const articlesNavigationItem = computed(() => ({
     label: 'Articles',
     icon: 'mingcute:news-line',
     slot: 'articles',
@@ -372,23 +351,9 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
         selectedArticleId.value = article.id
       }
     }))
-  }, {
-    label: 'Guides',
-    icon: 'mingcute:book-2-line',
-    slot: 'guides',
-    value: 'guides',
-    type: 'trigger' as const,
-    defaultOpen: true,
-    children: guides.value.map(guide => ({
-      label: guide.title,
-      value: `guide:${guide.id}`,
-      active: activeSection.value === 'guides' && selectedGuideId.value === guide.id,
-      onSelect: () => {
-        activeSection.value = 'guides'
-        selectedGuideId.value = guide.id
-      }
-    }))
-  }, {
+  }))
+
+  const syndicatsNavigationItem = computed(() => ({
     label: 'Syndicats',
     icon: 'mingcute:map-pin-line',
     slot: 'syndicats',
@@ -404,7 +369,64 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
         selectedSyndicatId.value = syndicat.id
       }
     }))
-  }])
+  }))
+
+  const navigationItems = computed(() => {
+    if (!isAdmin.value) {
+      return [
+        articlesNavigationItem.value,
+        syndicatsNavigationItem.value
+      ]
+    }
+
+    return [{
+      label: 'Paramètres du site',
+      icon: 'mingcute:settings-2-line',
+      value: 'site-settings',
+      active: activeSection.value === 'site-settings',
+      onSelect: () => {
+        activeSection.value = 'site-settings'
+      }
+    }, {
+      label: 'Pages',
+      icon: 'mingcute:doc-line',
+      value: 'pages',
+      type: 'trigger' as const,
+      defaultOpen: true,
+      children: orderedPages.value.map(page => ({
+        label: page.name,
+        icon: page.slug === 'home'
+          ? 'mingcute:home-2-line'
+          : page.slug === 'syndicats'
+            ? 'mingcute:map-line'
+            : page.slug === 'guides'
+              ? 'mingcute:book-2-line'
+              : 'mingcute:file-line',
+        value: `page:${page.slug}`,
+        active: activeSection.value === 'pages' && selectedPageSlug.value === page.slug,
+        onSelect: () => {
+          activeSection.value = 'pages'
+          selectedPageSlug.value = page.slug
+        }
+      }))
+    }, articlesNavigationItem.value, {
+      label: 'Guides',
+      icon: 'mingcute:book-2-line',
+      slot: 'guides',
+      value: 'guides',
+      type: 'trigger' as const,
+      defaultOpen: true,
+      children: guides.value.map(guide => ({
+        label: guide.title,
+        value: `guide:${guide.id}`,
+        active: activeSection.value === 'guides' && selectedGuideId.value === guide.id,
+        onSelect: () => {
+          activeSection.value = 'guides'
+          selectedGuideId.value = guide.id
+        }
+      }))
+    }, syndicatsNavigationItem.value]
+  })
 
   function mergePage(savedPage: CmsPage) {
     pages.value = pages.value.map(page => page.slug === savedPage.slug ? savedPage : page)
@@ -552,7 +574,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   }
 
   async function createArticleRecord() {
-    if (!isAdmin.value) {
+    if (!canPublishArticles.value) {
       return
     }
 
@@ -621,7 +643,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   }
 
   async function saveArticle() {
-    if (!isAdmin.value || !articleDraft.id) {
+    if (!canPublishArticles.value || !articleDraft.id) {
       return
     }
 
@@ -699,7 +721,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   }
 
   async function deleteArticle() {
-    if (!isAdmin.value || !articleDraft.id) {
+    if (!canPublishArticles.value || !articleDraft.id) {
       return
     }
 
@@ -888,6 +910,10 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
   }
 
   function manageSyndicats() {
+    if (!isAdmin.value) {
+      return
+    }
+
     activeSection.value = 'manage-syndicats'
   }
 
@@ -898,6 +924,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     articlePreview,
     articles,
     canManageHistory,
+    canPublishArticles,
     createArticleRecord,
     createGuideRecord,
     createSyndicatRecord,

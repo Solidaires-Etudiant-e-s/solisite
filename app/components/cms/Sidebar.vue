@@ -7,6 +7,7 @@ const props = defineProps<{
   creatingArticle: boolean
   creatingGuide: boolean
   creatingSyndicat: boolean
+  isAdmin: boolean
 }>()
 
 const emit = defineEmits<{
@@ -74,6 +75,7 @@ const emit = defineEmits<{
 
         <template #[`syndicats-trailing`]="{ ui }">
           <UButton
+            v-if="props.isAdmin"
             icon="mingcute:settings-3-line"
             color="neutral"
             variant="ghost"

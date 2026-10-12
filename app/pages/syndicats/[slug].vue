@@ -12,6 +12,12 @@ const [{ data: syndicatData }, { data: siteSettingsData }] = await Promise.all([
 ])
 
 const syndicat = computed(() => requireCmsData(syndicatData.value, 'Syndicat introuvable.'))
+const { data: syndicatArticles } = await useFetch<CmsArticleSummary[]>(
+  () => `/api/articles?syndicatId=${syndicat.value.id}`,
+  {
+    default: () => []
+  }
+)
 const unionName = computed(() => siteSettingsData.value?.unionName || '')
 const pageTitle = computed(() => formatSyndicatDisplayName(syndicat.value.name, unionName.value))
 const siteUrl = computed(() => resolveSiteUrl(runtimeConfig.public.siteUrl))
@@ -59,5 +65,6 @@ useHead(() => ({
   <SiteSyndicatPageView
     :syndicat="syndicat"
     :union-name="unionName"
+    :articles="syndicatArticles || []"
   />
 </template>

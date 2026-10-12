@@ -30,8 +30,11 @@ model Article {
   coverImage  String @default("/hero.jpg") @map("cover_image") @db.VarChar(512)
   publishedAt String @map("published_at") @db.VarChar(64)
   updatedAt   String @map("updated_at") @db.VarChar(64)
+  syndicatId  Int?   @map("syndicat_id")
+  syndicat    Syndicat? @relation(fields: [syndicatId], references: [id], onDelete: SetNull)
   articleTags ArticleTag[]
 
+  @@index([syndicatId], map: "articles_syndicat_idx")
   @@map("articles")
 }
 
@@ -84,6 +87,7 @@ model Syndicat {
   updatedAt   String @map("updated_at") @db.VarChar(64)
 
   authLinks SyndicatAuth[]
+  articles   Article[]
 
   @@map("syndicats")
 }

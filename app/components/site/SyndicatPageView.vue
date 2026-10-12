@@ -9,6 +9,7 @@ import { formatSyndicatDisplayName, resolveSyndicatAddresses } from '~~/lib/cms'
 const props = defineProps<{
   syndicat: CmsSyndicat
   unionName?: string
+  articles?: CmsArticleSummary[]
 }>()
 
 const editor = useCmsPageLiveEditor()
@@ -288,6 +289,23 @@ const instagramUsername = computed(() => {
               v-html="syndicat.content"
             />
           </CmsEditableNode>
+        </div>
+      </div>
+
+      <div
+        v-if="props.articles && props.articles.length"
+        class="public-container public-section border-t border-default"
+      >
+        <h2 class="text-2xl font-black text-highlighted">
+          Publications
+        </h2>
+        <div class="mt-6 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+          <CmsArticleSummaryCard
+            v-for="article in props.articles"
+            :key="article.id"
+            class="overflow-hidden"
+            :article="article"
+          />
         </div>
       </div>
     </UPageBody>

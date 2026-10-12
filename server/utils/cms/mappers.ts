@@ -79,6 +79,7 @@ export function toArticle(record: ArticleRecord, tags?: TagRecord[]): CmsArticle
     coverImage: record.coverImage,
     publishedAt: record.publishedAt,
     updatedAt: record.updatedAt,
+    syndicatId: record.syndicatId ?? null,
     tags: (tags ?? []).map(toTag)
   }
 }

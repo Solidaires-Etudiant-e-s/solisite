@@ -1,4 +1,4 @@
-import { listArticles } from '~~/server/utils/cms/articles'
+import { listArticles, listArticlesBySyndicat } from '~~/server/utils/cms/articles'
 import { getManagedSyndicatById, resolveCmsAccess } from '~~/server/utils/auth'
 import { listGuides } from '~~/server/utils/cms/guides'
 import { listPages } from '~~/server/utils/cms/pages'
@@ -15,7 +15,11 @@ export default defineEventHandler(async (event) => {
       managedSyndicatId: access.managedSyndicatId
     },
     pages: access.user.role === 'admin' ? await listPages() : [],
-    articles: access.user.role === 'admin' ? await listArticles() : [],
+    articles: access.user.role === 'admin'
+      ? await listArticles()
+      : managedSyndicat
+        ? await listArticlesBySyndicat(managedSyndicat.id)
+        : [],
     guides: access.user.role === 'admin' ? await listGuides() : [],
     syndicats: access.user.role === 'admin'
       ? await listSyndicats()

@@ -98,6 +98,34 @@ export async function listArticleSummaries(database?: CmsDatabaseClient) {
   return records.map(record => toArticleSummary(record, record.articleTags.map(at => at.tag)))
 }
 
+export async function listArticlesBySyndicat(syndicatId: number, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const records = await client.article.findMany({
+    where: { syndicatId },
+    orderBy: [
+      { publishedAt: 'desc' },
+      { id: 'desc' }
+    ],
+    include: { articleTags: { include: { tag: true } } }
+  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }> })[]
+
+  return records.map(record => toArticle(record, record.articleTags.map(at => at.tag)))
+}
+
+export async function listArticleSummariesBySyndicat(syndicatId: number, database?: CmsDatabaseClient) {
+  const client = database ?? await useCmsDatabase()
+  const records = await client.article.findMany({
+    where: { syndicatId },
+    orderBy: [
+      { publishedAt: 'desc' },
+      { id: 'desc' }
+    ],
+    include: { articleTags: { include: { tag: true } } }
+  }) as (ArticleRecord & { articleTags: Array<ArticleTagRecord & { tag: TagRecord }> })[]
+
+  return records.map(record => toArticleSummary(record, record.articleTags.map(at => at.tag)))
+}
+
 export async function getArticleById(id: number, database?: CmsDatabaseClient) {
   const client = database ?? await useCmsDatabase()
   const record = await client.article.findUnique({
@@ -136,7 +164,7 @@ async function getUniqueArticleSlug(baseTitle: string, currentId?: number, datab
   )
 }
 
-export async function createArticle(tags?: CmsTag[]) {
+export async function createArticle(tags?: CmsTag[], syndicatId: number | null = null) {
   return await runInCmsTransaction(async (database) => {
     const timestamp = nowIso()
     const title = `Nouvel article ${new Date().toLocaleDateString('fr-FR')}`
@@ -150,7 +178,8 @@ export async function createArticle(tags?: CmsTag[]) {
         content: '<p>Commence à écrire ici.</p>',
         coverImage: '/hero.jpg',
         publishedAt: timestamp,
-        updatedAt: timestamp
+        updatedAt: timestamp,
+        syndicatId
       }
     })
 
@@ -192,6 +221,7 @@ async function normalizeArticleUpdate(current: CmsArticle, input: Partial<CmsArt
     coverImage: input.coverImage ?? current.coverImage,
     publishedAt: input.publishedAt ?? current.publishedAt,
     updatedAt: nowIso(),
+    syndicatId: current.syndicatId,
     tags: input.tags ?? current.tags
   }
 }

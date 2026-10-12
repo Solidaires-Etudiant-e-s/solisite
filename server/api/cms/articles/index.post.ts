@@ -1,11 +1,13 @@
 import type { CmsArticle } from '~~/lib/cms'
-import { requireAdminAccess } from '~~/server/utils/auth'
+import { resolveCmsAccess } from '~~/server/utils/auth'
 import { createArticle } from '~~/server/utils/cms/articles'
 import { readTypedBody } from '~~/server/utils/cms/http'
 
 export default defineEventHandler(async (event) => {
-  await requireAdminAccess(event)
+  const access = await resolveCmsAccess(event)
   const body = await readTypedBody<Partial<CmsArticle>>(event)
 
-  return await createArticle(body?.tags)
+  const syndicatId = access.user.role === 'admin' ? null : access.managedSyndicatId
+
+  return await createArticle(body?.tags, syndicatId)
 })

@@ -190,6 +190,29 @@ export async function requireSyndicatWriteAccess(event: H3Event, syndicatId: num
   return access
 }
 
+export async function requireArticleWriteAccess(event: H3Event, articleId: number) {
+  const access = await resolveCmsAccess(event)
+
+  if (access.user.role === CmsRole.ADMIN) {
+    return access
+  }
+
+  const database = await useCmsDatabase()
+  const article = await database.article.findUnique({
+    where: { id: articleId },
+    select: { syndicatId: true }
+  })
+
+  if (!article || article.syndicatId === null || article.syndicatId !== access.managedSyndicatId) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'You may only edit articles published by your own syndicat.'
+    })
+  }
+
+  return access
+}
+
 export async function requireRevisionReadAccess(event: H3Event, entityType: string, entityId: string) {
   const access = await resolveCmsAccess(event)
 
@@ -197,14 +220,18 @@ export async function requireRevisionReadAccess(event: H3Event, entityType: stri
     return access
   }
 
-  if (entityType !== 'syndicat' || access.managedSyndicatId !== Number(entityId)) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'You may only access revisions for your own syndicat page.'
-    })
+  if (entityType === 'syndicat' && access.managedSyndicatId === Number(entityId)) {
+    return access
   }
 
-  return access
+  if (entityType === 'article' && await isOwnedByManagedSyndicat(Number(entityId), access.managedSyndicatId)) {
+    return access
+  }
+
+  throw createError({
+    statusCode: 403,
+    statusMessage: 'You may only access revisions for your own syndicat page.'
+  })
 }
 
 export async function requireRevisionRestoreAccess(event: H3Event, revisionId: number) {
@@ -216,14 +243,39 @@ export async function requireRevisionRestoreAccess(event: H3Event, revisionId: n
 
   const revision = await getRevisionById(revisionId)
 
-  if (!revision || revision.entityType !== 'syndicat' || access.managedSyndicatId !== Number(revision.entityId)) {
+  if (!revision) {
     throw createError({
       statusCode: 403,
       statusMessage: 'You may only restore revisions for your own syndicat page.'
     })
   }
 
-  return access
+  if (revision.entityType === 'syndicat' && access.managedSyndicatId === Number(revision.entityId)) {
+    return access
+  }
+
+  if (revision.entityType === 'article' && await isOwnedByManagedSyndicat(Number(revision.entityId), access.managedSyndicatId)) {
+    return access
+  }
+
+  throw createError({
+    statusCode: 403,
+    statusMessage: 'You may only restore revisions for your own syndicat page.'
+  })
+}
+
+async function isOwnedByManagedSyndicat(articleId: number, managedSyndicatId: number | null) {
+  if (!Number.isInteger(articleId) || articleId <= 0 || managedSyndicatId === null) {
+    return false
+  }
+
+  const database = await useCmsDatabase()
+  const article = await database.article.findUnique({
+    where: { id: articleId },
+    select: { syndicatId: true }
+  })
+
+  return article?.syndicatId === managedSyndicatId
 }
 
 export async function getManagedSyndicatById(managedSyndicatId: number | null) {
