@@ -99,12 +99,11 @@ watch(filteredSyndicats, (syndicats) => {
   <UPage>
     <div class="border-b border-default public-section">
       <div class="public-container">
-        <div class="flex items-center justify-between gap-4">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <CmsPageIntroFields :page="page" />
 
           <div
             v-if="content.noSyndicatButtonLabel || editor"
-            class="ml-4"
           >
             <CmsEditableNode
               v-if="editor"
