@@ -272,7 +272,7 @@ const instagramUsername = computed(() => {
           />
         </div>
 
-        <div class="space-y-6">
+        <div class="min-w-0 space-y-8">
           <CmsEditableNode
             tag="div"
             :target="createHtmlTarget(`${targetIdPrefix}:content`, 'content', 'Contenu')"
@@ -289,25 +289,34 @@ const instagramUsername = computed(() => {
               v-html="syndicat.content"
             />
           </CmsEditableNode>
-        </div>
-      </div>
 
-      <div
-        v-if="props.articles && props.articles.length"
-        class="public-container public-section border-t border-default"
-      >
-        <h2 class="text-2xl font-black text-highlighted">
-          Publications
-        </h2>
-        <div class="mt-6 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-          <CmsArticleSummaryCard
-            v-for="article in props.articles"
-            :key="article.id"
-            class="overflow-hidden"
-            :article="article"
-            :union-name="unionName"
-            :show-syndicat-byline="false"
-          />
+          <div v-if="props.articles && props.articles.length">
+            <h2 class="text-2xl font-black text-highlighted">
+              Publications
+            </h2>
+
+            <UCarousel
+              :items="props.articles"
+              arrows
+              dots
+              class="mt-6"
+              :ui="{
+                item: 'basis-full md:basis-1/2 xl:basis-1/3',
+                prev: 'left-3',
+                next: 'right-3',
+                dots: 'relative inset-auto bottom-auto mt-6'
+              }"
+            >
+              <template #default="{ item: article }">
+                <CmsArticleSummaryCard
+                  :article="article"
+                  :immersive="true"
+                  :union-name="unionName"
+                  :show-syndicat-byline="false"
+                />
+              </template>
+            </UCarousel>
+          </div>
         </div>
       </div>
     </UPageBody>
