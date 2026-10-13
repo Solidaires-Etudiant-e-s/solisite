@@ -301,7 +301,7 @@ const instagramUsername = computed(() => {
               dots
               class="mt-6"
               :ui="{
-                item: 'basis-full md:basis-1/2 xl:basis-1/3',
+                item: 'basis-full md:basis-1/2',
                 prev: 'left-3',
                 next: 'right-3',
                 dots: 'relative inset-auto bottom-auto mt-6'
