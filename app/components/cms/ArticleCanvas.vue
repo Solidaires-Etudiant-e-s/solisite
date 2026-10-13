@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import type { CmsRevision } from '~~/lib/cms'
+import type { CmsRevision, CmsSyndicat } from '~~/lib/cms'
 
 const article = defineModel<CmsArticle>('article', {
   required: true
 })
 
-const { canManageHistory, historyOpen, previewArticle, saving, selectedRevision } = defineProps<{
+const { canManageHistory, historyOpen, previewArticle, saving, selectedRevision, isAdmin, syndicats } = defineProps<{
   canManageHistory: boolean
   historyOpen: boolean
   previewArticle: CmsArticle
   saving: boolean
   deleting: boolean
   selectedRevision: CmsRevision | null
+  isAdmin: boolean
+  syndicats: CmsSyndicat[]
 }>()
 
 const emit = defineEmits<{
@@ -40,7 +42,11 @@ provideCmsPageLiveEditor(article.value)
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <CmsArticleSettingsPopover v-model:article="article" />
+          <CmsArticleSettingsPopover
+            v-model:article="article"
+            :is-admin="isAdmin"
+            :syndicats="syndicats"
+          />
 
           <UButton
             v-if="canManageHistory"

@@ -205,9 +205,10 @@ export async function createArticle(tags?: CmsTag[], syndicatId: number | null =
 
 interface UpdateArticleOptions {
   skipRevision?: boolean
+  syndicatId?: number | null
 }
 
-async function normalizeArticleUpdate(current: CmsArticle, input: Partial<CmsArticle>, database?: CmsDatabaseClient): Promise<CmsArticle> {
+async function normalizeArticleUpdate(current: CmsArticle, input: Partial<CmsArticle>, syndicatId: number | null, database?: CmsDatabaseClient): Promise<CmsArticle> {
   const title = (input.title || current.title).trim() || current.title
 
   return {
@@ -221,7 +222,7 @@ async function normalizeArticleUpdate(current: CmsArticle, input: Partial<CmsArt
     coverImage: input.coverImage ?? current.coverImage,
     publishedAt: input.publishedAt ?? current.publishedAt,
     updatedAt: nowIso(),
-    syndicatId: current.syndicatId,
+    syndicatId,
     tags: input.tags ?? current.tags
   }
 }
@@ -234,7 +235,24 @@ export async function updateArticle(id: number, input: Partial<CmsArticle>, opti
       notFound(`Article "${id}" not found.`)
     }
 
-    const updated = await normalizeArticleUpdate(current, input, database)
+    let syndicatId = current.syndicatId
+
+    if (options.syndicatId !== undefined) {
+      if (options.syndicatId !== null) {
+        const syndicat = await database.syndicat.findUnique({
+          where: { id: options.syndicatId },
+          select: { id: true }
+        })
+
+        if (!syndicat) {
+          notFound(`Syndicat "${options.syndicatId}" not found.`)
+        }
+      }
+
+      syndicatId = options.syndicatId
+    }
+
+    const updated = await normalizeArticleUpdate(current, input, syndicatId, database)
 
     await database.article.update({
       where: { id: updated.id },
@@ -245,7 +263,8 @@ export async function updateArticle(id: number, input: Partial<CmsArticle>, opti
         content: updated.content,
         coverImage: updated.coverImage,
         publishedAt: updated.publishedAt,
-        updatedAt: updated.updatedAt
+        updatedAt: updated.updatedAt,
+        syndicatId: updated.syndicatId
       }
     })
 

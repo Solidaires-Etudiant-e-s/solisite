@@ -1,13 +1,41 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { CmsArticle } from '~~/lib/cms'
+import { computed, ref } from 'vue'
+import type { CmsArticle, CmsSyndicat } from '~~/lib/cms'
 import { slugify } from '~~/lib/cms'
 
 const article = defineModel<CmsArticle>('article', {
   required: true
 })
 
+const props = defineProps<{
+  isAdmin: boolean
+  syndicats: CmsSyndicat[]
+}>()
+
 const newTag = ref('')
+
+const syndicatOptions = computed<Array<{ label: string, value: number | null }>>(() => [
+  { label: 'Aucun (article du site national)', value: null },
+  ...props.syndicats.map(syndicat => ({
+    label: syndicatNavigationLabel(syndicat),
+    value: syndicat.id
+  }))
+])
+
+function syndicatNavigationLabel(syndicat: CmsSyndicat) {
+  const city = syndicat.city.trim()
+  const name = syndicat.name.trim()
+
+  if (!city) {
+    return name || 'Syndicat sans nom'
+  }
+
+  if (!name || city.localeCompare(name, 'fr', { sensitivity: 'base' }) === 0) {
+    return city
+  }
+
+  return `${city} - ${name}`
+}
 
 function addTag() {
   const value = newTag.value.trim()
@@ -68,6 +96,19 @@ function removeTag(tag: { slug: string }) {
               />
             </UBadge>
           </div>
+        </UFormField>
+
+        <UFormField
+          v-if="isAdmin"
+          label="Syndicat"
+          description="Afficher cet article sur la page du syndicat choisi et le rendre modifiable par ses membres."
+        >
+          <USelectMenu
+            v-model="article.syndicatId"
+            :items="syndicatOptions"
+            value-key="value"
+            placeholder="Aucun syndicat"
+          />
         </UFormField>
       </div>
     </template>
