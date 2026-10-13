@@ -4,6 +4,7 @@ import { listGuides } from '~~/server/utils/cms/guides'
 import { listPages } from '~~/server/utils/cms/pages'
 import { getSiteSettings } from '~~/server/utils/cms/siteSettings'
 import { listSyndicats } from '~~/server/utils/cms/syndicats'
+import { listTags } from '~~/server/utils/cms/tags'
 
 export default defineEventHandler(async (event) => {
   const access = await resolveCmsAccess(event)
@@ -20,6 +21,7 @@ export default defineEventHandler(async (event) => {
       : managedSyndicat
         ? await listArticlesBySyndicat(managedSyndicat.id)
         : [],
+    tags: await listTags(),
     guides: access.user.role === 'admin' ? await listGuides() : [],
     syndicats: access.user.role === 'admin'
       ? await listSyndicats()

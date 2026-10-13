@@ -1,6 +1,6 @@
 import type { Ref } from 'vue'
 import { cloneCmsValue, createEmptyArticle, createEmptyGuide, createEmptyPage, createEmptySiteSettings, createEmptySyndicat, slugify } from '~~/lib/cms'
-import type { CmsArticle, CmsBootstrap, CmsGuide, CmsPage, CmsRevision, CmsRevisionEntityType, CmsSiteSettings, CmsSyndicat } from '~~/lib/cms'
+import type { CmsArticle, CmsBootstrap, CmsGuide, CmsPage, CmsRevision, CmsRevisionEntityType, CmsSiteSettings, CmsSyndicat, CmsTag } from '~~/lib/cms'
 
 type CmsAdminSection = 'pages' | 'articles' | 'guides' | 'syndicats' | 'site-settings' | 'manage-syndicats'
 
@@ -36,6 +36,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
   const pages = ref<CmsPage[]>([])
   const articles = ref<CmsArticle[]>([])
+  const availableTags = ref<CmsTag[]>([])
   const guides = ref<CmsGuide[]>([])
   const syndicats = ref<CmsSyndicat[]>([])
   const selectedPageSlug = ref('')
@@ -112,6 +113,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
 
     pages.value = value.pages
     articles.value = sortArticles(value.articles)
+    availableTags.value = [...(value.tags ?? [])].sort((a, b) => a.name.localeCompare(b.name, 'fr'))
     guides.value = sortGuides(value.guides)
     syndicats.value = sortSyndicats(value.syndicats)
     applySiteSettingsDraft(value.siteSettings)
@@ -450,6 +452,18 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     selectedArticleId.value = savedArticle.id
     activeSection.value = 'articles'
     applyArticleDraft(savedArticle)
+    mergeTags(savedArticle.tags)
+  }
+
+  function mergeTags(tags: CmsTag[]) {
+    const knownSlugs = new Set(availableTags.value.map(tag => tag.slug))
+    const fresh = (tags ?? []).filter(tag => !knownSlugs.has(tag.slug))
+
+    if (!fresh.length) {
+      return
+    }
+
+    availableTags.value = [...availableTags.value, ...fresh].sort((a, b) => a.name.localeCompare(b.name, 'fr'))
   }
 
   function mergeGuide(savedGuide: CmsGuide) {
@@ -923,6 +937,7 @@ export function useCmsAdmin(data: Ref<CmsBootstrap | null | undefined>) {
     articleDraft,
     articlePreview,
     articles,
+    availableTags,
     canManageHistory,
     canPublishArticles,
     createArticleRecord,

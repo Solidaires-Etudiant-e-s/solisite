@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import type { CmsArticle, CmsSyndicat } from '~~/lib/cms'
+import { computed } from 'vue'
+import type { CmsArticle, CmsSyndicat, CmsTag } from '~~/lib/cms'
 import { slugify } from '~~/lib/cms'
 
 const article = defineModel<CmsArticle>('article', {
@@ -10,9 +10,59 @@ const article = defineModel<CmsArticle>('article', {
 const props = defineProps<{
   isAdmin: boolean
   syndicats: CmsSyndicat[]
+  availableTags?: CmsTag[]
 }>()
 
-const newTag = ref('')
+const availableCategories = computed<CmsTag[]>(() => props.availableTags ?? [])
+
+const selectedCategorySlugs = computed<string[]>({
+  get: () => (article.value.tags ?? []).map(tag => tag.slug),
+  set: (slugs: string[]) => {
+    const knownBySlug = new Map<string, CmsTag>()
+    for (const tag of [...availableCategories.value, ...(article.value.tags ?? [])]) {
+      if (!knownBySlug.has(tag.slug)) {
+        knownBySlug.set(tag.slug, tag)
+      }
+    }
+
+    article.value.tags = slugs
+      .map(slug => knownBySlug.get(slug))
+      .filter((tag): tag is CmsTag => Boolean(tag))
+  }
+})
+
+const categoryItems = computed<Array<{ label: string, value: string, icon?: string }>>(() =>
+  availableCategories.value.map(tag => ({
+    label: tag.name,
+    value: tag.slug,
+    icon: tag.icon || undefined
+  }))
+)
+
+function addCategoryFromSearch(rawValue: string) {
+  const value = rawValue.trim()
+  if (!value) return
+  if (!article.value.tags) article.value.tags = []
+  const slug = slugify(value)
+  if (!slug) return
+  const existing = availableCategories.value.find(tag => tag.slug === slug)
+  if (existing && !article.value.tags.some(t => t.slug === slug)) {
+    article.value.tags.push({ ...existing })
+    return
+  }
+  if (!article.value.tags.some(t => t.slug === slug)) {
+    article.value.tags.push({ id: 0, name: value, slug, icon: '' })
+  }
+}
+
+function onCreateCategory(rawValue: string | string[]) {
+  const value = Array.isArray(rawValue) ? rawValue[0] ?? '' : rawValue
+  addCategoryFromSearch(value)
+}
+
+function removeCategory(category: { slug: string }) {
+  article.value.tags = (article.value.tags ?? []).filter(t => t.slug !== category.slug)
+}
 
 const syndicatOptions = computed<Array<{ label: string, value: number | null }>>(() => [
   { label: 'Aucun (article du site national)', value: null },
@@ -36,20 +86,6 @@ function syndicatNavigationLabel(syndicat: CmsSyndicat) {
 
   return `${city} - ${name}`
 }
-
-function addTag() {
-  const value = newTag.value.trim()
-  if (!value) return
-  if (!article.value.tags) article.value.tags = []
-  if (!article.value.tags.some(t => t.slug === slugify(value))) {
-    article.value.tags.push({ id: 0, name: value, slug: slugify(value), icon: '' })
-  }
-  newTag.value = ''
-}
-
-function removeTag(tag: { slug: string }) {
-  article.value.tags = (article.value.tags ?? []).filter(t => t.slug !== tag.slug)
-}
 </script>
 
 <template>
@@ -66,28 +102,35 @@ function removeTag(tag: { slug: string }) {
           <UInput v-model="article.slug" />
         </UFormField>
 
-        <UFormField label="Tags">
-          <div class="flex gap-2">
-            <UInput
-              v-model="newTag"
-              placeholder="ajouter un tag"
-              @keydown.enter.prevent="addTag"
-            />
-            <UButton
-              label="Ajouter"
-              color="neutral"
-              variant="outline"
-              @click="addTag"
-            />
-          </div>
-          <div class="mt-2 flex flex-wrap gap-1">
+        <UFormField
+          label="Catégories"
+          description="Sélectionne une ou plusieurs catégories existantes, ou crée-en une nouvelle."
+        >
+          <USelectMenu
+            v-model="selectedCategorySlugs"
+            :items="categoryItems"
+            value-key="value"
+            multiple
+            :search-input="{ placeholder: 'Rechercher une catégorie...' }"
+            create-item
+            placeholder="Choisir des catégories..."
+            @create="onCreateCategory"
+          >
+            <template #create-item-label="{ item }">
+              <span>Créer la catégorie « {{ item }} »</span>
+            </template>
+          </USelectMenu>
+          <div
+            v-if="(article.tags ?? []).length"
+            class="mt-2 flex flex-wrap gap-1"
+          >
             <UBadge
               v-for="tag in article.tags"
               :key="tag.slug"
               color="neutral"
               variant="subtle"
               class="cursor-pointer"
-              @click="removeTag(tag)"
+              @click="removeCategory(tag)"
             >
               {{ tag.name }}
               <UIcon

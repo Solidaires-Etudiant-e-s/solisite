@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { CmsRevision, CmsSyndicat } from '~~/lib/cms'
+import type { CmsRevision, CmsSyndicat, CmsTag } from '~~/lib/cms'
 
 const article = defineModel<CmsArticle>('article', {
   required: true
 })
 
-const { canManageHistory, historyOpen, previewArticle, saving, selectedRevision, isAdmin, syndicats } = defineProps<{
+const { canManageHistory, historyOpen, previewArticle, saving, selectedRevision, isAdmin, syndicats, availableTags } = defineProps<{
   canManageHistory: boolean
   historyOpen: boolean
   previewArticle: CmsArticle
@@ -14,6 +14,7 @@ const { canManageHistory, historyOpen, previewArticle, saving, selectedRevision,
   selectedRevision: CmsRevision | null
   isAdmin: boolean
   syndicats: CmsSyndicat[]
+  availableTags: CmsTag[]
 }>()
 
 const emit = defineEmits<{
@@ -46,6 +47,7 @@ provideCmsPageLiveEditor(article.value)
             v-model:article="article"
             :is-admin="isAdmin"
             :syndicats="syndicats"
+            :available-tags="availableTags"
           />
 
           <UButton

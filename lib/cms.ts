@@ -244,6 +244,7 @@ export interface CmsBootstrap {
   }
   pages: CmsPage[]
   articles: CmsArticle[]
+  tags: CmsTag[]
   guides: CmsGuide[]
   syndicats: CmsSyndicat[]
   siteSettings: CmsSiteSettings

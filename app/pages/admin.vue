@@ -29,6 +29,7 @@ const {
   articleDraft,
   articlePreview,
   articles,
+  availableTags,
   createArticleRecord,
   createGuideRecord,
   createSyndicatRecord,
@@ -147,6 +148,7 @@ useHead({
           v-model:site-settings-draft="siteSettingsDraft"
           v-model:syndicat-draft="syndicatDraft"
           :articles="articles"
+          :available-tags="availableTags"
           :guides="guides"
           :active-section="activeSection"
           :article-preview="articlePreview"

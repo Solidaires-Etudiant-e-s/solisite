@@ -19,6 +19,7 @@ const syndicatDraft = defineModel<CmsSyndicat>('syndicatDraft', {
 
 defineProps<{
   articles: CmsArticle[]
+  availableTags: CmsTag[]
   guides: CmsGuide[]
   syndicats: CmsSyndicat[]
   activeSection: 'pages' | 'articles' | 'guides' | 'syndicats' | 'site-settings' | 'manage-syndicats'
@@ -82,6 +83,7 @@ const emit = defineEmits<{
     :selected-revision="selectedRevision"
     :is-admin="isAdmin"
     :syndicats="syndicats"
+    :available-tags="availableTags"
     @toggle-history="emit('toggleHistory')"
     @save-article="emit('saveArticle')"
     @delete-article="emit('deleteArticle')"
