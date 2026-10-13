@@ -57,7 +57,7 @@ const instagramUsername = computed(() => {
             <NuxtImg
               :src="resolvedLogo"
               :alt="displayName"
-              class="h-16 w-16 rounded-md object-cover"
+              class="h-16 w-16 rounded-md object-contain"
             />
           </CmsEditableNode>
 
