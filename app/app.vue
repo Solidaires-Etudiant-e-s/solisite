@@ -346,7 +346,7 @@ useSeoMeta({
 
         <div class="flex shrink-0 flex-col items-center md:items-end">
           <UButton
-            label="Contacter la cellule de veille"
+            label="Contacter la référence VSS"
             icon="mingcute:lifebuoy-line"
             color="primary"
             :to="toLinkTo(reportLink)"
