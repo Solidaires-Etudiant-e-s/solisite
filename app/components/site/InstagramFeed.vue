@@ -21,7 +21,7 @@ const show = computed(() => Boolean(feed.value?.posts?.length))
 <template>
   <div
     v-if="show"
-    class="overflow-hidden rounded-xl border border-default bg-surface"
+    class="relative z-0 min-w-0 max-w-full overflow-hidden rounded-xl border border-default bg-surface"
   >
     <div class="flex items-center gap-3 border-b border-default px-4 py-3">
       <NuxtImg
@@ -60,16 +60,17 @@ const show = computed(() => Boolean(feed.value?.posts?.length))
     </div>
 
     <div
-      class="grid gap-1"
+      class="grid w-full max-w-full gap-1"
       :style="gridStyle"
     >
       <a
-        v-for="post in visiblePosts"
+        v-for="(post, index) in visiblePosts"
         :key="post.id"
         :href="post.permalink"
         target="_blank"
         rel="noopener"
-        class="group relative aspect-[4/5] overflow-hidden bg-muted/20"
+        class="group relative aspect-[4/5] min-w-0 overflow-hidden bg-muted/20"
+        :class="index >= 3 ? 'hidden lg:block' : 'block'"
         :title="post.caption"
       >
         <NuxtImg

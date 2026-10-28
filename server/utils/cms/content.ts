@@ -129,6 +129,30 @@ const defaultInternationalContent = {
 `.trim()
 }
 
+export const defaultSignalementVssFormHref = 'https://framaforms.org/formulaire-de-signalement-vssoppression-sesl-1788696868'
+export const defaultSignalementVssEmailHref = 'mailto:vss@solidaires-etudiant-e-s.org'
+
+const defaultSignalementVssContent = {
+  formHref: defaultSignalementVssFormHref,
+  emailHref: defaultSignalementVssEmailHref,
+  body: `
+<p>Notre milieu syndical ne s'extrait pas des systèmes oppressifs de notre société, des logiques de domination (sexiste, raciste, transphobe, lgbtqi-phobe, validiste..) peuvent s'y reproduire.</p>
+<p>Il est donc essentiel que notre fédération dispose d'outils pour prévenir ces situations de domination, tels que les formations et les espaces d'échanges en non-mixité, mais également d'outils pour assurer la prise en charge des victimes : les cellules VSS et oppressions.</p>
+<p>Toute personne ayant subi-e des violences sexistes et sexuelles, des discriminations et autres logiques oppressives, au sein du syndicat/par un.e membre de la fédération, peut saisir la référence de lutte contre les VSS et les oppressions pour demander à ouvrir une cellule.</p>
+<h2>C'est quoi une cellule ?</h2>
+<p>Une cellule fédérale est composée de 5 membres issu-es de 5 syndicats de notre fédération, et d'un-e référent-e. Elle peut fonctionner en non mixité si la/les victime-s le demande-nt.</p>
+<p>Une cellule a pour but de recueillir le témoignage de la/des victime-s, d'entendre ses/leurs besoins, d'enquêter si elle l'estime nécessaire, puis de prendre une décision collective qui sera ensuite votée par les syndicats.</p>
+<p>Elle peut ainsi sanctionner l'auteur.ice des violences, le suspendre temporairement, l'exclure, lui imposer des formations obligatoires...</p>
+<p>Une cellule peut également sanctionner un syndicat ou toute personne qui aurait fait obstruction au témoignage de la victime et au bon déroulement du protocole.</p>
+<p>Le but principal des cellules est d'assurer la sécurité des victimes : celles-ci sont donc anonymisées dans toute information qui sort de la cellule et les membres de la cellule doivent respecter une stricte confidentialité.</p>
+<h2>Comment on saisit une cellule ?</h2>
+<p>Les cellules peuvent exister au niveau local, au sein de l'union départementale du syndicat (se référer aux protocoles locaux). L'Union syndicale Solidaires en dispose aussi d'une (saisissable via le site internet).</p>
+<p>Pour saisir une cellule au niveau fédéral, il faut émettre un signalement auprès de la référence VSS et oppression.</p>
+<p>Vous pouvez passer par <a href="https://framaforms.org/formulaire-de-signalement-vssoppression-sesl-1788696868" target="_blank" rel="noopener noreferrer">ce formulaire de signalement</a>, ou envoyer un mail à la référence VSS et oppressions (<a href="mailto:vss@solidaires-etudiant-e-s.org">vss@solidaires-etudiant-e-s.org</a>).</p>
+<p>Si vous avez des questions, les référent-es VSS et oppressions (Margot de Bordeaux et Solstice de Grenoble) sont également joignable sur Discord.</p>
+`.trim()
+}
+
 export const defaultPages = [
   {
     slug: 'home',
@@ -173,6 +197,17 @@ export const defaultPages = [
     ctaLabel: 'À propos',
     ctaHref: '/a-propos',
     content: defaultFundamentalTextsContent
+  },
+  {
+    slug: 'signalement-vss',
+    name: 'Signalement VSS',
+    title: 'Signalement VSS',
+    description: 'Signaler des violences sexistes et sexuelles, des discriminations et autres logiques oppressives au sein de la fédération.',
+    headline: 'Signalement VSS et oppressions',
+    subheadline: 'Toute personne ayant subi des violences sexistes et sexuelles, des discriminations et autres logiques oppressives au sein du syndicat peut saisir la référence de lutte contre les VSS et les oppressions.',
+    ctaLabel: 'Accéder au formulaire',
+    ctaHref: defaultSignalementVssFormHref,
+    content: defaultSignalementVssContent
   },
   {
     slug: 'articles',
@@ -271,6 +306,19 @@ function normalizeFundamentalTextsContent(raw: Record<string, unknown> | null | 
   }
 }
 
+function normalizeSignalementVssContent(raw: Record<string, unknown> | null | undefined) {
+  const fallback = cloneCmsValue(defaultSignalementVssContent)
+  const parsed = raw || {}
+
+  return {
+    ...fallback,
+    ...parsed,
+    body: typeof parsed.body === 'string' && parsed.body.trim() ? parsed.body : fallback.body,
+    formHref: typeof parsed.formHref === 'string' && parsed.formHref.trim() ? parsed.formHref : fallback.formHref,
+    emailHref: typeof parsed.emailHref === 'string' && parsed.emailHref.trim() ? parsed.emailHref : fallback.emailHref
+  }
+}
+
 export function parsePageContent(slug: string, raw: string | null | undefined) {
   const fallback = getDefaultPageContent(slug)
 
@@ -295,6 +343,10 @@ export function parsePageContent(slug: string, raw: string | null | undefined) {
 
     if (slug === 'textes-fondamentaux') {
       return normalizeFundamentalTextsContent(parsed)
+    }
+
+    if (slug === 'signalement-vss') {
+      return normalizeSignalementVssContent(parsed)
     }
 
     return {

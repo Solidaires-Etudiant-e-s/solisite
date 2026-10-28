@@ -109,6 +109,12 @@ export interface CmsFundamentalTextsPageContent {
   texts: CmsFundamentalText[]
 }
 
+export interface CmsSignalementVssPageContent {
+  body: string
+  formHref: string
+  emailHref: string
+}
+
 export interface CmsSyndicat {
   id: number
   slug: string
@@ -123,8 +129,8 @@ export interface CmsSyndicat {
   updatedAt: string
 }
 
-export type CmsPageSlug = 'home' | 'articles' | 'guides' | 'syndicats' | 'a-propos' | 'international' | 'textes-fondamentaux'
-export type CmsPageContent = CmsHomePageContent | CmsArticlesPageContent | CmsGuidesPageContent | CmsSyndicatsPageContent | CmsAboutPageContent | CmsInternationalPageContent | CmsFundamentalTextsPageContent
+export type CmsPageSlug = 'home' | 'articles' | 'guides' | 'syndicats' | 'a-propos' | 'international' | 'textes-fondamentaux' | 'signalement-vss'
+export type CmsPageContent = CmsHomePageContent | CmsArticlesPageContent | CmsGuidesPageContent | CmsSyndicatsPageContent | CmsAboutPageContent | CmsInternationalPageContent | CmsFundamentalTextsPageContent | CmsSignalementVssPageContent
 
 export interface CmsPage {
   slug: string
@@ -380,6 +386,14 @@ export function createFundamentalTextsPageContent(): CmsFundamentalTextsPageCont
   }
 }
 
+export function createSignalementVssPageContent(): CmsSignalementVssPageContent {
+  return {
+    body: '',
+    formHref: '',
+    emailHref: ''
+  }
+}
+
 const cmsPageContentFactories = {
   'home': createHomePageContent,
   'articles': createArticlesPageContent,
@@ -387,7 +401,8 @@ const cmsPageContentFactories = {
   'syndicats': createSyndicatsPageContent,
   'a-propos': createAboutPageContent,
   'international': createInternationalPageContent,
-  'textes-fondamentaux': createFundamentalTextsPageContent
+  'textes-fondamentaux': createFundamentalTextsPageContent,
+  'signalement-vss': createSignalementVssPageContent
 } satisfies Record<CmsPageSlug, () => CmsPageContent>
 
 export function createPageContent(slug: string): CmsPageContent {
@@ -573,7 +588,7 @@ export function createDefaultSiteSettings(): CmsSiteSettings {
     siteDescription: 'Syndicats de luttes, militant pour une université gratuite, ouverte à tous·tes, de qualité, émancipatrice et autogérée.',
     contactEmail: 'contact@solidaires-etudiant-e-s.org',
     contactPhone: '+33686802445',
-    reportUrl: 'https://framaforms.org/formulaire-de-signalement-vssoppression-sesl-1788696868',
+    reportUrl: '/signalement-vss',
     address: '',
     socials: [
       {

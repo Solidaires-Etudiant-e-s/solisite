@@ -40,7 +40,7 @@ function removeSocial(index: number) {
 
       <UFormField
         label="Lien de signalement"
-        description="URL du formulaire de signalement affiché dans le pied de page (bouton « Contacter la cellule de veille »)."
+        description="URL du bouton de pied de page « Contacter la cellule de veille » (par défaut : /signalement-vss)."
       >
         <UInput
           v-model="siteSettings.reportUrl"

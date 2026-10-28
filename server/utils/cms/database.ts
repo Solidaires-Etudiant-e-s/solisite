@@ -98,24 +98,46 @@ async function seedGuides(database: CmsDatabaseClient) {
   })
 }
 
+const legacyReportUrls = [
+  'https://framaforms.org/formulaire-de-signalement-vssoppression-sesl-1788696868'
+]
+
 async function seedSiteSettings(database: CmsDatabaseClient) {
   const defaultSiteSettings = createDefaultSiteSettings()
 
-  await database.siteSettings.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      id: 1,
-      unionName: defaultSiteSettings.unionName,
-      siteDescription: defaultSiteSettings.siteDescription,
-      contactEmail: defaultSiteSettings.contactEmail,
-      contactPhone: defaultSiteSettings.contactPhone,
-      reportUrl: defaultSiteSettings.reportUrl,
-      address: defaultSiteSettings.address,
-      socialsJson: JSON.stringify(defaultSiteSettings.socials),
-      updatedAt: nowIso()
-    }
+  const existing = await database.siteSettings.findUnique({
+    where: { id: 1 }
   })
+
+  if (!existing) {
+    await database.siteSettings.create({
+      data: {
+        id: 1,
+        unionName: defaultSiteSettings.unionName,
+        siteDescription: defaultSiteSettings.siteDescription,
+        contactEmail: defaultSiteSettings.contactEmail,
+        contactPhone: defaultSiteSettings.contactPhone,
+        reportUrl: defaultSiteSettings.reportUrl,
+        address: defaultSiteSettings.address,
+        socialsJson: JSON.stringify(defaultSiteSettings.socials),
+        updatedAt: nowIso()
+      }
+    })
+
+    return
+  }
+
+  // Migrate deployments seeded with the legacy external form URL to the
+  // internal signalement page. Custom admin values are left untouched.
+  if (legacyReportUrls.includes((existing.reportUrl || '').trim())) {
+    await database.siteSettings.update({
+      where: { id: 1 },
+      data: {
+        reportUrl: defaultSiteSettings.reportUrl,
+        updatedAt: nowIso()
+      }
+    })
+  }
 }
 
 async function initializeDatabase(database: PrismaClient) {

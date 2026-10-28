@@ -88,6 +88,7 @@ useJsonld(() => ({
 
 const showSiteHeader = computed(() => !route.path.startsWith('/admin'))
 const showSiteFooter = computed(() => !route.path.startsWith('/admin'))
+const reportLink = computed(() => siteSettings.value.reportUrl || '/signalement-vss')
 const navigationLinks = computed<NavigationMenuItem[]>(() => [{
   label: 'Accueil',
   to: '/',
@@ -112,6 +113,10 @@ const navigationLinks = computed<NavigationMenuItem[]>(() => [{
   label: 'Syndicats',
   to: '/syndicats',
   active: route.path.startsWith('/syndicats')
+}, {
+  label: 'Signalement VSS',
+  to: '/signalement-vss',
+  active: route.path.startsWith('/signalement-vss')
 }])
 const headerButtons = computed(() => {
   const buttons: Array<{ icon: string, href: string, target?: string, label: string }> = []
@@ -215,14 +220,14 @@ useSeoMeta({
       v-if="showSiteHeader"
       :title="siteName"
       mode="modal"
-      :ui="{ container: 'sm:!px-0' }"
+      :ui="{ container: 'px-4 sm:px-6 lg:px-8' }"
     >
       <template #title>
         <ClientOnly>
           <NuxtLink
             key="site-title-link"
             to="/"
-            class="text-2xl font-bold font-serif"
+            class="min-w-0 text-xl font-bold font-serif sm:text-2xl"
           >
             Solidaires Étudiant-e-s
           </NuxtLink>
@@ -341,13 +346,12 @@ useSeoMeta({
 
         <div class="flex shrink-0 flex-col items-center md:items-end">
           <UButton
-            v-if="siteSettings.reportUrl"
             label="Contacter la cellule de veille"
             icon="mingcute:lifebuoy-line"
             color="primary"
-            :to="siteSettings.reportUrl"
-            target="_blank"
-            rel="noopener noreferrer"
+            :to="toLinkTo(reportLink)"
+            :href="toLinkHref(reportLink)"
+            :target="toLinkTarget(reportLink)"
           />
         </div>
       </div>

@@ -49,11 +49,11 @@ const partnersModel = computed({
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0 max-w-full overflow-x-clip">
     <UPageHero
       class="dark"
       orientation="horizontal"
-      :ui="{ root: 'sm:h-192 flex items-center', container: 'px-6 sm:px-8 gap-6 sm:gap-y-12 py-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-center', title: 'sm:!text-8xl', description: 'max-w-2xl' }"
+      :ui="{ root: 'sm:min-h-192 flex items-center overflow-x-clip', container: 'px-6 sm:px-8 gap-6 sm:gap-y-12 py-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-center', title: 'sm:!text-8xl', description: 'max-w-2xl' }"
     >
       <template #top>
         <div
@@ -181,7 +181,7 @@ const partnersModel = computed({
       <template #default>
         <div
           v-if="instagramUsername"
-          class="mt-10 lg:mt-0"
+          class="relative z-0 mt-10 min-w-0 w-full max-w-full overflow-hidden lg:mt-0"
         >
           <SiteInstagramFeed :username="instagramUsername" />
         </div>
@@ -190,6 +190,7 @@ const partnersModel = computed({
 
     <UPageSection
       id="features"
+      class="relative z-10"
       :ui="{ ...compactSectionUi, features: 'lg:grid-cols-2' }"
     >
       <template #title>
