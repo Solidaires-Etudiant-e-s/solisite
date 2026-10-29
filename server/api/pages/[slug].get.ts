@@ -1,5 +1,6 @@
 import { getPage } from '~~/server/utils/cms/pages'
 import { notFound, requireRouteParam } from '~~/server/utils/cms/http'
+import { redactSignalementVssPage } from '~~/server/utils/signalementCaptcha'
 
 export default defineEventHandler(async (event) => {
   const slug = requireRouteParam(event, 'slug', 'Missing page slug.')
@@ -8,6 +9,10 @@ export default defineEventHandler(async (event) => {
 
   if (!page) {
     notFound(`Page "${slug}" not found.`)
+  }
+
+  if (slug === 'signalement-vss') {
+    return redactSignalementVssPage(page)
   }
 
   return page
