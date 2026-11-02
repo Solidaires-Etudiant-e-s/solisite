@@ -1,11 +1,3 @@
-import { listArticles, listArticlesBySyndicat } from '~~/server/utils/cms/articles'
-import { getManagedSyndicatById, resolveCmsAccess } from '~~/server/utils/auth'
-import { listGuides } from '~~/server/utils/cms/guides'
-import { listPages } from '~~/server/utils/cms/pages'
-import { getSiteSettings } from '~~/server/utils/cms/siteSettings'
-import { listSyndicats } from '~~/server/utils/cms/syndicats'
-import { listTags } from '~~/server/utils/cms/tags'
-
 export default defineEventHandler(async (event) => {
   const access = await resolveCmsAccess(event)
   const managedSyndicat = await getManagedSyndicatById(access.managedSyndicatId)

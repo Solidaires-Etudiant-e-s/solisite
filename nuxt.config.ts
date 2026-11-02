@@ -26,7 +26,6 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
-    '@nuxtjs/leaflet',
     'nuxt-jsonld',
     '@nuxtjs/sitemap',
     '@nuxtjs/robots',
@@ -120,6 +119,9 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         'tiptap-extension-resize-image'
+      ],
+      exclude: [
+        'maplibre-gl'
       ]
     }
   },
